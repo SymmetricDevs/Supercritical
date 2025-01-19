@@ -1,26 +1,24 @@
-package gregtech.integration.jei.basic;
+package gregicality.nuclear.integration.jei.basic;
 
-import gregtech.api.nuclear.fission.CoolantRegistry;
-import gregtech.api.nuclear.fission.ICoolantStats;
-
+import gregicality.nuclear.api.nuclear.fission.CoolantRegistry;
+import gregicality.nuclear.api.nuclear.fission.ICoolantStats;
+import mezz.jei.api.ingredients.IIngredients;
+import mezz.jei.api.ingredients.VanillaTypes;
+import mezz.jei.api.recipe.IRecipeWrapper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
-
-import mezz.jei.api.ingredients.IIngredients;
-import mezz.jei.api.ingredients.VanillaTypes;
-import mezz.jei.api.recipe.IRecipeWrapper;
 
 public class CoolantInfo implements IRecipeWrapper {
 
     public FluidStack coolant;
     public FluidStack hotCoolant;
 
-    private String temps;
-    private String heatCapacity;
-    private String heatTransfer;
-    private String moderation;
+    private final String temps;
+    private final String heatCapacity;
+    private final String heatTransfer;
+    private final String moderation;
     private String hydrogen;
 
     public CoolantInfo(Fluid coolant, Fluid hotCoolant) {
@@ -29,16 +27,16 @@ public class CoolantInfo implements IRecipeWrapper {
 
         ICoolantStats stats = CoolantRegistry.getCoolant(this.coolant.getFluid());
 
-        temps = I18n.format("gregtech.coolant.exit_temp",
+        temps = I18n.format("gcyn.coolant.exit_temp",
                 stats.getHotCoolant().getTemperature());
-        heatCapacity = I18n.format("gregtech.coolant.heat_capacity",
+        heatCapacity = I18n.format("gcyn.coolant.heat_capacity",
                 stats.getSpecificHeatCapacity());
-        heatTransfer = I18n.format(I18n.format("gregtech.coolant.cooling_factor",
+        heatTransfer = I18n.format(I18n.format("gcyn.coolant.cooling_factor",
                 stats.getCoolingFactor()));
-        moderation = I18n.format("gregtech.coolant.moderation_factor",
+        moderation = I18n.format("gcyn.coolant.moderation_factor",
                 stats.getModeratorFactor());
         if (stats.accumulatesHydrogen()) {
-            hydrogen = I18n.format("gregtech.coolant.accumulates_hydrogen");
+            hydrogen = I18n.format("gcyn.coolant.accumulates_hydrogen");
         }
     }
 

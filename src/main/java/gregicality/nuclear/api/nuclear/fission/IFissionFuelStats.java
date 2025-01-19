@@ -1,4 +1,4 @@
-package gregtech.api.nuclear.fission;
+package gregicality.nuclear.api.nuclear.fission;
 
 public interface IFissionFuelStats {
 

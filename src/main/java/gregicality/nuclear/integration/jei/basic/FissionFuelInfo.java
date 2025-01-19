@@ -1,26 +1,24 @@
-package gregtech.integration.jei.basic;
+package gregicality.nuclear.integration.jei.basic;
 
-import gregtech.api.nuclear.fission.FissionFuelRegistry;
-import gregtech.api.nuclear.fission.IFissionFuelStats;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.item.ItemStack;
-
+import gregicality.nuclear.api.nuclear.fission.FissionFuelRegistry;
+import gregicality.nuclear.api.nuclear.fission.IFissionFuelStats;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.ingredients.VanillaTypes;
 import mezz.jei.api.recipe.IRecipeWrapper;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.item.ItemStack;
 
 public class FissionFuelInfo implements IRecipeWrapper {
 
     public ItemStack rod;
     public ItemStack depletedRod;
 
-    private String duration;
-    private String maxTemp;
-    private String crossSectionFast;
-    private String crossSectionSlow;
-    private String neutronGenerationTime;
+    private final String duration;
+    private final String maxTemp;
+    private final String crossSectionFast;
+    private final String crossSectionSlow;
+    private final String neutronGenerationTime;
 
     public FissionFuelInfo(ItemStack rod, ItemStack depletedRod) {
         this.rod = rod;

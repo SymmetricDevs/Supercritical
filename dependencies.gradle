@@ -39,4 +39,5 @@
  */
 dependencies {
     api("gregtech:gregtech:2.8.10-beta")
+    api(rfg.deobf("curse.maven:opencomputers-223008:5274236"))
 }

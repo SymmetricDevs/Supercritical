@@ -1,11 +1,9 @@
-package gregtech.api.items.itemhandlers;
+package gregicality.nuclear.api.items.itemhandlers;
 
-import gregtech.api.capability.ILockableHandler;
+import gregicality.nuclear.api.capability.ILockableHandler;
 import gregtech.api.capability.impl.NotifiableItemStackHandler;
 import gregtech.api.metatileentity.MetaTileEntity;
-
 import net.minecraft.item.ItemStack;
-
 import org.jetbrains.annotations.NotNull;
 
 public class LockableItemStackHandler extends NotifiableItemStackHandler implements ILockableHandler<ItemStack> {

@@ -1,4 +1,4 @@
-package gregtech.api.util.function;
+package gregicality.nuclear.api.util.function;
 
 @FunctionalInterface
 public interface FloatSupplier {

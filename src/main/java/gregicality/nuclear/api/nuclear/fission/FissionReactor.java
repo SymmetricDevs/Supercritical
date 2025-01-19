@@ -1,11 +1,10 @@
-package gregtech.api.nuclear.fission;
+package gregicality.nuclear.api.nuclear.fission;
 
-import gregtech.api.nuclear.fission.components.ControlRod;
-import gregtech.api.nuclear.fission.components.CoolantChannel;
-import gregtech.api.nuclear.fission.components.FuelRod;
-import gregtech.api.nuclear.fission.components.ReactorComponent;
-import gregtech.common.ConfigHolder;
-
+import gregicality.nuclear.api.nuclear.fission.components.ControlRod;
+import gregicality.nuclear.api.nuclear.fission.components.CoolantChannel;
+import gregicality.nuclear.api.nuclear.fission.components.FuelRod;
+import gregicality.nuclear.api.nuclear.fission.components.ReactorComponent;
+import gregicality.nuclear.common.GCYNConfigHolder;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
@@ -247,7 +246,7 @@ public class FissionReactor {
                  */
                 int prevX = fuelRods.get(i).getX();
                 int prevY = fuelRods.get(i).getY();
-                double resolution = ConfigHolder.machines.nuclear.fissionReactorResolution;
+                double resolution = GCYNConfigHolder.nuclear.fissionReactorResolution;
                 for (int t = 0; t < resolution; t++) {
                     int x = (int) Math.round((rodTwo.getX() - rodOne.getX()) *
                             ((float) t / resolution) + fuelRods.get(i).getX());
@@ -361,11 +360,11 @@ public class FissionReactor {
                     (1 - sigmoid) * Math.pow(avgFuelRodDistance, -1);
 
             maxPower = fuelRods.size() * (avgHighEnergyFissionFactor + avgLowEnergyFissionFactor) * fuelRodFactor *
-                    ConfigHolder.machines.nuclear.nuclearPowerMultiplier;
+                    GCYNConfigHolder.nuclear.nuclearPowerMultiplier;
         } else {
             // The calculations break down for the geometry, so we just do this instead.
             k = 0.00001;
-            maxPower = 0.1 * ConfigHolder.machines.nuclear.nuclearPowerMultiplier;
+            maxPower = 0.1 * GCYNConfigHolder.nuclear.nuclearPowerMultiplier;
         }
         /*
          * We give each control rod and coolant channel a weight depending on how many fuel rods they affect
@@ -482,7 +481,7 @@ public class FissionReactor {
                 }
 
                 double heatRemovedPerLiter = prop.getSpecificHeatCapacity() /
-                        ConfigHolder.machines.nuclear.fissionCoolantDivisor *
+                        GCYNConfigHolder.nuclear.fissionCoolantDivisor *
                         (cooledTemperature - coolantTemp);
                 // Explained by:
                 // https://physics.stackexchange.com/questions/153434/heat-transfer-between-the-bulk-of-the-fluid-inside-the-pipe-and-the-pipe-externa

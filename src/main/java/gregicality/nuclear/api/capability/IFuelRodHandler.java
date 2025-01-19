@@ -1,9 +1,8 @@
-package gregtech.api.capability;
+package gregicality.nuclear.api.capability;
 
-import gregtech.api.items.itemhandlers.LockableItemStackHandler;
-import gregtech.api.nuclear.fission.IFissionFuelStats;
-import gregtech.api.nuclear.fission.components.FuelRod;
-
+import gregicality.nuclear.api.items.itemhandlers.LockableItemStackHandler;
+import gregicality.nuclear.api.nuclear.fission.IFissionFuelStats;
+import gregicality.nuclear.api.nuclear.fission.components.FuelRod;
 import net.minecraft.item.ItemStack;
 
 public interface IFuelRodHandler extends ILockableHandler<ItemStack> {

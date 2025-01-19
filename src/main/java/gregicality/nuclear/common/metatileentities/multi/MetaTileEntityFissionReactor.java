@@ -1,60 +1,45 @@
-package gregtech.common.metatileentities.multi;
+package gregicality.nuclear.common.metatileentities.multi;
 
-import gregtech.api.capability.GregtechDataCodes;
-import gregtech.api.capability.ICoolantHandler;
-import gregtech.api.capability.IFuelRodHandler;
+import codechicken.lib.render.CCRenderState;
+import codechicken.lib.render.pipeline.IVertexOperation;
+import codechicken.lib.vec.Matrix4;
+import gregicality.nuclear.GCYNValues;
+import gregicality.nuclear.api.capability.ICoolantHandler;
+import gregicality.nuclear.api.capability.IFuelRodHandler;
+import gregicality.nuclear.api.cover.ICustomEnergyCover;
+import gregicality.nuclear.api.gui.GCYNGuiTextures;
+import gregicality.nuclear.api.gui.widgets.UpdatedSliderWidget;
+import gregicality.nuclear.api.metatileentity.multiblock.GCYNMultiblockAbility;
+import gregicality.nuclear.api.metatileentity.multiblock.IFissionReactorHatch;
+import gregicality.nuclear.api.nuclear.fission.*;
+import gregicality.nuclear.api.nuclear.fission.components.ControlRod;
+import gregicality.nuclear.api.nuclear.fission.components.CoolantChannel;
+import gregicality.nuclear.api.nuclear.fission.components.FuelRod;
+import gregicality.nuclear.api.unification.material.GCYNMaterials;
+import gregicality.nuclear.api.util.GCYNUtility;
+import gregicality.nuclear.client.renderer.textures.GCYNTextures;
+import gregicality.nuclear.common.blocks.BlockFissionCasing;
+import gregicality.nuclear.common.blocks.GCYNMetaBlocks;
+import gregicality.nuclear.common.metatileentities.GCYNMetaTileEntities;
+import gregicality.nuclear.common.metatileentities.multi.multiblockpart.MetaTileEntityControlRodPort;
+import gregicality.nuclear.common.metatileentities.multi.multiblockpart.MetaTileEntityCoolantExportHatch;
+import gregicality.nuclear.common.metatileentities.multi.multiblockpart.MetaTileEntityFuelRodImportBus;
 import gregtech.api.capability.IMaintenanceHatch;
-import gregtech.api.cover.ICustomEnergyCover;
 import gregtech.api.gui.GuiTextures;
 import gregtech.api.gui.ModularUI;
 import gregtech.api.gui.Widget;
-import gregtech.api.gui.widgets.AdvancedTextWidget;
-import gregtech.api.gui.widgets.ImageWidget;
-import gregtech.api.gui.widgets.ProgressWidget;
-import gregtech.api.gui.widgets.SliderWidget;
-import gregtech.api.gui.widgets.ToggleButtonWidget;
-import gregtech.api.gui.widgets.UpdatedSliderWidget;
+import gregtech.api.gui.widgets.*;
 import gregtech.api.metatileentity.IDataInfoProvider;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.MetaTileEntityHolder;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
-import gregtech.api.metatileentity.multiblock.IFissionReactorHatch;
-import gregtech.api.metatileentity.multiblock.IMultiblockAbilityPart;
-import gregtech.api.metatileentity.multiblock.IMultiblockPart;
-import gregtech.api.metatileentity.multiblock.IProgressBarMultiblock;
-import gregtech.api.metatileentity.multiblock.MultiblockAbility;
-import gregtech.api.metatileentity.multiblock.MultiblockWithDisplayBase;
-import gregtech.api.nuclear.fission.CoolantRegistry;
-import gregtech.api.nuclear.fission.FissionFuelRegistry;
-import gregtech.api.nuclear.fission.FissionReactor;
-import gregtech.api.nuclear.fission.ICoolantStats;
-import gregtech.api.nuclear.fission.IFissionFuelStats;
-import gregtech.api.nuclear.fission.components.ControlRod;
-import gregtech.api.nuclear.fission.components.CoolantChannel;
-import gregtech.api.nuclear.fission.components.FuelRod;
-import gregtech.api.pattern.BlockPattern;
-import gregtech.api.pattern.FactoryBlockPattern;
-import gregtech.api.pattern.MultiblockShapeInfo;
-import gregtech.api.pattern.PatternMatchContext;
-import gregtech.api.pattern.PatternStringError;
-import gregtech.api.pattern.TraceabilityPredicate;
-import gregtech.api.unification.material.Materials;
-import gregtech.api.util.BlockInfo;
-import gregtech.api.util.GTStringUtils;
-import gregtech.api.util.GTUtility;
-import gregtech.api.util.RelativeDirection;
-import gregtech.api.util.TextComponentUtil;
-import gregtech.api.util.TextFormattingUtil;
+import gregtech.api.metatileentity.multiblock.*;
+import gregtech.api.pattern.*;
+import gregtech.api.util.*;
 import gregtech.client.renderer.ICubeRenderer;
-import gregtech.client.renderer.texture.Textures;
 import gregtech.common.ConfigHolder;
-import gregtech.common.blocks.BlockFissionCasing;
 import gregtech.common.blocks.MetaBlocks;
 import gregtech.common.metatileentities.MetaTileEntities;
-import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityControlRodPort;
-import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityCoolantExportHatch;
-import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityFuelRodImportBus;
-
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
@@ -65,15 +50,14 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.*;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-
-import codechicken.lib.render.CCRenderState;
-import codechicken.lib.render.pipeline.IVertexOperation;
-import codechicken.lib.vec.Matrix4;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -117,74 +101,9 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         return new MetaTileEntityFissionReactor(metaTileEntityId);
     }
 
-    protected ModularUI.Builder createUITemplate(EntityPlayer entityPlayer) {
-        ModularUI.Builder builder = ModularUI.builder(GuiTextures.BACKGROUND, 240, 208);
-
-        // Display
-        builder.image(4, 4, 232, 109, GuiTextures.DISPLAY);
-
-        // triple bar
-        ProgressWidget progressBar = new ProgressWidget(
-                () -> this.getFillPercentage(0),
-                4, 115, 76, 7,
-                GuiTextures.PROGRESS_BAR_FISSION_HEAT, ProgressWidget.MoveType.HORIZONTAL)
-                        .setHoverTextConsumer(list -> this.addBarHoverText(list, 0));
-        builder.widget(progressBar);
-
-        progressBar = new ProgressWidget(
-                () -> this.getFillPercentage(1),
-                82, 115, 76, 7,
-                GuiTextures.PROGRESS_BAR_FISSION_PRESSURE, ProgressWidget.MoveType.HORIZONTAL)
-                        .setHoverTextConsumer(list -> this.addBarHoverText(list, 1));
-        builder.widget(progressBar);
-
-        progressBar = new ProgressWidget(
-                () -> this.getFillPercentage(2),
-                160, 115, 76, 7,
-                GuiTextures.PROGRESS_BAR_FISSION_ENERGY, ProgressWidget.MoveType.HORIZONTAL)
-                        .setHoverTextConsumer(list -> this.addBarHoverText(list, 2));
-        builder.widget(progressBar);
-
-        builder.label(9, 9, getMetaFullName(), 0xFFFFFF);
-
-        builder.widget(new UpdatedSliderWidget("gregtech.gui.fission.control_rod_insertion", 10, 60, 220,
-                18, 0.0f, 1.0f,
-                (float) controlRodInsertionValue, this::setControlRodInsertionValue,
-                () -> (float) this.controlRodInsertionValue) {
-
-            @Override
-            protected String getDisplayString() {
-                return I18n.format("gregtech.gui.fission.control_rod_insertion",
-                        String.format("%.2f%%", this.getSliderValue() * 100));
-            }
-        }.setBackground(GuiTextures.DARK_SLIDER_BACKGROUND).setSliderIcon(GuiTextures.DARK_SLIDER_ICON));
-        builder.widget(new SliderWidget("gregtech.gui.fission.coolant_flow", 10, 80, 220, 18, 0.0f, 16000.f, flowRate,
-                this::setFlowRate).setBackground(GuiTextures.DARK_SLIDER_BACKGROUND)
-                        .setSliderIcon(GuiTextures.DARK_SLIDER_ICON));
-
-        builder.widget(new AdvancedTextWidget(9, 20, this::addDisplayText, 0xFFFFFF)
-                .setMaxWidthLimit(220)
-                .setClickHandler(this::handleDisplayClick));
-
-        // Power Button
-
-        builder.widget(new ToggleButtonWidget(215, 183, 18, 18, GuiTextures.BUTTON_LOCK,
-                this::isLocked, this::tryLocking).shouldUseBaseBackground()
-                        .setTooltipText("gregtech.gui.fission.lock"));
-        builder.widget(new ImageWidget(215, 201, 18, 6, GuiTextures.BUTTON_POWER_DETAIL));
-
-        // Voiding Mode Button
-        builder.widget(new ImageWidget(215, 161, 18, 18, GuiTextures.BUTTON_VOID_NONE)
-                .setTooltip("gregtech.gui.multiblock_voiding_not_supported"));
-
-        builder.widget(new ImageWidget(215, 143, 18, 18, GuiTextures.BUTTON_NO_DISTINCT_BUSES)
-                .setTooltip("gregtech.multiblock.universal.distinct_not_supported"));
-
-        // Flex Button
-        builder.widget(getFlexButton(215, 125, 18, 18));
-
-        builder.bindPlayerInventory(entityPlayer.inventory, 125);
-        return builder;
+    @NotNull
+    protected static IBlockState getVesselState() {
+        return GCYNMetaBlocks.FISSION_CASING.getState(BlockFissionCasing.FissionCasingType.REACTOR_VESSEL);
     }
 
     @Override
@@ -201,11 +120,9 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         }
     }
 
-    @Override
-    protected @NotNull Widget getFlexButton(int x, int y, int width, int height) {
-        return new ToggleButtonWidget(x, y, width, height, this::areControlRodsRegulated,
-                this::toggleControlRodRegulation).setButtonTexture(GuiTextures.BUTTON_CONTROL_ROD_HELPER)
-                        .setTooltipText("gregtech.gui.fission.helper");
+    @NotNull
+    protected static IBlockState getFuelChannelState() {
+        return GCYNMetaBlocks.FISSION_CASING.getState(BlockFissionCasing.FissionCasingType.FUEL_CHANNEL);
     }
 
     /**
@@ -221,18 +138,9 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         return fissionReactor != null && this.fissionReactor.controlRodRegulationOn;
     }
 
-    @Override
-    public void addBarHoverText(List<ITextComponent> list, int index) {
-        if (index == 0) {
-            list.add(new TextComponentTranslation("gregtech.gui.fission.temperature",
-                    String.format("%.1f", this.temperature) + " / " + String.format("%.1f", this.maxTemperature)));
-        } else if (index == 1) {
-            list.add(new TextComponentTranslation("gregtech.gui.fission.pressure",
-                    String.format("%.0f", this.pressure) + " / " + String.format("%.0f", this.maxPressure)));
-        } else {
-            list.add(new TextComponentTranslation("gregtech.gui.fission.power", String.format("%.1f", this.power),
-                    String.format("%.1f", this.maxPower)));
-        }
+    @NotNull
+    protected static IBlockState getControlRodChannelState() {
+        return GCYNMetaBlocks.FISSION_CASING.getState(BlockFissionCasing.FissionCasingType.CONTROL_ROD_CHANNEL);
     }
 
     private void setFlowRate(float flowrate) {
@@ -250,19 +158,9 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         return lockingState == LockingState.LOCKED;
     }
 
-    private TextFormatting getLockedTextColor() {
-        switch (lockingState) {
-            case LOCKED:
-                return TextFormatting.GREEN;
-            case UNLOCKED:
-                return TextFormatting.DARK_AQUA;
-            case INVALID_COMPONENT:
-                return TextFormatting.RED;
-            case SHOULD_LOCK:
-                return TextFormatting.BLACK;
-            default:
-                return getWorld().getWorldTime() % 4 >= 2 ? TextFormatting.RED : TextFormatting.YELLOW;
-        }
+    @NotNull
+    protected static IBlockState getCoolantChannelState() {
+        return GCYNMetaBlocks.FISSION_CASING.getState(BlockFissionCasing.FissionCasingType.COOLANT_CHANNEL);
     }
 
     private void tryLocking(boolean lock) {
@@ -276,10 +174,24 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
     }
 
     @Override
+    public void addBarHoverText(List<ITextComponent> list, int index) {
+        if (index == 0) {
+            list.add(new TextComponentTranslation("gcyn.gui.fission.temperature",
+                    String.format("%.1f", this.temperature) + " / " + String.format("%.1f", this.maxTemperature)));
+        } else if (index == 1) {
+            list.add(new TextComponentTranslation("gcyn.gui.fission.pressure",
+                    String.format("%.0f", this.pressure) + " / " + String.format("%.0f", this.maxPressure)));
+        } else {
+            list.add(new TextComponentTranslation("gcyn.gui.fission.power", String.format("%.1f", this.power),
+                    String.format("%.1f", this.maxPower)));
+        }
+    }
+
+    @Override
     protected void addErrorText(List<ITextComponent> list) {
         if (lockingState != LockingState.LOCKED && lockingState != LockingState.UNLOCKED) {
             list.add(
-                    new TextComponentTranslation("gregtech.gui.fission.lock." + lockingState.toString().toLowerCase()));
+                    new TextComponentTranslation("gcyn.gui.fission.lock." + lockingState.toString().toLowerCase()));
         }
     }
 
@@ -288,29 +200,10 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         super.addDisplayText(list);
         list.add(
                 TextComponentUtil.setColor(new TextComponentTranslation(
-                        "gregtech.gui.fission.lock." + lockingState.toString().toLowerCase()), getLockedTextColor()));
-        list.add(new TextComponentTranslation("gregtech.gui.fission.k_eff", String.format("%.4f", this.kEff)));
-        list.add(new TextComponentTranslation("gregtech.gui.fission.depletion",
+                        "gcyn.gui.fission.lock." + lockingState.toString().toLowerCase()), getLockedTextColor()));
+        list.add(new TextComponentTranslation("gcyn.gui.fission.k_eff", String.format("%.4f", this.kEff)));
+        list.add(new TextComponentTranslation("gcyn.gui.fission.depletion",
                 String.format("%.2f", this.fuelDepletionPercent * 100)));
-    }
-
-    protected boolean isBlockEdge(@NotNull World world, @NotNull BlockPos.MutableBlockPos pos,
-                                  @NotNull EnumFacing direction,
-                                  int steps) {
-        pos.move(direction, steps);
-
-        if (world.getBlockState(pos).getBlock() == MetaBlocks.FISSION_CASING) {
-            pos.move(direction.getOpposite(), steps);
-            return false;
-        }
-
-        MetaTileEntity potentialTile = GTUtility.getMetaTileEntity(world, pos);
-        pos.move(direction.getOpposite(), steps);
-        if (potentialTile == null) {
-            return true;
-        }
-
-        return !(potentialTile instanceof IFissionReactorHatch || potentialTile instanceof IMaintenanceHatch);
     }
 
     protected EnumFacing getUp() {
@@ -352,6 +245,126 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         return i - 1;
     }
 
+    protected ModularUI.Builder createUITemplate(EntityPlayer entityPlayer) {
+        ModularUI.Builder builder = ModularUI.builder(GuiTextures.BACKGROUND, 240, 208);
+
+        // Display
+        builder.image(4, 4, 232, 109, GuiTextures.DISPLAY);
+
+        // triple bar
+        ProgressWidget progressBar = new ProgressWidget(
+                () -> this.getFillPercentage(0),
+                4, 115, 76, 7,
+                GCYNGuiTextures.PROGRESS_BAR_FISSION_HEAT, ProgressWidget.MoveType.HORIZONTAL)
+                .setHoverTextConsumer(list -> this.addBarHoverText(list, 0));
+        builder.widget(progressBar);
+
+        progressBar = new ProgressWidget(
+                () -> this.getFillPercentage(1),
+                82, 115, 76, 7,
+                GCYNGuiTextures.PROGRESS_BAR_FISSION_PRESSURE, ProgressWidget.MoveType.HORIZONTAL)
+                .setHoverTextConsumer(list -> this.addBarHoverText(list, 1));
+        builder.widget(progressBar);
+
+        progressBar = new ProgressWidget(
+                () -> this.getFillPercentage(2),
+                160, 115, 76, 7,
+                GCYNGuiTextures.PROGRESS_BAR_FISSION_ENERGY, ProgressWidget.MoveType.HORIZONTAL)
+                .setHoverTextConsumer(list -> this.addBarHoverText(list, 2));
+        builder.widget(progressBar);
+
+        builder.label(9, 9, getMetaFullName(), 0xFFFFFF);
+
+        builder.widget(new UpdatedSliderWidget("gcyn.gui.fission.control_rod_insertion", 10, 60, 220,
+                18, 0.0f, 1.0f,
+                (float) controlRodInsertionValue, this::setControlRodInsertionValue,
+                () -> (float) this.controlRodInsertionValue) {
+
+            @Override
+            protected String getDisplayString() {
+                return I18n.format("gcyn.gui.fission.control_rod_insertion",
+                        String.format("%.2f%%", this.getSliderValue() * 100));
+            }
+        }.setBackground(GCYNGuiTextures.DARK_SLIDER_BACKGROUND).setSliderIcon(GCYNGuiTextures.DARK_SLIDER_ICON));
+        builder.widget(new SliderWidget("gcyn.gui.fission.coolant_flow", 10, 80, 220, 18, 0.0f, 16000.f, flowRate,
+                this::setFlowRate).setBackground(GCYNGuiTextures.DARK_SLIDER_BACKGROUND)
+                .setSliderIcon(GCYNGuiTextures.DARK_SLIDER_ICON));
+
+        builder.widget(new AdvancedTextWidget(9, 20, this::addDisplayText, 0xFFFFFF)
+                .setMaxWidthLimit(220)
+                .setClickHandler(this::handleDisplayClick));
+
+        // Power Button
+
+        builder.widget(new ToggleButtonWidget(215, 183, 18, 18, GuiTextures.BUTTON_LOCK,
+                this::isLocked, this::tryLocking).shouldUseBaseBackground()
+                .setTooltipText("gcyn.gui.fission.lock"));
+        builder.widget(new ImageWidget(215, 201, 18, 6, GuiTextures.BUTTON_POWER_DETAIL));
+
+        // Voiding Mode Button
+        builder.widget(new ImageWidget(215, 161, 18, 18, GuiTextures.BUTTON_VOID_NONE)
+                .setTooltip("gregtech.gui.multiblock_voiding_not_supported"));
+
+        builder.widget(new ImageWidget(215, 143, 18, 18, GuiTextures.BUTTON_NO_DISTINCT_BUSES)
+                .setTooltip("gregtech.multiblock.universal.distinct_not_supported"));
+
+        // Flex Button
+        builder.widget(getFlexButton(215, 125, 18, 18));
+
+        builder.bindPlayerInventory(entityPlayer.inventory, 125);
+        return builder;
+    }
+
+    @Override
+    protected @NotNull Widget getFlexButton(int x, int y, int width, int height) {
+        return new ToggleButtonWidget(x, y, width, height, this::areControlRodsRegulated,
+                this::toggleControlRodRegulation).setButtonTexture(GCYNGuiTextures.BUTTON_CONTROL_ROD_HELPER)
+                .setTooltipText("gcyn.gui.fission.helper");
+    }
+
+    private TextFormatting getLockedTextColor() {
+        return switch (lockingState) {
+            case LOCKED -> TextFormatting.GREEN;
+            case UNLOCKED -> TextFormatting.DARK_AQUA;
+            case INVALID_COMPONENT -> TextFormatting.RED;
+            case SHOULD_LOCK -> TextFormatting.BLACK;
+            default -> getWorld().getWorldTime() % 4 >= 2 ? TextFormatting.RED : TextFormatting.YELLOW;
+        };
+    }
+
+    protected void performPrimaryExplosion() {
+        this.unlockAll();
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(this.getPos());
+        pos = pos.move(this.getFrontFacing().getOpposite(), diameter / 2);
+        this.getWorld().createExplosion(null, pos.getX(), pos.getY() + heightTop, pos.getZ(), 4.f, true);
+    }
+
+    protected void performSecondaryExplosion(double accumulatedHydrogen) {
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(this.getPos());
+        pos = pos.move(this.getFrontFacing().getOpposite(), diameter / 2);
+        this.getWorld().newExplosion(null, pos.getX(), pos.getY() + heightTop + 3, pos.getZ(),
+                4.f + (float) Math.log(accumulatedHydrogen), true, true);
+    }
+
+    protected boolean isBlockEdge(@NotNull World world, @NotNull BlockPos.MutableBlockPos pos,
+                                  @NotNull EnumFacing direction,
+                                  int steps) {
+        pos.move(direction, steps);
+
+        if (world.getBlockState(pos).getBlock() == GCYNMetaBlocks.FISSION_CASING) {
+            pos.move(direction.getOpposite(), steps);
+            return false;
+        }
+
+        MetaTileEntity potentialTile = GTUtility.getMetaTileEntity(world, pos);
+        pos.move(direction.getOpposite(), steps);
+        if (potentialTile == null) {
+            return true;
+        }
+
+        return !(potentialTile instanceof IFissionReactorHatch || potentialTile instanceof IMaintenanceHatch);
+    }
+
     @Override
     public void updateFormedValid() {
         // Take in coolant, take in fuel, update reactor, output steam
@@ -375,7 +388,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                 if (this.fissionReactor.isDepleted()) {
                     boolean canWork = true;
                     boolean needsReset = false;
-                    for (IFuelRodHandler fuelImport : this.getAbilities(MultiblockAbility.IMPORT_FUEL_ROD)) {
+                    for (IFuelRodHandler fuelImport : this.getAbilities(GCYNMultiblockAbility.IMPORT_FUEL_ROD)) {
                         if (fuelImport.getStackHandler().extractItem(0, 1, true).isEmpty()) {
                             canWork = false;
                             this.lockingState = LockingState.MISSING_FUEL;
@@ -394,7 +407,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
 
                     }
 
-                    for (IFuelRodHandler fuelImport : this.getAbilities(MultiblockAbility.IMPORT_FUEL_ROD)) {
+                    for (IFuelRodHandler fuelImport : this.getAbilities(GCYNMultiblockAbility.IMPORT_FUEL_ROD)) {
                         if (fissionReactor.needsOutput) {
                             ((MetaTileEntityFuelRodImportBus) fuelImport).getExportHatch(this.height - 1)
                                     .getExportItems().insertItem(0,
@@ -440,38 +453,37 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         }
     }
 
+    @NotNull
+    @Override
+    public List<ITextComponent> getDataInfo() {
+        List<ITextComponent> list = new ArrayList<>();
+        list.add(new TextComponentTranslation("gcyn.multiblock.fission_reactor.diameter",
+                new TextComponentTranslation(TextFormattingUtil.formatNumbers(this.diameter) + "m")
+                        .setStyle(new Style().setColor(TextFormatting.YELLOW))));
+        list.add(new TextComponentTranslation("gcyn.multiblock.fission_reactor.height",
+                new TextComponentTranslation(TextFormattingUtil.formatNumbers(this.height) + "m")
+                        .setStyle(new Style().setColor(TextFormatting.YELLOW))));
+        return list;
+    }
+
     protected void performMeltdownEffects() {
         this.unlockAll();
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(this.getPos());
         pos = pos.move(this.getFrontFacing().getOpposite(), diameter / 2);
         placeCorium(pos, EnumFacing.UP);
         for (int i = 0; i <= this.heightBottom; i++) {
-            this.getWorld().setBlockState(pos, Materials.Corium.getFluid().getBlock().getDefaultState());
+            this.getWorld().setBlockState(pos, GCYNMaterials.Corium.getFluid().getBlock().getDefaultState());
             for (EnumFacing facing : EnumFacing.HORIZONTALS) {
                 placeCorium(pos, facing);
             }
             pos.move(EnumFacing.DOWN);
         }
-        this.getWorld().setBlockState(pos.add(0, 1, 0), Materials.Corium.getFluid().getBlock().getDefaultState());
+        this.getWorld().setBlockState(pos.add(0, 1, 0), GCYNMaterials.Corium.getFluid().getBlock().getDefaultState());
     }
 
     private void placeCorium(BlockPos.MutableBlockPos pos, EnumFacing facing) {
-        this.getWorld().setBlockState(pos.move(facing), Materials.Corium.getFluid().getBlock().getDefaultState());
+        this.getWorld().setBlockState(pos.move(facing), GCYNMaterials.Corium.getFluid().getBlock().getDefaultState());
         pos.move(facing.getOpposite());
-    }
-
-    protected void performPrimaryExplosion() {
-        this.unlockAll();
-        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(this.getPos());
-        pos = pos.move(this.getFrontFacing().getOpposite(), diameter / 2);
-        this.getWorld().createExplosion(null, pos.getX(), pos.getY() + heightTop, pos.getZ(), 4.f, true);
-    }
-
-    protected void performSecondaryExplosion(double accumulatedHydrogen) {
-        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(this.getPos());
-        pos = pos.move(this.getFrontFacing().getOpposite(), diameter / 2);
-        this.getWorld().newExplosion(null, pos.getX(), pos.getY() + heightTop + 3, pos.getZ(),
-                4.f + (float) Math.log(accumulatedHydrogen), true, true);
     }
 
     @NotNull
@@ -526,14 +538,14 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                 if (Math.pow(outerI - Math.floor(this.diameter / 2.), 2) +
                         Math.pow(j - Math.floor(this.diameter / 2.), 2) >
                         Math.pow(radius + 0.5f, 2)) {
-                    interiorSlice[i] = GTStringUtils.replace(interiorSlice[i], j, 'B');
+                    interiorSlice[i] = GCYNUtility.replace(interiorSlice[i], j, 'B');
                 }
 
                 int outerJ = j + (int) Math.signum(j - (diameter / 2));
                 if (Math.pow(i - Math.floor(this.diameter / 2.), 2) +
                         Math.pow(outerJ - Math.floor(this.diameter / 2.), 2) >
                         Math.pow(radius + 0.5f, 2)) {
-                    interiorSlice[i] = GTStringUtils.replace(interiorSlice[i], j, 'B');
+                    interiorSlice[i] = GCYNUtility.replace(interiorSlice[i], j, 'B');
                 }
             }
         }
@@ -564,7 +576,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                 // O for the outputs on the bottom
                 .where('O',
                         states(getVesselState())
-                                .or(abilities(MultiblockAbility.EXPORT_COOLANT, MultiblockAbility.EXPORT_FUEL_ROD)))
+                                .or(abilities(GCYNMultiblockAbility.EXPORT_COOLANT, GCYNMultiblockAbility.EXPORT_FUEL_ROD)))
                 // B for the vessel blocks on the walls
                 .where('B',
                         states(getVesselState())
@@ -575,8 +587,8 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
     }
 
     public TraceabilityPredicate getImportPredicate() {
-        MultiblockAbility<?>[] allowedAbilities = { MultiblockAbility.IMPORT_COOLANT, MultiblockAbility.IMPORT_FUEL_ROD,
-                MultiblockAbility.CONTROL_ROD_PORT };
+        MultiblockAbility<?>[] allowedAbilities = {GCYNMultiblockAbility.IMPORT_COOLANT, GCYNMultiblockAbility.IMPORT_FUEL_ROD,
+                GCYNMultiblockAbility.CONTROL_ROD_PORT};
         return tilePredicate((state, tile) -> {
             if (!(tile instanceof IMultiblockAbilityPart<?> &&
                     ArrayUtils.contains(allowedAbilities, ((IMultiblockAbilityPart<?>) tile).getAbility()))) {
@@ -584,7 +596,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
             }
             if (tile instanceof IFissionReactorHatch hatchPart) {
                 if (!hatchPart.checkValidity(height - 1)) {
-                    state.setError(new PatternStringError("gregtech.multiblock.pattern.error.hatch_invalid"));
+                    state.setError(new PatternStringError("gcyn.multiblock.pattern.error.hatch_invalid"));
                     return false;
                 }
                 return true;
@@ -602,49 +614,16 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                         }).toArray(BlockInfo[]::new));
     }
 
-    @NotNull
-    @Override
-    public List<ITextComponent> getDataInfo() {
-        List<ITextComponent> list = new ArrayList<>();
-        list.add(new TextComponentTranslation("gregtech.multiblock.fission_reactor.diameter",
-                new TextComponentTranslation(TextFormattingUtil.formatNumbers(this.diameter) + "m")
-                        .setStyle(new Style().setColor(TextFormatting.YELLOW))));
-        list.add(new TextComponentTranslation("gregtech.multiblock.fission_reactor.height",
-                new TextComponentTranslation(TextFormattingUtil.formatNumbers(this.height) + "m")
-                        .setStyle(new Style().setColor(TextFormatting.YELLOW))));
-        return list;
-    }
-
-    @NotNull
-    protected IBlockState getVesselState() {
-        return MetaBlocks.FISSION_CASING.getState(BlockFissionCasing.FissionCasingType.REACTOR_VESSEL);
-    }
-
-    @NotNull
-    protected IBlockState getFuelChannelState() {
-        return MetaBlocks.FISSION_CASING.getState(BlockFissionCasing.FissionCasingType.FUEL_CHANNEL);
-    }
-
-    @NotNull
-    protected IBlockState getControlRodChannelState() {
-        return MetaBlocks.FISSION_CASING.getState(BlockFissionCasing.FissionCasingType.CONTROL_ROD_CHANNEL);
-    }
-
-    @NotNull
-    IBlockState getCoolantChannelState() {
-        return MetaBlocks.FISSION_CASING.getState(BlockFissionCasing.FissionCasingType.COOLANT_CHANNEL);
-    }
-
     @Override
     public ICubeRenderer getBaseTexture(IMultiblockPart sourcePart) {
-        return Textures.FISSION_REACTOR_TEXTURE;
+        return GCYNTextures.FISSION_REACTOR_TEXTURE;
     }
 
     @SideOnly(Side.CLIENT)
     @NotNull
     @Override
     protected ICubeRenderer getFrontOverlay() {
-        return Textures.FISSION_REACTOR_OVERLAY;
+        return GCYNTextures.FISSION_REACTOR_OVERLAY;
     }
 
     @Override
@@ -766,7 +745,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         this.controlRodInsertionValue = this.fissionReactor.controlRodInsertion;
         this.fuelDepletionPercent = Math.max(0, this.fissionReactor.fuelDepletion) /
                 this.fissionReactor.maxFuelDepletion;
-        writeCustomData(GregtechDataCodes.SYNC_REACTOR_STATS, (packetBuffer -> {
+        writeCustomData(GCYNValues.SYNC_REACTOR_STATS, (packetBuffer -> {
             packetBuffer.writeDouble(this.temperature);
             packetBuffer.writeDouble(this.maxTemperature);
             packetBuffer.writeDouble(this.pressure);
@@ -784,7 +763,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
     public void receiveCustomData(int dataId, PacketBuffer buf) {
         super.receiveCustomData(dataId, buf);
 
-        if (dataId == GregtechDataCodes.SYNC_REACTOR_STATS) {
+        if (dataId == GCYNValues.SYNC_REACTOR_STATS) {
             this.temperature = buf.readDouble();
             this.maxTemperature = buf.readDouble();
             this.pressure = buf.readDouble();
@@ -794,26 +773,26 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
             this.kEff = buf.readDouble();
             this.controlRodInsertionValue = buf.readDouble();
             this.fuelDepletionPercent = buf.readDouble();
-        } else if (dataId == GregtechDataCodes.SYNC_LOCKING_STATE) {
+        } else if (dataId == GCYNValues.SYNC_LOCKING_STATE) {
             this.lockingState = buf.readEnumValue(LockingState.class);
             this.scheduleRenderUpdate();
         }
     }
 
     protected void lockAll() {
-        for (ICoolantHandler handler : this.getAbilities(MultiblockAbility.IMPORT_COOLANT)) {
+        for (ICoolantHandler handler : this.getAbilities(GCYNMultiblockAbility.IMPORT_COOLANT)) {
             handler.setLock(true);
         }
-        for (IFuelRodHandler handler : this.getAbilities(MultiblockAbility.IMPORT_FUEL_ROD)) {
+        for (IFuelRodHandler handler : this.getAbilities(GCYNMultiblockAbility.IMPORT_FUEL_ROD)) {
             handler.setLock(true);
         }
     }
 
     protected void unlockAll() {
-        for (ICoolantHandler handler : this.getAbilities(MultiblockAbility.IMPORT_COOLANT)) {
+        for (ICoolantHandler handler : this.getAbilities(GCYNMultiblockAbility.IMPORT_COOLANT)) {
             handler.setLock(false);
         }
-        for (IFuelRodHandler handler : this.getAbilities(MultiblockAbility.IMPORT_FUEL_ROD)) {
+        for (IFuelRodHandler handler : this.getAbilities(GCYNMultiblockAbility.IMPORT_FUEL_ROD)) {
             handler.setLock(false);
         }
         if (this.fissionReactor != null) {
@@ -917,7 +896,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
 
     protected void setLockingState(LockingState lockingState) {
         if (this.lockingState != lockingState) {
-            writeCustomData(GregtechDataCodes.SYNC_LOCKING_STATE, (buf) -> buf.writeEnumValue(lockingState));
+            writeCustomData(GCYNValues.SYNC_LOCKING_STATE, (buf) -> buf.writeEnumValue(lockingState));
         }
         this.lockingState = lockingState;
     }
@@ -995,14 +974,14 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                     if (Math.pow(outerI - Math.floor(diameter / 2.), 2) +
                             Math.pow(j - Math.floor(diameter / 2.), 2) >
                             Math.pow(radius + 0.5f, 2)) {
-                        interiorSlice[i] = GTStringUtils.replace(interiorSlice[i], j, 'V');
+                        interiorSlice[i] = GCYNUtility.replace(interiorSlice[i], j, 'V');
                     }
 
                     int outerJ = j + (int) Math.signum(j - (diameter / 2));
                     if (Math.pow(i - Math.floor(diameter / 2.), 2) +
                             Math.pow(outerJ - Math.floor(diameter / 2.), 2) >
                             Math.pow(radius + 0.5f, 2)) {
-                        interiorSlice[i] = GTStringUtils.replace(interiorSlice[i], j, 'V');
+                        interiorSlice[i] = GCYNUtility.replace(interiorSlice[i], j, 'V');
                     }
                 }
             }
@@ -1039,8 +1018,8 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                 topSlice[i] = topSlice[i].replace('A', 'V');
                 bottomSlice[i] = bottomSlice[i].replace('A', 'V');
             }
-            MultiblockShapeInfo.Builder builder = MultiblockShapeInfo.builder(RelativeDirection.RIGHT,
-                    RelativeDirection.FRONT, RelativeDirection.UP);
+            MultiblockShapeInfo.Builder builder = MultiblockShapeInfo.builder(/*RelativeDirection.RIGHT,
+                    RelativeDirection.FRONT, RelativeDirection.UP*/); // TODO: Fix this
             builder.aisle(topSlice);
             for (int i = 0; i < heightBottom - 1; i++) {
                 builder.aisle(interiorSlice);
@@ -1050,26 +1029,26 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                 builder.aisle(interiorSlice);
             }
             builder.aisle(bottomSlice);
-            shapes.add(builder.where('S', MetaTileEntities.FISSION_REACTOR, EnumFacing.NORTH)
+            shapes.add(builder.where('S', GCYNMetaTileEntities.FISSION_REACTOR, EnumFacing.NORTH)
                     // A for interior components, which are air here
                     .where('A', Blocks.AIR.getDefaultState())
                     // Technically a duplicate, but this just makes things easier
                     .where(' ', Blocks.AIR.getDefaultState())
                     // I for the inputs on the top
-                    .where('V', this.getVesselState())
-                    .where('f', this.getFuelChannelState())
-                    .where('c', this.getCoolantChannelState())
-                    .where('r', this.getControlRodChannelState())
-                    .where('e', MetaTileEntities.FUEL_ROD_INPUT, EnumFacing.UP)
-                    .where('g', MetaTileEntities.FUEL_ROD_OUTPUT, EnumFacing.DOWN)
-                    .where('b', MetaTileEntities.COOLANT_INPUT, EnumFacing.UP)
-                    .where('d', MetaTileEntities.COOLANT_OUTPUT, EnumFacing.DOWN)
-                    .where('q', MetaTileEntities.CONTROL_ROD, EnumFacing.UP)
-                    .where('m', MetaTileEntities.CONTROL_ROD_MODERATED, EnumFacing.UP)
+                    .where('V', getVesselState())
+                    .where('f', getFuelChannelState())
+                    .where('c', getCoolantChannelState())
+                    .where('r', getControlRodChannelState())
+                    .where('e', GCYNMetaTileEntities.FUEL_ROD_INPUT, EnumFacing.UP)
+                    .where('g', GCYNMetaTileEntities.FUEL_ROD_OUTPUT, EnumFacing.DOWN)
+                    .where('b', GCYNMetaTileEntities.COOLANT_INPUT, EnumFacing.UP)
+                    .where('d', GCYNMetaTileEntities.COOLANT_OUTPUT, EnumFacing.DOWN)
+                    .where('q', GCYNMetaTileEntities.CONTROL_ROD, EnumFacing.UP)
+                    .where('m', GCYNMetaTileEntities.CONTROL_ROD_MODERATED, EnumFacing.UP)
 
                     // B for the vessel blocks on the walls
                     .where('M', () -> ConfigHolder.machines.enableMaintenance ? MetaTileEntities.MAINTENANCE_HATCH :
-                            this.getVesselState(), EnumFacing.NORTH)
+                            getVesselState(), EnumFacing.NORTH)
                     .build());
         }
         return shapes;
@@ -1079,9 +1058,9 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
     public void addInformation(ItemStack stack, @Nullable World world, @NotNull List<String> tooltip,
                                boolean advanced) {
         super.addInformation(stack, world, tooltip, advanced);
-        tooltip.add(I18n.format("gregtech.machine.fission_reactor.tooltip.1"));
-        tooltip.add(I18n.format("gregtech.machine.fission_reactor.tooltip.2"));
-        tooltip.add(I18n.format("gregtech.machine.fission_reactor.tooltip.3"));
+        tooltip.add(I18n.format("gcyn.machine.fission_reactor.tooltip.1"));
+        tooltip.add(I18n.format("gcyn.machine.fission_reactor.tooltip.2"));
+        tooltip.add(I18n.format("gcyn.machine.fission_reactor.tooltip.3"));
     }
 
     public double getMaxPower() {

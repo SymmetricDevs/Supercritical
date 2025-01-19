@@ -1,16 +1,16 @@
-package gregtech.integration.jei.basic;
+package gregicality.nuclear.integration.jei.basic;
 
+import gregicality.nuclear.common.metatileentities.GCYNMetaTileEntities;
 import gregtech.api.gui.GuiTextures;
-import gregtech.common.metatileentities.MetaTileEntities;
-
-import net.minecraft.client.Minecraft;
-
+import gregtech.integration.jei.basic.BasicRecipeCategory;
 import mezz.jei.api.IGuiHelper;
 import mezz.jei.api.gui.IDrawable;
 import mezz.jei.api.gui.IGuiFluidStackGroup;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.IRecipeWrapper;
+import net.minecraft.client.Minecraft;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CoolantCategory extends BasicRecipeCategory<CoolantInfo, CoolantInfo> {
@@ -22,7 +22,7 @@ public class CoolantCategory extends BasicRecipeCategory<CoolantInfo, CoolantInf
     public CoolantCategory(IGuiHelper guiHelper) {
         super("coolant", "fission.coolant.name", guiHelper.createBlankDrawable(176, 90), guiHelper);
 
-        this.icon = guiHelper.createDrawableIngredient(MetaTileEntities.FISSION_REACTOR.getStackForm());
+        this.icon = guiHelper.createDrawableIngredient(GCYNMetaTileEntities.FISSION_REACTOR.getStackForm());
         this.slot = guiHelper.drawableBuilder(GuiTextures.SLOT.imageLocation, 0, 0, 18, 18).setTextureSize(18, 18)
                 .build();
         this.arrow = guiHelper.drawableBuilder(GuiTextures.PROGRESS_BAR_ARROW.imageLocation, 0, 20, 20, 20)
@@ -36,7 +36,7 @@ public class CoolantCategory extends BasicRecipeCategory<CoolantInfo, CoolantInf
     }
 
     @Override
-    public void setRecipe(IRecipeLayout recipeLayout, CoolantInfo recipeWrapper, IIngredients ingredients) {
+    public void setRecipe(IRecipeLayout recipeLayout, CoolantInfo recipeWrapper, @NotNull IIngredients ingredients) {
         IGuiFluidStackGroup fluidStackGroup = recipeLayout.getFluidStacks();
 
         fluidStackGroup.init(0, true, 55, 9);
@@ -46,14 +46,15 @@ public class CoolantCategory extends BasicRecipeCategory<CoolantInfo, CoolantInf
     }
 
     @Override
-    public void drawExtras(Minecraft minecraft) {
+    public void drawExtras(@NotNull Minecraft minecraft) {
         slot.draw(minecraft, 54, 8);
         slot.draw(minecraft, 104, 8);
         arrow.draw(minecraft, 77, 6);
     }
 
+    @NotNull
     @Override
-    public IRecipeWrapper getRecipeWrapper(CoolantInfo recipe) {
+    public IRecipeWrapper getRecipeWrapper(@NotNull CoolantInfo recipe) {
         return recipe;
     }
 }

@@ -1,6 +1,10 @@
-package gregtech.api.unification.material.properties;
+package gregicality.nuclear.api.unification.material.properties;
 
-import gregtech.api.nuclear.fission.IFissionFuelStats;
+
+import gregicality.nuclear.api.nuclear.fission.IFissionFuelStats;
+import gregtech.api.unification.material.properties.IMaterialProperty;
+import gregtech.api.unification.material.properties.MaterialProperties;
+import gregtech.api.unification.material.properties.PropertyKey;
 
 public class FissionFuelProperty implements IMaterialProperty, IFissionFuelStats {
 

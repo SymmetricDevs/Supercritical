@@ -1,7 +1,7 @@
-package gregtech.api.nuclear.fission.components;
+package gregicality.nuclear.api.nuclear.fission.components;
 
-import gregtech.api.capability.ICoolantHandler;
-import gregtech.api.nuclear.fission.ICoolantStats;
+import gregicality.nuclear.api.capability.ICoolantHandler;
+import gregicality.nuclear.api.nuclear.fission.ICoolantStats;
 
 import java.util.List;
 

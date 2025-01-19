@@ -1,10 +1,16 @@
-package gregtech.common.metatileentities.multi.multiblockpart;
+package gregicality.nuclear.common.metatileentities.multi.multiblockpart;
 
+import codechicken.lib.render.CCRenderState;
+import codechicken.lib.render.pipeline.IVertexOperation;
+import codechicken.lib.vec.Matrix4;
+import gregicality.nuclear.api.capability.ICoolantHandler;
+import gregicality.nuclear.api.capability.impl.LockableFluidTank;
+import gregicality.nuclear.api.metatileentity.multiblock.GCYNMultiblockAbility;
+import gregicality.nuclear.api.metatileentity.multiblock.IFissionReactorHatch;
+import gregicality.nuclear.api.nuclear.fission.ICoolantStats;
 import gregtech.api.capability.IControllable;
-import gregtech.api.capability.ICoolantHandler;
 import gregtech.api.capability.impl.FilteredItemHandler;
 import gregtech.api.capability.impl.FluidTankList;
-import gregtech.api.capability.impl.LockableFluidTank;
 import gregtech.api.gui.GuiTextures;
 import gregtech.api.gui.ModularUI;
 import gregtech.api.gui.widgets.FluidContainerSlotWidget;
@@ -13,12 +19,10 @@ import gregtech.api.gui.widgets.SlotWidget;
 import gregtech.api.gui.widgets.TankWidget;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
-import gregtech.api.metatileentity.multiblock.IFissionReactorHatch;
 import gregtech.api.metatileentity.multiblock.IMultiblockAbilityPart;
 import gregtech.api.metatileentity.multiblock.MultiblockAbility;
-import gregtech.api.nuclear.fission.ICoolantStats;
 import gregtech.client.renderer.texture.Textures;
-
+import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityMultiblockNotifiablePart;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
@@ -27,15 +31,11 @@ import net.minecraftforge.fluids.IFluidTank;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
-
-import codechicken.lib.render.CCRenderState;
-import codechicken.lib.render.pipeline.IVertexOperation;
-import codechicken.lib.vec.Matrix4;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static gregtech.api.capability.GregtechDataCodes.FISSION_LOCK_UPDATE;
+import static gregicality.nuclear.GCYNValues.FISSION_LOCK_UPDATE;
 
 public class MetaTileEntityCoolantExportHatch extends MetaTileEntityMultiblockNotifiablePart
                                               implements IMultiblockAbilityPart<ICoolantHandler>, ICoolantHandler,
@@ -143,7 +143,7 @@ public class MetaTileEntityCoolantExportHatch extends MetaTileEntityMultiblockNo
 
     @Override
     public MultiblockAbility<ICoolantHandler> getAbility() {
-        return MultiblockAbility.EXPORT_COOLANT;
+        return GCYNMultiblockAbility.EXPORT_COOLANT;
     }
 
     @Override

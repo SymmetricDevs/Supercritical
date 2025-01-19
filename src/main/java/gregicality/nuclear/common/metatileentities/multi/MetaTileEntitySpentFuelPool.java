@@ -1,5 +1,9 @@
-package gregtech.common.metatileentities.multi;
+package gregicality.nuclear.common.metatileentities.multi;
 
+import gregicality.nuclear.api.recipes.GCYNRecipeMaps;
+import gregicality.nuclear.client.renderer.textures.GCYNTextures;
+import gregicality.nuclear.common.blocks.BlockNuclearCasing;
+import gregicality.nuclear.common.blocks.GCYNMetaBlocks;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
 import gregtech.api.metatileentity.multiblock.IMultiblockPart;
@@ -7,20 +11,16 @@ import gregtech.api.metatileentity.multiblock.RecipeMapMultiblockController;
 import gregtech.api.pattern.BlockPattern;
 import gregtech.api.pattern.FactoryBlockPattern;
 import gregtech.api.pattern.PatternMatchContext;
-import gregtech.api.recipes.RecipeMaps;
 import gregtech.client.renderer.ICubeRenderer;
 import gregtech.client.renderer.texture.Textures;
 import gregtech.common.blocks.BlockMetalCasing;
-import gregtech.common.blocks.BlockNuclearCasing;
 import gregtech.common.blocks.MetaBlocks;
-
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +31,7 @@ import static gregtech.api.util.RelativeDirection.*;
 public class MetaTileEntitySpentFuelPool extends RecipeMapMultiblockController {
 
     public MetaTileEntitySpentFuelPool(ResourceLocation metaTileEntityId) {
-        super(metaTileEntityId, RecipeMaps.SPENT_FUEL_POOL_RECIPES);
+        super(metaTileEntityId, GCYNRecipeMaps.SPENT_FUEL_POOL_RECIPES);
     }
 
     @Override
@@ -42,6 +42,25 @@ public class MetaTileEntitySpentFuelPool extends RecipeMapMultiblockController {
     @Override
     public boolean hasMaintenanceMechanics() {
         return false;
+    }
+
+    private static IBlockState getRodState() {
+        return GCYNMetaBlocks.NUCLEAR_CASING.getState(BlockNuclearCasing.NuclearCasingType.SPENT_FUEL_CASING);
+    }
+
+    private static IBlockState getMetalCasingState() {
+        return MetaBlocks.METAL_CASING.getState(BlockMetalCasing.MetalCasingType.STAINLESS_CLEAN);
+    }
+
+    @Override
+    protected void formStructure(PatternMatchContext context) {
+        super.formStructure(context);
+        this.recipeMapWorkable.setParallelLimit(structurePattern.formedRepetitionCount[0] * 32);
+    }
+
+    @Override
+    public ICubeRenderer getBaseTexture(IMultiblockPart sourcePart) {
+        return Textures.CLEAN_STAINLESS_STEEL_CASING;
     }
 
     @NotNull
@@ -58,7 +77,7 @@ public class MetaTileEntitySpentFuelPool extends RecipeMapMultiblockController {
                 //spotless:on
                 .where('S', selfPredicate())
                 .where('.', any())
-                .where('C', blocks(MetaBlocks.PANELLING))
+                .where('C', blocks(GCYNMetaBlocks.PANELLING))
                 .where('W', blocks(Blocks.WATER).or(blocks(Blocks.FLOWING_WATER)))
                 .where('U', blocks(Blocks.WATER))
                 .where('R', states(getRodState()))
@@ -66,29 +85,10 @@ public class MetaTileEntitySpentFuelPool extends RecipeMapMultiblockController {
                 .build();
     }
 
-    @Override
-    protected void formStructure(PatternMatchContext context) {
-        super.formStructure(context);
-        this.recipeMapWorkable.setParallelLimit(structurePattern.formedRepetitionCount[0] * 32);
-    }
-
-    @Override
-    public ICubeRenderer getBaseTexture(IMultiblockPart sourcePart) {
-        return Textures.CLEAN_STAINLESS_STEEL_CASING;
-    }
-
     @NotNull
     @Override
     protected ICubeRenderer getFrontOverlay() {
-        return Textures.SPENT_FUEL_POOL_OVERLAY;
-    }
-
-    private IBlockState getRodState() {
-        return MetaBlocks.NUCLEAR_CASING.getState(BlockNuclearCasing.NuclearCasingType.SPENT_FUEL_CASING);
-    }
-
-    private IBlockState getMetalCasingState() {
-        return MetaBlocks.METAL_CASING.getState(BlockMetalCasing.MetalCasingType.STAINLESS_CLEAN);
+        return GCYNTextures.SPENT_FUEL_POOL_OVERLAY;
     }
 
     public void addInformation(ItemStack stack, @Nullable World player, List<String> tooltip, boolean advanced) {

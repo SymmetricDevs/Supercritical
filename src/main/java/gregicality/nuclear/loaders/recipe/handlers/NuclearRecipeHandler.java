@@ -1,20 +1,24 @@
-package gregtech.loaders.recipe.handlers;
+package gregicality.nuclear.loaders.recipe.handlers;
 
+import gregicality.nuclear.api.unification.material.properties.FissionFuelProperty;
+import gregicality.nuclear.api.unification.material.properties.GCYNPropertyKey;
+import gregicality.nuclear.api.unification.ore.GCYNOrePrefix;
+import gregicality.nuclear.common.item.GCYNMetaItems;
 import gregtech.api.unification.material.Material;
-import gregtech.api.unification.material.properties.FissionFuelProperty;
-import gregtech.api.unification.material.properties.PropertyKey;
 import gregtech.api.unification.ore.OrePrefix;
 import gregtech.common.items.MetaItems;
 
+import static gregicality.nuclear.api.recipes.GCYNRecipeMaps.SPENT_FUEL_POOL_RECIPES;
+import static gregicality.nuclear.api.unification.ore.GCYNOrePrefix.*;
 import static gregtech.api.GTValues.*;
-import static gregtech.api.recipes.RecipeMaps.*;
-import static gregtech.api.unification.material.Materials.*;
-import static gregtech.api.unification.ore.OrePrefix.*;
+import static gregtech.api.recipes.RecipeMaps.CANNER_RECIPES;
+import static gregtech.api.recipes.RecipeMaps.FORMING_PRESS_RECIPES;
+import static gregtech.api.unification.ore.OrePrefix.dust;
 
 public class NuclearRecipeHandler {
 
     public static void register() {
-        OrePrefix.fuelRod.addProcessingHandler(PropertyKey.FISSION_FUEL, NuclearRecipeHandler::processFuelRod);
+        GCYNOrePrefix.fuelRod.addProcessingHandler(GCYNPropertyKey.FISSION_FUEL, NuclearRecipeHandler::processFuelRod);
     }
 
     private static void processFuelRod(OrePrefix orePrefix, Material material, FissionFuelProperty oreProperty) {
@@ -26,7 +30,7 @@ public class NuclearRecipeHandler {
 
         CANNER_RECIPES.recipeBuilder().duration(200).EUt(VA[HV])
                 .input(fuelRodDepleted, material)
-                .output(MetaItems.FUEL_CLADDING)
+                .output(GCYNMetaItems.FUEL_CLADDING)
                 .output(fuelPelletDepleted, material, 16)
                 .buildAndRegister();
 
@@ -38,7 +42,7 @@ public class NuclearRecipeHandler {
 
         CANNER_RECIPES.recipeBuilder().duration(300).EUt(VA[HV])
                 .input(fuelPellet, material, 16)
-                .input(MetaItems.FUEL_CLADDING)
+                .input(GCYNMetaItems.FUEL_CLADDING)
                 .output(fuelRod, material)
                 .buildAndRegister();
     }

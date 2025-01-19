@@ -1,4 +1,4 @@
-package gregtech.api.capability;
+package gregicality.nuclear.api.capability;
 
 import org.jetbrains.annotations.Nullable;
 

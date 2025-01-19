@@ -1,8 +1,7 @@
-package gregtech.api.nuclear.fission;
-
-import net.minecraftforge.fluids.Fluid;
+package gregicality.nuclear.api.nuclear.fission;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.minecraftforge.fluids.Fluid;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

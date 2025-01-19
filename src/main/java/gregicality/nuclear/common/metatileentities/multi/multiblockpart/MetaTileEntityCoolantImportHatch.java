@@ -1,10 +1,19 @@
-package gregtech.common.metatileentities.multi.multiblockpart;
+package gregicality.nuclear.common.metatileentities.multi.multiblockpart;
 
+import codechicken.lib.render.CCRenderState;
+import codechicken.lib.render.pipeline.IVertexOperation;
+import codechicken.lib.vec.Matrix4;
+import gregicality.nuclear.api.capability.ICoolantHandler;
+import gregicality.nuclear.api.capability.impl.LockableFluidTank;
+import gregicality.nuclear.api.metatileentity.multiblock.GCYNMultiblockAbility;
+import gregicality.nuclear.api.metatileentity.multiblock.IFissionReactorHatch;
+import gregicality.nuclear.api.nuclear.fission.ICoolantStats;
+import gregicality.nuclear.common.blocks.BlockFissionCasing;
+import gregicality.nuclear.common.blocks.GCYNMetaBlocks;
+import gregicality.nuclear.common.metatileentities.GCYNMetaTileEntities;
 import gregtech.api.capability.IControllable;
-import gregtech.api.capability.ICoolantHandler;
 import gregtech.api.capability.impl.FilteredItemHandler;
 import gregtech.api.capability.impl.FluidTankList;
-import gregtech.api.capability.impl.LockableFluidTank;
 import gregtech.api.gui.GuiTextures;
 import gregtech.api.gui.ModularUI;
 import gregtech.api.gui.widgets.FluidContainerSlotWidget;
@@ -13,15 +22,10 @@ import gregtech.api.gui.widgets.SlotWidget;
 import gregtech.api.gui.widgets.TankWidget;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
-import gregtech.api.metatileentity.multiblock.IFissionReactorHatch;
 import gregtech.api.metatileentity.multiblock.IMultiblockAbilityPart;
 import gregtech.api.metatileentity.multiblock.MultiblockAbility;
-import gregtech.api.nuclear.fission.ICoolantStats;
 import gregtech.client.renderer.texture.Textures;
-import gregtech.common.blocks.BlockFissionCasing;
-import gregtech.common.blocks.MetaBlocks;
-import gregtech.common.metatileentities.MetaTileEntities;
-
+import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityMultiblockNotifiablePart;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -35,16 +39,12 @@ import net.minecraftforge.fluids.IFluidTank;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
-
-import codechicken.lib.render.CCRenderState;
-import codechicken.lib.render.pipeline.IVertexOperation;
-import codechicken.lib.vec.Matrix4;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static gregtech.api.capability.GregtechDataCodes.FISSION_LOCK_UPDATE;
+import static gregicality.nuclear.GCYNValues.FISSION_LOCK_UPDATE;
 
 public class MetaTileEntityCoolantImportHatch extends MetaTileEntityMultiblockNotifiablePart
                                               implements IMultiblockAbilityPart<ICoolantHandler>, ICoolantHandler,
@@ -94,7 +94,7 @@ public class MetaTileEntityCoolantImportHatch extends MetaTileEntityMultiblockNo
         builder.dynamicLabel(11, 30, tankWidget::getFormattedFluidAmount, 0xFFFFFF);
         builder.dynamicLabel(11, 40, () -> {
             if (isLocked()) {
-                return tankWidget.getFluidLocalizedName() + " " + I18n.format("gregtech.gui.locked");
+                return tankWidget.getFluidLocalizedName() + " " + I18n.format("gcyn.gui.locked");
             } else {
                 return tankWidget.getFluidLocalizedName();
             }
@@ -122,20 +122,20 @@ public class MetaTileEntityCoolantImportHatch extends MetaTileEntityMultiblockNo
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(this.getPos());
         for (int i = 1; i < depth; i++) {
             if (getWorld().getBlockState(pos.move(this.frontFacing.getOpposite())) !=
-                    MetaBlocks.FISSION_CASING.getState(BlockFissionCasing.FissionCasingType.COOLANT_CHANNEL)) {
+                    GCYNMetaBlocks.FISSION_CASING.getState(BlockFissionCasing.FissionCasingType.COOLANT_CHANNEL)) {
                 return false;
             }
         }
         if (getWorld()
                 .getTileEntity(pos.move(this.frontFacing.getOpposite())) instanceof IGregTechTileEntity gtTe) {
-            return gtTe.getMetaTileEntity().metaTileEntityId.equals(MetaTileEntities.COOLANT_OUTPUT.metaTileEntityId);
+            return gtTe.getMetaTileEntity().metaTileEntityId.equals(GCYNMetaTileEntities.COOLANT_OUTPUT.metaTileEntityId);
         }
         return false;
     }
 
     @Override
     public MultiblockAbility<ICoolantHandler> getAbility() {
-        return MultiblockAbility.IMPORT_COOLANT;
+        return GCYNMultiblockAbility.IMPORT_COOLANT;
     }
 
     @Override
@@ -212,6 +212,6 @@ public class MetaTileEntityCoolantImportHatch extends MetaTileEntityMultiblockNo
     public void addInformation(ItemStack stack, @Nullable World world, @NotNull List<String> tooltip,
                                boolean advanced) {
         super.addInformation(stack, world, tooltip, advanced);
-        tooltip.add(I18n.format("gregtech.machine.nuclear.locking.fluid"));
+        tooltip.add(I18n.format("gcyn.machine.nuclear.locking.fluid"));
     }
 }

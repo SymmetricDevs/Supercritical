@@ -1,8 +1,9 @@
-package gregtech.api.capability.impl;
+package gregicality.nuclear.api.capability.impl;
 
-import gregtech.api.capability.ILockableHandler;
+
+import gregicality.nuclear.api.capability.ILockableHandler;
+import gregtech.api.capability.impl.NotifiableFluidTank;
 import gregtech.api.metatileentity.MetaTileEntity;
-
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
