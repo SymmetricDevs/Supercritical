@@ -6,6 +6,7 @@ import gregicality.nuclear.common.metatileentities.multi.multiblockpart.MetaTile
 import gregtech.api.metatileentity.multiblock.MultiblockAbility;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
+@SuppressWarnings("InstantiationOfUtilityClass")
 public class GCYNMultiblockAbility {
 
     public static final MultiblockAbility<IFuelRodHandler> IMPORT_FUEL_ROD = new MultiblockAbility<>("import_fuel_rod");

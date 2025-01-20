@@ -1,16 +1,11 @@
 package gregicality.nuclear.api.util;
 
+import gregicality.nuclear.GCYNValues;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 
 public final class GCYNLog {
 
-    public static Logger logger;
+    public static Logger logger = LogManager.getLogger(GCYNValues.MODID);
 
-    private GCYNLog() {
-    }
-
-    public static void init(@NotNull Logger modLogger) {
-        logger = modLogger;
-    }
 }

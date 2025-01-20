@@ -11,12 +11,15 @@ import gregicality.nuclear.api.util.GCYNLog;
 import gregicality.nuclear.common.blocks.GCYNMetaBlocks;
 import gregicality.nuclear.common.item.GCYNMetaItems;
 import gregicality.nuclear.loaders.recipe.GCYNRecipeManager;
+import gregicality.nuclear.modules.GCYNModules;
 import gregtech.api.GregTechAPI;
 import gregtech.api.block.VariantItemBlock;
+import gregtech.api.modules.ModuleContainerRegistryEvent;
 import gregtech.api.unification.OreDictUnifier;
 import gregtech.api.unification.material.Material;
 import gregtech.api.unification.material.event.PostMaterialEvent;
 import gregtech.common.items.MetaItems;
+import gregtech.modules.ModuleManager;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
@@ -118,5 +121,10 @@ public class CommonProxy {
                 CoolantRegistry.registerCoolant(material.getFluid(prop.getCoolantKey()), prop);
             }
         }
+    }
+
+    @SubscribeEvent
+    public static void registerModuleContainer(ModuleContainerRegistryEvent event) {
+        ModuleManager.getInstance().registerContainer(new GCYNModules());
     }
 }

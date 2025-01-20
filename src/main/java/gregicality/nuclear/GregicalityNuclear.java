@@ -1,7 +1,6 @@
 package gregicality.nuclear;
 
 import gregicality.GCYNInternalTags;
-import gregicality.nuclear.api.util.GCYNLog;
 import gregicality.nuclear.common.CommonProxy;
 import gregicality.nuclear.common.blocks.GCYNMetaBlocks;
 import gregicality.nuclear.common.item.GCYNMetaItems;
@@ -29,7 +28,6 @@ public class GregicalityNuclear {
 
     @Mod.EventHandler
     public void onPreInit(@NotNull FMLPreInitializationEvent event) {
-        GCYNLog.init(event.getModLog());
 
         GCYNMetaItems.initMetaItems();
         GCYNMetaBlocks.init();

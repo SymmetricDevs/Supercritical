@@ -1,5 +1,6 @@
 package gregicality.nuclear.integration.jei.basic;
 
+import gregicality.nuclear.GCYNValues;
 import gregicality.nuclear.common.metatileentities.GCYNMetaTileEntities;
 import gregtech.api.gui.GuiTextures;
 import gregtech.integration.jei.basic.BasicRecipeCategory;
@@ -56,5 +57,11 @@ public class CoolantCategory extends BasicRecipeCategory<CoolantInfo, CoolantInf
     @Override
     public IRecipeWrapper getRecipeWrapper(@NotNull CoolantInfo recipe) {
         return recipe;
+    }
+
+    @NotNull
+    @Override
+    public String getModName() {
+        return GCYNValues.MODID;
     }
 }
