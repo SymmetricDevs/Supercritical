@@ -15,7 +15,7 @@ gcyn.machine.control_rod.tooltip=Requires §fControl Rod Channels§7 below itsel
 gcyn.machine.control_rod.tooltip.1=Lowers neutron multiplication as it is inserted when placed between fuel rods!
 gcyn.machine.control_rod_moderated.name=Graphite-Tipped Control Rod Port
 gcyn.machine.control_rod_moderated.tooltip=Requires §fControl Rod Channels§7 below itself to function and form.
-gcyn.machine.control_rod_moderated.tooltip.1=Increases neutron multiplication when placed between fuel rods when inserted around 30%!
+gcyn.machine.control_rod_moderated.tooltip.1=Increases neutron multiplication when placed between fuel rods when inserted around 30%%!
 gcyn.machine.nuclear.locking.item=Locks when the reactor is turned on; the held item cannot change type when locked.
 gcyn.machine.nuclear.locking.fluid=Locks when the reactor is turned on; the held fluid cannot change type when locked.
 
