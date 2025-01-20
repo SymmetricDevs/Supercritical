@@ -10,6 +10,7 @@ public class GCYNRecipeManager {
         GCYNMachineRecipeLoader.init();
         GCYNMetaTileEnityLoader.init();
         GCYNMetaTileEntityMachineRecipeLoader.init();
+        GCYNNuclearRecipes.init();
         NuclearRecipeHandler.register();
     }
 

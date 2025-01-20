@@ -3,6 +3,7 @@ package gregicality.nuclear.common.blocks;
 import gregtech.api.block.VariantBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.util.IStringSerializable;
+import org.jetbrains.annotations.NotNull;
 
 public class BlockPanelling extends VariantBlock<BlockPanelling.PanellingType> {
 
@@ -41,6 +42,7 @@ public class BlockPanelling extends VariantBlock<BlockPanelling.PanellingType> {
             this.name = name;
         }
 
+        @NotNull
         @Override
         public String getName() {
             return this.name;

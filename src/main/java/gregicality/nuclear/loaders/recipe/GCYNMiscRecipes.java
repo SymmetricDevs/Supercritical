@@ -3,10 +3,11 @@ package gregicality.nuclear.loaders.recipe;
 import gregicality.nuclear.common.blocks.BlockPanelling;
 import gregicality.nuclear.common.blocks.GCYNMetaBlocks;
 
-import static gregtech.api.recipes.RecipeMaps.ASSEMBLER_RECIPES;
-import static gregtech.api.recipes.RecipeMaps.CHEMICAL_BATH_RECIPES;
-import static gregtech.api.unification.material.Materials.CHEMICAL_DYES;
-import static gregtech.api.unification.material.Materials.Steel;
+import static gregicality.nuclear.api.unification.material.GCYNMaterials.HeavyWater;
+import static gregtech.api.GTValues.LV;
+import static gregtech.api.GTValues.VH;
+import static gregtech.api.recipes.RecipeMaps.*;
+import static gregtech.api.unification.material.Materials.*;
 import static gregtech.api.unification.ore.OrePrefix.plate;
 
 public class GCYNMiscRecipes {
@@ -28,5 +29,11 @@ public class GCYNMiscRecipes {
                     .EUt(2).duration(10)
                     .buildAndRegister();
         }
+
+        CHEMICAL_RECIPES.recipeBuilder()
+                .fluidInputs(Deuterium.getFluid(2000))
+                .fluidInputs(Oxygen.getFluid(1000))
+                .fluidOutputs(HeavyWater.getFluid(1000))
+                .duration(200).EUt(VH[LV]).buildAndRegister();
     }
 }

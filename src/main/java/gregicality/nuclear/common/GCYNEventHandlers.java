@@ -1,10 +1,7 @@
 package gregicality.nuclear.common;
 
 import gregicality.nuclear.GCYNValues;
-import gregicality.nuclear.common.materials.GCYNElementMaterials;
-import gregicality.nuclear.common.materials.GCYNFirstDegreeMaterials;
-import gregicality.nuclear.common.materials.GCYNMaterialModifications;
-import gregicality.nuclear.common.materials.GCYNSecondDegreeMaterials;
+import gregicality.nuclear.common.materials.*;
 import gregtech.api.unification.material.event.MaterialEvent;
 import gregtech.api.unification.material.event.PostMaterialEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -25,6 +22,7 @@ public final class GCYNEventHandlers {
         GCYNElementMaterials.register();
         GCYNFirstDegreeMaterials.register();
         GCYNSecondDegreeMaterials.register();
+        GCYNUnknownCompositionMaterials.register();
     }
 
     @SubscribeEvent
