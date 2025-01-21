@@ -1,18 +1,18 @@
 package gregicality.nuclear.mixins.gregtech;
 
-import gregicality.nuclear.api.unification.ore.OrePrefixExtension;
-import gregtech.api.unification.ore.OrePrefix;
+import java.util.function.Function;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
-import java.util.function.Function;
+import gregicality.nuclear.api.unification.ore.OrePrefixExtension;
+import gregtech.api.unification.ore.OrePrefix;
 
 @Mixin(value = OrePrefix.class, remap = false)
 public abstract class MixinOrePrefix implements OrePrefixExtension {
 
     @Unique
     public Function<Double, Double> gcyn$radiationDamageFunction = null;
-
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Override

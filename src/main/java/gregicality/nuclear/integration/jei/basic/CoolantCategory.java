@@ -1,5 +1,10 @@
 package gregicality.nuclear.integration.jei.basic;
 
+import net.minecraft.client.Minecraft;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import gregicality.nuclear.GCYNValues;
 import gregicality.nuclear.common.metatileentities.GCYNMetaTileEntities;
 import gregtech.api.gui.GuiTextures;
@@ -10,9 +15,6 @@ import mezz.jei.api.gui.IGuiFluidStackGroup;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.IRecipeWrapper;
-import net.minecraft.client.Minecraft;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class CoolantCategory extends BasicRecipeCategory<CoolantInfo, CoolantInfo> {
 

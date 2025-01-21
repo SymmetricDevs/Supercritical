@@ -1,5 +1,32 @@
 package gregicality.nuclear.common.metatileentities.multi;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.world.World;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
+
+import org.apache.commons.lang3.ArrayUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import codechicken.lib.render.CCRenderState;
 import codechicken.lib.render.pipeline.IVertexOperation;
 import codechicken.lib.vec.Matrix4;
@@ -20,7 +47,6 @@ import gregicality.nuclear.api.util.GCYNUtility;
 import gregicality.nuclear.client.renderer.textures.GCYNTextures;
 import gregicality.nuclear.common.blocks.BlockFissionCasing;
 import gregicality.nuclear.common.blocks.GCYNMetaBlocks;
-import gregicality.nuclear.common.metatileentities.GCYNMetaTileEntities;
 import gregicality.nuclear.common.metatileentities.multi.multiblockpart.MetaTileEntityControlRodPort;
 import gregicality.nuclear.common.metatileentities.multi.multiblockpart.MetaTileEntityCoolantExportHatch;
 import gregicality.nuclear.common.metatileentities.multi.multiblockpart.MetaTileEntityFuelRodImportBus;
@@ -37,35 +63,7 @@ import gregtech.api.metatileentity.multiblock.*;
 import gregtech.api.pattern.*;
 import gregtech.api.util.*;
 import gregtech.client.renderer.ICubeRenderer;
-import gregtech.common.ConfigHolder;
 import gregtech.common.blocks.MetaBlocks;
-import gregtech.common.metatileentities.MetaTileEntities;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.World;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-import org.apache.commons.lang3.ArrayUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
 
 public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                                           implements IDataInfoProvider, IProgressBarMultiblock, ICustomEnergyCover {
@@ -256,21 +254,21 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                 () -> this.getFillPercentage(0),
                 4, 115, 76, 7,
                 GCYNGuiTextures.PROGRESS_BAR_FISSION_HEAT, ProgressWidget.MoveType.HORIZONTAL)
-                .setHoverTextConsumer(list -> this.addBarHoverText(list, 0));
+                        .setHoverTextConsumer(list -> this.addBarHoverText(list, 0));
         builder.widget(progressBar);
 
         progressBar = new ProgressWidget(
                 () -> this.getFillPercentage(1),
                 82, 115, 76, 7,
                 GCYNGuiTextures.PROGRESS_BAR_FISSION_PRESSURE, ProgressWidget.MoveType.HORIZONTAL)
-                .setHoverTextConsumer(list -> this.addBarHoverText(list, 1));
+                        .setHoverTextConsumer(list -> this.addBarHoverText(list, 1));
         builder.widget(progressBar);
 
         progressBar = new ProgressWidget(
                 () -> this.getFillPercentage(2),
                 160, 115, 76, 7,
                 GCYNGuiTextures.PROGRESS_BAR_FISSION_ENERGY, ProgressWidget.MoveType.HORIZONTAL)
-                .setHoverTextConsumer(list -> this.addBarHoverText(list, 2));
+                        .setHoverTextConsumer(list -> this.addBarHoverText(list, 2));
         builder.widget(progressBar);
 
         builder.label(9, 9, getMetaFullName(), 0xFFFFFF);
@@ -288,7 +286,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         }.setBackground(GCYNGuiTextures.DARK_SLIDER_BACKGROUND).setSliderIcon(GCYNGuiTextures.DARK_SLIDER_ICON));
         builder.widget(new SliderWidget("gcyn.gui.fission.coolant_flow", 10, 80, 220, 18, 0.0f, 16000.f, flowRate,
                 this::setFlowRate).setBackground(GCYNGuiTextures.DARK_SLIDER_BACKGROUND)
-                .setSliderIcon(GCYNGuiTextures.DARK_SLIDER_ICON));
+                        .setSliderIcon(GCYNGuiTextures.DARK_SLIDER_ICON));
 
         builder.widget(new AdvancedTextWidget(9, 20, this::addDisplayText, 0xFFFFFF)
                 .setMaxWidthLimit(220)
@@ -298,7 +296,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
 
         builder.widget(new ToggleButtonWidget(215, 183, 18, 18, GuiTextures.BUTTON_LOCK,
                 this::isLocked, this::tryLocking).shouldUseBaseBackground()
-                .setTooltipText("gcyn.gui.fission.lock"));
+                        .setTooltipText("gcyn.gui.fission.lock"));
         builder.widget(new ImageWidget(215, 201, 18, 6, GuiTextures.BUTTON_POWER_DETAIL));
 
         // Voiding Mode Button
@@ -319,7 +317,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
     protected @NotNull Widget getFlexButton(int x, int y, int width, int height) {
         return new ToggleButtonWidget(x, y, width, height, this::areControlRodsRegulated,
                 this::toggleControlRodRegulation).setButtonTexture(GCYNGuiTextures.BUTTON_CONTROL_ROD_HELPER)
-                .setTooltipText("gcyn.gui.fission.helper");
+                        .setTooltipText("gcyn.gui.fission.helper");
     }
 
     private TextFormatting getLockedTextColor() {
@@ -576,7 +574,8 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                 // O for the outputs on the bottom
                 .where('O',
                         states(getVesselState())
-                                .or(abilities(GCYNMultiblockAbility.EXPORT_COOLANT, GCYNMultiblockAbility.EXPORT_FUEL_ROD)))
+                                .or(abilities(GCYNMultiblockAbility.EXPORT_COOLANT,
+                                        GCYNMultiblockAbility.EXPORT_FUEL_ROD)))
                 // B for the vessel blocks on the walls
                 .where('B',
                         states(getVesselState())
@@ -587,8 +586,9 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
     }
 
     public TraceabilityPredicate getImportPredicate() {
-        MultiblockAbility<?>[] allowedAbilities = {GCYNMultiblockAbility.IMPORT_COOLANT, GCYNMultiblockAbility.IMPORT_FUEL_ROD,
-                GCYNMultiblockAbility.CONTROL_ROD_PORT};
+        MultiblockAbility<?>[] allowedAbilities = { GCYNMultiblockAbility.IMPORT_COOLANT,
+                GCYNMultiblockAbility.IMPORT_FUEL_ROD,
+                GCYNMultiblockAbility.CONTROL_ROD_PORT };
         return tilePredicate((state, tile) -> {
             if (!(tile instanceof IMultiblockAbilityPart<?> &&
                     ArrayUtils.contains(allowedAbilities, ((IMultiblockAbilityPart<?>) tile).getAbility()))) {
@@ -932,127 +932,127 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         INVALID_COMPONENT
     }
 
-//    @Override
-//    public List<MultiblockShapeInfo> getMatchingShapes() {
-//        List<MultiblockShapeInfo> shapes = new ArrayList<>();
-//
-//        for (int diameter = 5; diameter <= 15; diameter += 2) {
-//            int radius = diameter % 2 == 0 ? (int) Math.floor(diameter / 2.f) :
-//                    Math.round((diameter - 1) / 2.f);
-//            StringBuilder interiorBuilder = new StringBuilder();
-//
-//            String[] interiorSlice = new String[diameter];
-//            String[] controllerSlice;
-//            String[] topSlice;
-//            String[] bottomSlice;
-//
-//            // First loop over the matrix
-//            for (int i = 0; i < diameter; i++) {
-//                for (int j = 0; j < diameter; j++) {
-//                    if (Math.pow(i - Math.floor(diameter / 2.), 2) +
-//                            Math.pow(j - Math.floor(diameter / 2.), 2) <
-//                            Math.pow(radius + 0.5f, 2)) {
-//                        interiorBuilder.append('A');
-//                    } else {
-//                        interiorBuilder.append(' ');
-//                    }
-//                }
-//
-//                interiorSlice[i] = interiorBuilder.toString();
-//                interiorBuilder.setLength(0);
-//            }
-//
-//            // Second loop is to detect where to put walls, the controller and I/O
-//            for (int i = 0; i < diameter; i++) {
-//                for (int j = 0; j < diameter; j++) {
-//                    if (interiorSlice[i].charAt(j) != 'A') {
-//                        continue;
-//                    }
-//
-//                    int outerI = i + (int) Math.signum(i - (diameter / 2));
-//
-//                    if (Math.pow(outerI - Math.floor(diameter / 2.), 2) +
-//                            Math.pow(j - Math.floor(diameter / 2.), 2) >
-//                            Math.pow(radius + 0.5f, 2)) {
-//                        interiorSlice[i] = GCYNUtility.replace(interiorSlice[i], j, 'V');
-//                    }
-//
-//                    int outerJ = j + (int) Math.signum(j - (diameter / 2));
-//                    if (Math.pow(i - Math.floor(diameter / 2.), 2) +
-//                            Math.pow(outerJ - Math.floor(diameter / 2.), 2) >
-//                            Math.pow(radius + 0.5f, 2)) {
-//                        interiorSlice[i] = GCYNUtility.replace(interiorSlice[i], j, 'V');
-//                    }
-//                }
-//            }
-//
-//            controllerSlice = interiorSlice.clone();
-//            topSlice = interiorSlice.clone();
-//            bottomSlice = interiorSlice.clone();
-//            controllerSlice[0] = controllerSlice[0].substring(0, (int) Math.floor(diameter / 2.)) + "SM" +
-//                    controllerSlice[0].substring((int) Math.floor(diameter / 2.) + 2);
-//
-//            // Example hatches
-//            controllerSlice[1] = controllerSlice[1].substring(0, (int) Math.floor(diameter / 2.) - 1) + "fff" +
-//                    controllerSlice[1].substring((int) Math.floor(diameter / 2.) + 2);
-//            controllerSlice[2] = controllerSlice[2].substring(0, (int) Math.floor(diameter / 2.) - 1) + "fcf" +
-//                    controllerSlice[2].substring((int) Math.floor(diameter / 2.) + 2);
-//            controllerSlice[3] = controllerSlice[3].substring(0, (int) Math.floor(diameter / 2.) - 1) + "frf" +
-//                    controllerSlice[3].substring((int) Math.floor(diameter / 2.) + 2);
-//
-//            topSlice[1] = topSlice[1].substring(0, (int) Math.floor(diameter / 2.) - 1) + "eee" +
-//                    topSlice[1].substring((int) Math.floor(diameter / 2.) + 2);
-//            topSlice[2] = topSlice[2].substring(0, (int) Math.floor(diameter / 2.) - 1) + "ebe" +
-//                    topSlice[2].substring((int) Math.floor(diameter / 2.) + 2);
-//            topSlice[3] = topSlice[3].substring(0, (int) Math.floor(diameter / 2.) - 1) + "eqe" +
-//                    topSlice[3].substring((int) Math.floor(diameter / 2.) + 2);
-//
-//            bottomSlice[1] = bottomSlice[1].substring(0, (int) Math.floor(diameter / 2.) - 1) + "ggg" +
-//                    bottomSlice[1].substring((int) Math.floor(diameter / 2.) + 2);
-//            bottomSlice[2] = bottomSlice[2].substring(0, (int) Math.floor(diameter / 2.) - 1) + "gdg" +
-//                    bottomSlice[2].substring((int) Math.floor(diameter / 2.) + 2);
-//            bottomSlice[3] = bottomSlice[3].substring(0, (int) Math.floor(diameter / 2.) - 1) + "gVg" +
-//                    bottomSlice[3].substring((int) Math.floor(diameter / 2.) + 2);
-//
-//            for (int i = 0; i < diameter; i++) {
-//                topSlice[i] = topSlice[i].replace('A', 'V');
-//                bottomSlice[i] = bottomSlice[i].replace('A', 'V');
-//            }
-//            MultiblockShapeInfo.Builder builder = MultiblockShapeInfo.builder(/*RelativeDirection.RIGHT,
-//                    RelativeDirection.FRONT, RelativeDirection.UP*/); // TODO: Fix this
-//            builder.aisle(topSlice);
-//            for (int i = 0; i < heightBottom - 1; i++) {
-//                builder.aisle(interiorSlice);
-//            }
-//            builder.aisle(controllerSlice);
-//            for (int i = 0; i < heightTop - 1; i++) {
-//                builder.aisle(interiorSlice);
-//            }
-//            builder.aisle(bottomSlice);
-//            shapes.add(builder.where('S', GCYNMetaTileEntities.FISSION_REACTOR, EnumFacing.NORTH)
-//                    // A for interior components, which are air here
-//                    .where('A', Blocks.AIR.getDefaultState())
-//                    // Technically a duplicate, but this just makes things easier
-//                    .where(' ', Blocks.AIR.getDefaultState())
-//                    // I for the inputs on the top
-//                    .where('V', getVesselState())
-//                    .where('f', getFuelChannelState())
-//                    .where('c', getCoolantChannelState())
-//                    .where('r', getControlRodChannelState())
-//                    .where('e', GCYNMetaTileEntities.FUEL_ROD_INPUT, EnumFacing.UP)
-//                    .where('g', GCYNMetaTileEntities.FUEL_ROD_OUTPUT, EnumFacing.DOWN)
-//                    .where('b', GCYNMetaTileEntities.COOLANT_INPUT, EnumFacing.UP)
-//                    .where('d', GCYNMetaTileEntities.COOLANT_OUTPUT, EnumFacing.DOWN)
-//                    .where('q', GCYNMetaTileEntities.CONTROL_ROD, EnumFacing.UP)
-//                    .where('m', GCYNMetaTileEntities.CONTROL_ROD_MODERATED, EnumFacing.UP)
-//
-//                    // B for the vessel blocks on the walls
-//                    .where('M', () -> ConfigHolder.machines.enableMaintenance ? MetaTileEntities.MAINTENANCE_HATCH :
-//                            getVesselState(), EnumFacing.NORTH)
-//                    .build());
-//        }
-//        return shapes;
-//    }
+    // @Override
+    // public List<MultiblockShapeInfo> getMatchingShapes() {
+    // List<MultiblockShapeInfo> shapes = new ArrayList<>();
+    //
+    // for (int diameter = 5; diameter <= 15; diameter += 2) {
+    // int radius = diameter % 2 == 0 ? (int) Math.floor(diameter / 2.f) :
+    // Math.round((diameter - 1) / 2.f);
+    // StringBuilder interiorBuilder = new StringBuilder();
+    //
+    // String[] interiorSlice = new String[diameter];
+    // String[] controllerSlice;
+    // String[] topSlice;
+    // String[] bottomSlice;
+    //
+    // // First loop over the matrix
+    // for (int i = 0; i < diameter; i++) {
+    // for (int j = 0; j < diameter; j++) {
+    // if (Math.pow(i - Math.floor(diameter / 2.), 2) +
+    // Math.pow(j - Math.floor(diameter / 2.), 2) <
+    // Math.pow(radius + 0.5f, 2)) {
+    // interiorBuilder.append('A');
+    // } else {
+    // interiorBuilder.append(' ');
+    // }
+    // }
+    //
+    // interiorSlice[i] = interiorBuilder.toString();
+    // interiorBuilder.setLength(0);
+    // }
+    //
+    // // Second loop is to detect where to put walls, the controller and I/O
+    // for (int i = 0; i < diameter; i++) {
+    // for (int j = 0; j < diameter; j++) {
+    // if (interiorSlice[i].charAt(j) != 'A') {
+    // continue;
+    // }
+    //
+    // int outerI = i + (int) Math.signum(i - (diameter / 2));
+    //
+    // if (Math.pow(outerI - Math.floor(diameter / 2.), 2) +
+    // Math.pow(j - Math.floor(diameter / 2.), 2) >
+    // Math.pow(radius + 0.5f, 2)) {
+    // interiorSlice[i] = GCYNUtility.replace(interiorSlice[i], j, 'V');
+    // }
+    //
+    // int outerJ = j + (int) Math.signum(j - (diameter / 2));
+    // if (Math.pow(i - Math.floor(diameter / 2.), 2) +
+    // Math.pow(outerJ - Math.floor(diameter / 2.), 2) >
+    // Math.pow(radius + 0.5f, 2)) {
+    // interiorSlice[i] = GCYNUtility.replace(interiorSlice[i], j, 'V');
+    // }
+    // }
+    // }
+    //
+    // controllerSlice = interiorSlice.clone();
+    // topSlice = interiorSlice.clone();
+    // bottomSlice = interiorSlice.clone();
+    // controllerSlice[0] = controllerSlice[0].substring(0, (int) Math.floor(diameter / 2.)) + "SM" +
+    // controllerSlice[0].substring((int) Math.floor(diameter / 2.) + 2);
+    //
+    // // Example hatches
+    // controllerSlice[1] = controllerSlice[1].substring(0, (int) Math.floor(diameter / 2.) - 1) + "fff" +
+    // controllerSlice[1].substring((int) Math.floor(diameter / 2.) + 2);
+    // controllerSlice[2] = controllerSlice[2].substring(0, (int) Math.floor(diameter / 2.) - 1) + "fcf" +
+    // controllerSlice[2].substring((int) Math.floor(diameter / 2.) + 2);
+    // controllerSlice[3] = controllerSlice[3].substring(0, (int) Math.floor(diameter / 2.) - 1) + "frf" +
+    // controllerSlice[3].substring((int) Math.floor(diameter / 2.) + 2);
+    //
+    // topSlice[1] = topSlice[1].substring(0, (int) Math.floor(diameter / 2.) - 1) + "eee" +
+    // topSlice[1].substring((int) Math.floor(diameter / 2.) + 2);
+    // topSlice[2] = topSlice[2].substring(0, (int) Math.floor(diameter / 2.) - 1) + "ebe" +
+    // topSlice[2].substring((int) Math.floor(diameter / 2.) + 2);
+    // topSlice[3] = topSlice[3].substring(0, (int) Math.floor(diameter / 2.) - 1) + "eqe" +
+    // topSlice[3].substring((int) Math.floor(diameter / 2.) + 2);
+    //
+    // bottomSlice[1] = bottomSlice[1].substring(0, (int) Math.floor(diameter / 2.) - 1) + "ggg" +
+    // bottomSlice[1].substring((int) Math.floor(diameter / 2.) + 2);
+    // bottomSlice[2] = bottomSlice[2].substring(0, (int) Math.floor(diameter / 2.) - 1) + "gdg" +
+    // bottomSlice[2].substring((int) Math.floor(diameter / 2.) + 2);
+    // bottomSlice[3] = bottomSlice[3].substring(0, (int) Math.floor(diameter / 2.) - 1) + "gVg" +
+    // bottomSlice[3].substring((int) Math.floor(diameter / 2.) + 2);
+    //
+    // for (int i = 0; i < diameter; i++) {
+    // topSlice[i] = topSlice[i].replace('A', 'V');
+    // bottomSlice[i] = bottomSlice[i].replace('A', 'V');
+    // }
+    // MultiblockShapeInfo.Builder builder = MultiblockShapeInfo.builder(/*RelativeDirection.RIGHT,
+    // RelativeDirection.FRONT, RelativeDirection.UP*/); // TODO: Fix this
+    // builder.aisle(topSlice);
+    // for (int i = 0; i < heightBottom - 1; i++) {
+    // builder.aisle(interiorSlice);
+    // }
+    // builder.aisle(controllerSlice);
+    // for (int i = 0; i < heightTop - 1; i++) {
+    // builder.aisle(interiorSlice);
+    // }
+    // builder.aisle(bottomSlice);
+    // shapes.add(builder.where('S', GCYNMetaTileEntities.FISSION_REACTOR, EnumFacing.NORTH)
+    // // A for interior components, which are air here
+    // .where('A', Blocks.AIR.getDefaultState())
+    // // Technically a duplicate, but this just makes things easier
+    // .where(' ', Blocks.AIR.getDefaultState())
+    // // I for the inputs on the top
+    // .where('V', getVesselState())
+    // .where('f', getFuelChannelState())
+    // .where('c', getCoolantChannelState())
+    // .where('r', getControlRodChannelState())
+    // .where('e', GCYNMetaTileEntities.FUEL_ROD_INPUT, EnumFacing.UP)
+    // .where('g', GCYNMetaTileEntities.FUEL_ROD_OUTPUT, EnumFacing.DOWN)
+    // .where('b', GCYNMetaTileEntities.COOLANT_INPUT, EnumFacing.UP)
+    // .where('d', GCYNMetaTileEntities.COOLANT_OUTPUT, EnumFacing.DOWN)
+    // .where('q', GCYNMetaTileEntities.CONTROL_ROD, EnumFacing.UP)
+    // .where('m', GCYNMetaTileEntities.CONTROL_ROD_MODERATED, EnumFacing.UP)
+    //
+    // // B for the vessel blocks on the walls
+    // .where('M', () -> ConfigHolder.machines.enableMaintenance ? MetaTileEntities.MAINTENANCE_HATCH :
+    // getVesselState(), EnumFacing.NORTH)
+    // .build());
+    // }
+    // return shapes;
+    // }
 
     @Override
     public void addInformation(ItemStack stack, @Nullable World world, @NotNull List<String> tooltip,

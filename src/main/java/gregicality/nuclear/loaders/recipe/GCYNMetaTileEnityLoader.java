@@ -1,5 +1,9 @@
 package gregicality.nuclear.loaders.recipe;
 
+import static gregtech.common.blocks.BlockMetalCasing.MetalCasingType.*;
+import static gregtech.loaders.recipe.CraftingComponent.CABLE_QUAD;
+import static gregtech.loaders.recipe.CraftingComponent.SENSOR;
+
 import gregicality.nuclear.api.unification.material.GCYNMaterials;
 import gregicality.nuclear.common.blocks.BlockFissionCasing;
 import gregicality.nuclear.common.blocks.GCYNMetaBlocks;
@@ -11,10 +15,6 @@ import gregtech.api.unification.material.Materials;
 import gregtech.api.unification.ore.OrePrefix;
 import gregtech.api.unification.stack.UnificationEntry;
 import gregtech.common.blocks.MetaBlocks;
-
-import static gregtech.common.blocks.BlockMetalCasing.MetalCasingType.*;
-import static gregtech.loaders.recipe.CraftingComponent.CABLE_QUAD;
-import static gregtech.loaders.recipe.CraftingComponent.SENSOR;
 
 public class GCYNMetaTileEnityLoader {
 

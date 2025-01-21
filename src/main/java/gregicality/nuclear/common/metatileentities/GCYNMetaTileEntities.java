@@ -1,13 +1,13 @@
 package gregicality.nuclear.common.metatileentities;
 
+import static gregicality.nuclear.api.util.GCYNUtility.gcynId;
+import static gregtech.common.metatileentities.MetaTileEntities.registerMetaTileEntity;
+
 import gregicality.nuclear.common.metatileentities.multi.MetaTileEntityFissionReactor;
 import gregicality.nuclear.common.metatileentities.multi.MetaTileEntityHeatExchanger;
 import gregicality.nuclear.common.metatileentities.multi.MetaTileEntitySpentFuelPool;
 import gregicality.nuclear.common.metatileentities.multi.electric.MetaTileEntityGasCentrifuge;
 import gregicality.nuclear.common.metatileentities.multi.multiblockpart.*;
-
-import static gregicality.nuclear.api.util.GCYNUtility.gcynId;
-import static gregtech.common.metatileentities.MetaTileEntities.registerMetaTileEntity;
 
 public class GCYNMetaTileEntities {
 
@@ -34,6 +34,7 @@ public class GCYNMetaTileEntities {
         COOLANT_INPUT = registerMetaTileEntity(1802, new MetaTileEntityCoolantImportHatch(gcynId("coolant_input")));
         COOLANT_OUTPUT = registerMetaTileEntity(1803, new MetaTileEntityCoolantExportHatch(gcynId("coolant_output")));
         CONTROL_ROD = registerMetaTileEntity(1804, new MetaTileEntityControlRodPort(gcynId("control_rod"), false));
-        CONTROL_ROD_MODERATED = registerMetaTileEntity(1805, new MetaTileEntityControlRodPort(gcynId("control_rod_moderated"), true));
+        CONTROL_ROD_MODERATED = registerMetaTileEntity(1805,
+                new MetaTileEntityControlRodPort(gcynId("control_rod_moderated"), true));
     }
 }

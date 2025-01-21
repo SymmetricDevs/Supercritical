@@ -1,13 +1,14 @@
 package gregicality.nuclear.integration.jei.basic;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.item.ItemStack;
+
 import gregicality.nuclear.api.nuclear.fission.FissionFuelRegistry;
 import gregicality.nuclear.api.nuclear.fission.IFissionFuelStats;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.ingredients.VanillaTypes;
 import mezz.jei.api.recipe.IRecipeWrapper;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.item.ItemStack;
 
 public class FissionFuelInfo implements IRecipeWrapper {
 

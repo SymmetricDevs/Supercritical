@@ -1,6 +1,5 @@
 package gregicality.nuclear.common.blocks;
 
-import gregtech.common.blocks.MetaBlocks;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
@@ -8,7 +7,10 @@ import net.minecraft.item.Item;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+
 import org.jetbrains.annotations.NotNull;
+
+import gregtech.common.blocks.MetaBlocks;
 
 public class GCYNMetaBlocks {
 
@@ -27,7 +29,6 @@ public class GCYNMetaBlocks {
         GAS_CENTRIFUGE_CASING.setRegistryName("gas_centrifuge_casing");
         PANELLING = new BlockPanelling();
         PANELLING.setRegistryName("panelling");
-
     }
 
     @SideOnly(Side.CLIENT)

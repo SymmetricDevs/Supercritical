@@ -1,8 +1,10 @@
 package gregicality.nuclear.api.util;
 
-import gregicality.nuclear.GCYNValues;
 import net.minecraft.util.ResourceLocation;
+
 import org.jetbrains.annotations.NotNull;
+
+import gregicality.nuclear.GCYNValues;
 
 public class GCYNUtility {
 

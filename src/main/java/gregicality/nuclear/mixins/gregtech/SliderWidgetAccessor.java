@@ -1,9 +1,10 @@
 package gregicality.nuclear.mixins.gregtech;
 
-import gregtech.api.gui.resources.TextureArea;
-import gregtech.api.gui.widgets.SliderWidget;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
+
+import gregtech.api.gui.resources.TextureArea;
+import gregtech.api.gui.widgets.SliderWidget;
 
 @Mixin(value = SliderWidget.class, remap = false)
 public interface SliderWidgetAccessor {

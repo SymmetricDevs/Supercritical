@@ -1,11 +1,13 @@
 package gregicality.nuclear.api.capability;
 
-import gregicality.nuclear.api.capability.impl.LockableFluidTank;
-import gregicality.nuclear.api.nuclear.fission.ICoolantStats;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.fluids.Fluid;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import gregicality.nuclear.api.capability.impl.LockableFluidTank;
+import gregicality.nuclear.api.nuclear.fission.ICoolantStats;
 
 public interface ICoolantHandler extends ILockableHandler<Fluid> {
 

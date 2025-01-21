@@ -1,14 +1,16 @@
 package gregicality.nuclear.api.nuclear.fission;
 
-import gregtech.api.util.ItemStackHashStrategy;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import java.util.Collection;
+import java.util.Map;
+
 import net.minecraft.item.ItemStack;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Map;
+import gregtech.api.util.ItemStackHashStrategy;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 public class FissionFuelRegistry {
 

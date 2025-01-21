@@ -1,5 +1,24 @@
 package gregicality.nuclear.common.metatileentities.multi.multiblockpart;
 
+import static gregicality.nuclear.GCYNValues.FISSION_LOCK_UPDATE;
+
+import java.io.IOException;
+import java.util.List;
+
+import net.minecraft.client.resources.I18n;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+import net.minecraftforge.items.IItemHandlerModifiable;
+import net.minecraftforge.items.ItemStackHandler;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import codechicken.lib.render.CCRenderState;
 import codechicken.lib.render.pipeline.IVertexOperation;
 import codechicken.lib.vec.Matrix4;
@@ -22,23 +41,6 @@ import gregtech.api.metatileentity.multiblock.IMultiblockAbilityPart;
 import gregtech.api.metatileentity.multiblock.MultiblockAbility;
 import gregtech.client.renderer.texture.Textures;
 import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityMultiblockNotifiablePart;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemStackHandler;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.IOException;
-import java.util.List;
-
-import static gregicality.nuclear.GCYNValues.FISSION_LOCK_UPDATE;
 
 public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNotifiablePart
                                             implements IMultiblockAbilityPart<IFuelRodHandler>, IFuelRodHandler,

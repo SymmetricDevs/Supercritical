@@ -1,12 +1,13 @@
 package gregicality.nuclear.api.unification.material.properties;
 
+import net.minecraftforge.fluids.Fluid;
+
 import gregicality.nuclear.api.nuclear.fission.ICoolantStats;
 import gregtech.api.fluids.store.FluidStorageKey;
 import gregtech.api.unification.material.Material;
 import gregtech.api.unification.material.properties.IMaterialProperty;
 import gregtech.api.unification.material.properties.MaterialProperties;
 import gregtech.api.unification.material.properties.PropertyKey;
-import net.minecraftforge.fluids.Fluid;
 
 public class CoolantProperty implements IMaterialProperty, ICoolantStats {
 

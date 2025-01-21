@@ -1,7 +1,5 @@
 package gregicality.nuclear.loaders.recipe;
 
-import gregicality.nuclear.common.item.GCYNMetaItems;
-
 import static gregicality.nuclear.api.recipes.GCYNRecipeMaps.GAS_CENTRIFUGE_RECIPES;
 import static gregicality.nuclear.api.unification.material.GCYNMaterials.*;
 import static gregicality.nuclear.api.unification.ore.GCYNOrePrefix.*;
@@ -10,10 +8,11 @@ import static gregtech.api.recipes.RecipeMaps.*;
 import static gregtech.api.unification.material.Materials.*;
 import static gregtech.api.unification.ore.OrePrefix.*;
 
+import gregicality.nuclear.common.item.GCYNMetaItems;
+
 public class GCYNNuclearRecipes {
 
     public static void init() {
-
         CHEMICAL_RECIPES.recipeBuilder()
                 .input(dust, Boron, 2)
                 .fluidInputs(Oxygen.getFluid(3000))

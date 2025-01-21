@@ -1,9 +1,9 @@
 package gregicality.nuclear.api.nuclear.fission.components;
 
+import java.util.List;
+
 import gregicality.nuclear.api.capability.ICoolantHandler;
 import gregicality.nuclear.api.nuclear.fission.ICoolantStats;
-
-import java.util.List;
 
 public class CoolantChannel extends ReactorComponent {
 

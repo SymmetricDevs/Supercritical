@@ -1,4 +1,3 @@
 package gregicality.nuclear.loaders;
 
-public class GCYNMaterialInfoLoader {
-}
+public class GCYNMaterialInfoLoader {}

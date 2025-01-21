@@ -1,8 +1,8 @@
 package gregicality.nuclear.api.unification;
 
-import gregtech.api.unification.Element;
-
 import static gregtech.api.unification.Elements.*;
+
+import gregtech.api.unification.Element;
 
 public class GCYNElements {
 

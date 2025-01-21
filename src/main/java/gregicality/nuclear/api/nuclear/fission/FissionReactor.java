@@ -1,17 +1,18 @@
 package gregicality.nuclear.api.nuclear.fission;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidStack;
+
 import gregicality.nuclear.api.nuclear.fission.components.ControlRod;
 import gregicality.nuclear.api.nuclear.fission.components.CoolantChannel;
 import gregicality.nuclear.api.nuclear.fission.components.FuelRod;
 import gregicality.nuclear.api.nuclear.fission.components.ReactorComponent;
 import gregicality.nuclear.common.GCYNConfigHolder;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidStack;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class FissionReactor {
 

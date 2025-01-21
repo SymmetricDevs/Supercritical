@@ -1,21 +1,19 @@
 package gregicality.nuclear.common.materials;
 
-import gregicality.nuclear.api.unification.GCYNElements;
-import gregtech.api.fluids.FluidBuilder;
-import gregtech.api.unification.Elements;
-import gregtech.api.unification.material.Material;
-
 import static gregicality.nuclear.api.unification.material.GCYNMaterials.*;
 import static gregicality.nuclear.api.util.GCYNUtility.gcynId;
 import static gregtech.api.unification.material.Materials.EXT_METAL;
 import static gregtech.api.unification.material.info.MaterialIconSet.METALLIC;
 import static gregtech.api.unification.material.info.MaterialIconSet.SHINY;
 
+import gregicality.nuclear.api.unification.GCYNElements;
+import gregtech.api.fluids.FluidBuilder;
+import gregtech.api.unification.Elements;
+import gregtech.api.unification.material.Material;
 
 public class GCYNElementMaterials {
 
     public static void register() {
-
         Uranium = new Material.Builder(131, gcynId("uranium"))
                 .ingot(3)
                 .liquid(new FluidBuilder().temperature(1405))

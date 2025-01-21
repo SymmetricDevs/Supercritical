@@ -8,8 +8,7 @@ import gregtech.api.util.ValidationResult;
 
 public class NoEnergyRecipeBuilder extends RecipeBuilder<NoEnergyRecipeBuilder> {
 
-    public NoEnergyRecipeBuilder() {
-    }
+    public NoEnergyRecipeBuilder() {}
 
     public NoEnergyRecipeBuilder(Recipe recipe, RecipeMap<NoEnergyRecipeBuilder> recipeMap) {
         super(recipe, recipeMap);

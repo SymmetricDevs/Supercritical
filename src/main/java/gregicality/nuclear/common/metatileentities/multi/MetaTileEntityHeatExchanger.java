@@ -1,5 +1,9 @@
 package gregicality.nuclear.common.metatileentities.multi;
 
+import net.minecraft.util.ResourceLocation;
+
+import org.jetbrains.annotations.NotNull;
+
 import gregicality.nuclear.api.capability.impl.NoEnergyRecipeLogic;
 import gregicality.nuclear.api.recipes.GCYNRecipeMaps;
 import gregicality.nuclear.client.renderer.textures.GCYNTextures;
@@ -15,8 +19,6 @@ import gregtech.client.renderer.texture.Textures;
 import gregtech.common.blocks.BlockBoilerCasing.BoilerCasingType;
 import gregtech.common.blocks.BlockMetalCasing.MetalCasingType;
 import gregtech.common.blocks.MetaBlocks;
-import net.minecraft.util.ResourceLocation;
-import org.jetbrains.annotations.NotNull;
 
 public class MetaTileEntityHeatExchanger extends RecipeMapMultiblockController {
 

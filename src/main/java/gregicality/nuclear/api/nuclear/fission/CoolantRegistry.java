@@ -1,12 +1,14 @@
 package gregicality.nuclear.api.nuclear.fission;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import java.util.Collection;
+import java.util.Map;
+
 import net.minecraftforge.fluids.Fluid;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Map;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 public class CoolantRegistry {
 

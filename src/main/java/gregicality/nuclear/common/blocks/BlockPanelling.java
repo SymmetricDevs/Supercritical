@@ -1,9 +1,11 @@
 package gregicality.nuclear.common.blocks;
 
-import gregtech.api.block.VariantBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.util.IStringSerializable;
+
 import org.jetbrains.annotations.NotNull;
+
+import gregtech.api.block.VariantBlock;
 
 public class BlockPanelling extends VariantBlock<BlockPanelling.PanellingType> {
 

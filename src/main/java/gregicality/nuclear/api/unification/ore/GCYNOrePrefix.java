@@ -1,14 +1,16 @@
 package gregicality.nuclear.api.unification.ore;
 
-import gregicality.nuclear.api.unification.material.info.GCYNMaterialIconType;
-import gregicality.nuclear.api.unification.material.properties.GCYNPropertyKey;
-import gregtech.api.unification.ore.OrePrefix;
-import net.minecraft.client.resources.I18n;
-
 import java.util.Collections;
 import java.util.function.Function;
 
+import net.minecraft.client.resources.I18n;
+
+import gregicality.nuclear.api.unification.material.info.GCYNMaterialIconType;
+import gregicality.nuclear.api.unification.material.properties.GCYNPropertyKey;
+import gregtech.api.unification.ore.OrePrefix;
+
 public class GCYNOrePrefix {
+
     // Nuclear stuff, introduced by Zalgo and Bruberu
     public static final OrePrefix fuelRod = new OrePrefix("fuelRod", -1, null, GCYNMaterialIconType.fuelRod, 0,
             material -> material.hasProperty(GCYNPropertyKey.FISSION_FUEL),
@@ -31,7 +33,8 @@ public class GCYNOrePrefix {
     public static final OrePrefix dustBredFuel = new OrePrefix("dustBredFuel", -1, null,
             GCYNMaterialIconType.dustBredFuel, 0, material -> material.hasProperty(GCYNPropertyKey.FISSION_FUEL));
     public static final OrePrefix dustFissionByproduct = new OrePrefix("dustFissionByproduct", -1, null,
-            GCYNMaterialIconType.dustFissionByproduct, 0, material -> material.hasProperty(GCYNPropertyKey.FISSION_FUEL));
+            GCYNMaterialIconType.dustFissionByproduct, 0,
+            material -> material.hasProperty(GCYNPropertyKey.FISSION_FUEL));
 
     public static void init() {
         setRadiationDamageFunction(fuelRod, neutrons -> neutrons / 10e23);

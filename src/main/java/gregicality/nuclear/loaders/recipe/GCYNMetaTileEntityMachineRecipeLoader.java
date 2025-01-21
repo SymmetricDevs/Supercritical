@@ -1,7 +1,5 @@
 package gregicality.nuclear.loaders.recipe;
 
-import gregtech.api.unification.material.MarkerMaterials;
-
 import static gregicality.nuclear.api.unification.material.GCYNMaterials.Inconel;
 import static gregicality.nuclear.api.unification.material.GCYNMaterials.Zircaloy;
 import static gregicality.nuclear.common.metatileentities.GCYNMetaTileEntities.*;
@@ -11,6 +9,8 @@ import static gregtech.api.recipes.RecipeMaps.ASSEMBLER_RECIPES;
 import static gregtech.api.unification.material.Materials.*;
 import static gregtech.api.unification.ore.OrePrefix.*;
 import static gregtech.common.metatileentities.MetaTileEntities.HULL;
+
+import gregtech.api.unification.material.MarkerMaterials;
 
 public class GCYNMetaTileEntityMachineRecipeLoader {
 

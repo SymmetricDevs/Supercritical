@@ -1,5 +1,12 @@
 package gregicality.nuclear.loaders.recipe.handlers;
 
+import static gregicality.nuclear.api.recipes.GCYNRecipeMaps.SPENT_FUEL_POOL_RECIPES;
+import static gregicality.nuclear.api.unification.ore.GCYNOrePrefix.*;
+import static gregtech.api.GTValues.*;
+import static gregtech.api.recipes.RecipeMaps.CANNER_RECIPES;
+import static gregtech.api.recipes.RecipeMaps.FORMING_PRESS_RECIPES;
+import static gregtech.api.unification.ore.OrePrefix.dust;
+
 import gregicality.nuclear.api.unification.material.properties.FissionFuelProperty;
 import gregicality.nuclear.api.unification.material.properties.GCYNPropertyKey;
 import gregicality.nuclear.api.unification.ore.GCYNOrePrefix;
@@ -7,13 +14,6 @@ import gregicality.nuclear.common.item.GCYNMetaItems;
 import gregtech.api.unification.material.Material;
 import gregtech.api.unification.ore.OrePrefix;
 import gregtech.common.items.MetaItems;
-
-import static gregicality.nuclear.api.recipes.GCYNRecipeMaps.SPENT_FUEL_POOL_RECIPES;
-import static gregicality.nuclear.api.unification.ore.GCYNOrePrefix.*;
-import static gregtech.api.GTValues.*;
-import static gregtech.api.recipes.RecipeMaps.CANNER_RECIPES;
-import static gregtech.api.recipes.RecipeMaps.FORMING_PRESS_RECIPES;
-import static gregtech.api.unification.ore.OrePrefix.dust;
 
 public class NuclearRecipeHandler {
 

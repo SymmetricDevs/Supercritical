@@ -1,9 +1,10 @@
 package gregicality.nuclear.mixins.gregtech;
 
-import gregicality.nuclear.api.unification.ElementExtension;
-import gregtech.api.unification.Element;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
+
+import gregicality.nuclear.api.unification.ElementExtension;
+import gregtech.api.unification.Element;
 
 /**
  * Uses {@link ElementExtension} to add a half-life value in seconds to {@link Element},

@@ -1,5 +1,11 @@
 package gregicality.nuclear.loaders.recipe;
 
+import static gregicality.nuclear.api.unification.material.GCYNMaterials.*;
+import static gregtech.api.recipes.RecipeMaps.ASSEMBLER_RECIPES;
+import static gregtech.api.unification.material.Materials.Nichrome;
+import static gregtech.api.unification.material.Materials.Steel;
+import static gregtech.api.unification.ore.OrePrefix.*;
+
 import gregicality.nuclear.common.blocks.BlockFissionCasing;
 import gregicality.nuclear.common.blocks.BlockGasCentrifugeCasing;
 import gregicality.nuclear.common.blocks.BlockNuclearCasing;
@@ -8,16 +14,9 @@ import gregtech.common.ConfigHolder;
 import gregtech.common.blocks.BlockBoilerCasing;
 import gregtech.common.blocks.MetaBlocks;
 
-import static gregicality.nuclear.api.unification.material.GCYNMaterials.*;
-import static gregtech.api.recipes.RecipeMaps.ASSEMBLER_RECIPES;
-import static gregtech.api.unification.material.Materials.Nichrome;
-import static gregtech.api.unification.material.Materials.Steel;
-import static gregtech.api.unification.ore.OrePrefix.*;
-
 public class GCYNMachineRecipeLoader {
 
     public static void init() {
-
         ASSEMBLER_RECIPES.recipeBuilder().EUt(48).duration(280)
                 .input(plateDouble, Inconel)
                 .input(plate, Steel, 5)

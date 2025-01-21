@@ -1,9 +1,9 @@
 package gregicality.nuclear.api.unification.ore;
 
+import java.util.function.Function;
+
 import gregicality.nuclear.mixins.gregtech.MixinOrePrefix;
 import gregtech.api.unification.ore.OrePrefix;
-
-import java.util.function.Function;
 
 /**
  * Extends {@link OrePrefix} to include radiation properties.

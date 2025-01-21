@@ -1,9 +1,7 @@
 package gregicality.nuclear.mixins.gregtech;
 
-import gregicality.nuclear.api.unification.ElementExtension;
-import gregicality.nuclear.api.unification.material.MaterialExtension;
-import gregtech.api.unification.material.Material;
-import gregtech.api.unification.stack.MaterialStack;
+import java.lang.reflect.Field;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -11,7 +9,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.lang.reflect.Field;
+import gregicality.nuclear.api.unification.ElementExtension;
+import gregicality.nuclear.api.unification.material.MaterialExtension;
+import gregtech.api.unification.material.Material;
+import gregtech.api.unification.stack.MaterialStack;
 
 @Mixin(value = Material.class, remap = false)
 public abstract class MixinMaterial implements MaterialExtension {
@@ -37,8 +38,7 @@ public abstract class MixinMaterial implements MaterialExtension {
                 field.setAccessible(true);
                 gcyn$info = (MaterialInfoAccessor) field.get(this);
                 field.setAccessible(false);
-            } catch (NoSuchFieldException | IllegalAccessException ignored) {
-            }
+            } catch (NoSuchFieldException | IllegalAccessException ignored) {}
         }
         return gcyn$info;
     }
@@ -50,7 +50,8 @@ public abstract class MixinMaterial implements MaterialExtension {
             return 0;
         }
         if (gcyn$info().getElement() != null) {
-            return 6e23 * (Math.log(2) * Math.exp(-Math.log(2) / ((ElementExtension) gcyn$info().getElement()).getHalfLiveSeconds()));
+            return 6e23 * (Math.log(2) *
+                    Math.exp(-Math.log(2) / ((ElementExtension) gcyn$info().getElement()).getHalfLiveSeconds()));
         }
         double decaysPerSecond = 0;
         for (MaterialStack stack : gcyn$info().getComponentList())

@@ -1,6 +1,7 @@
 package gregicality.nuclear.api.metatileentity.multiblock;
 
 import net.minecraft.util.math.BlockPos;
+
 import org.jetbrains.annotations.Nullable;
 
 public interface IFissionReactorHatch {

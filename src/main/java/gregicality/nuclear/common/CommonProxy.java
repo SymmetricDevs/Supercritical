@@ -1,5 +1,23 @@
 package gregicality.nuclear.common;
 
+import java.util.Objects;
+import java.util.function.Function;
+
+import net.minecraft.block.Block;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.crafting.IRecipe;
+import net.minecraftforge.common.config.Config;
+import net.minecraftforge.common.config.ConfigManager;
+import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.fml.client.event.ConfigChangedEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.registries.IForgeRegistry;
+
+import org.jetbrains.annotations.NotNull;
+
 import gregicality.nuclear.GCYNValues;
 import gregicality.nuclear.api.nuclear.fission.CoolantRegistry;
 import gregicality.nuclear.api.nuclear.fission.FissionFuelRegistry;
@@ -21,23 +39,6 @@ import gregtech.api.unification.material.event.MaterialRegistryEvent;
 import gregtech.api.unification.material.event.PostMaterialEvent;
 import gregtech.common.items.MetaItems;
 import gregtech.modules.ModuleManager;
-import net.minecraft.block.Block;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
-import net.minecraft.item.crafting.IRecipe;
-import net.minecraftforge.common.config.Config;
-import net.minecraftforge.common.config.ConfigManager;
-import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.fml.client.event.ConfigChangedEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.registries.IForgeRegistry;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Objects;
-import java.util.function.Function;
-
 
 @Mod.EventBusSubscriber(modid = GCYNValues.MODID)
 public class CommonProxy {
@@ -89,8 +90,7 @@ public class CommonProxy {
                 GCYNOrePrefix.fuelPelletDepleted,
                 GCYNOrePrefix.dustSpentFuel,
                 GCYNOrePrefix.dustBredFuel,
-                GCYNOrePrefix.dustFissionByproduct
-        );
+                GCYNOrePrefix.dustFissionByproduct);
     }
 
     @SubscribeEvent
@@ -107,8 +107,7 @@ public class CommonProxy {
         GCYNRecipeManager.loadLatest();
     }
 
-    public void preLoad() {
-    }
+    public void preLoad() {}
 
     public void onPostLoad() {
         for (Material material : GregTechAPI.materialManager.getRegisteredMaterials()) {

@@ -1,5 +1,12 @@
 package gregicality.nuclear.common.materials;
 
+import static gregicality.nuclear.api.unification.material.GCYNMaterials.*;
+import static gregicality.nuclear.api.util.GCYNUtility.gcynId;
+import static gregtech.api.GTValues.EV;
+import static gregtech.api.unification.material.Materials.*;
+import static gregtech.api.unification.material.info.MaterialFlags.*;
+import static gregtech.api.unification.material.info.MaterialIconSet.*;
+
 import gregicality.nuclear.api.unification.material.properties.CoolantProperty;
 import gregicality.nuclear.api.unification.material.properties.GCYNPropertyKey;
 import gregtech.api.GTValues;
@@ -8,17 +15,9 @@ import gregtech.api.fluids.store.FluidStorageKeys;
 import gregtech.api.unification.material.Material;
 import gregtech.api.unification.material.properties.BlastProperty;
 
-import static gregicality.nuclear.api.unification.material.GCYNMaterials.*;
-import static gregicality.nuclear.api.util.GCYNUtility.gcynId;
-import static gregtech.api.GTValues.EV;
-import static gregtech.api.unification.material.Materials.*;
-import static gregtech.api.unification.material.info.MaterialFlags.*;
-import static gregtech.api.unification.material.info.MaterialIconSet.*;
-
 public class GCYNFirstDegreeMaterials {
 
     public static void register() {
-
         HighEnrichedUraniumDioxide = new Material.Builder(452, gcynId("high_enriched_uranium_dioxide"))
                 .dust(3)
                 .color(0x53E353).iconSet(DULL)
@@ -74,7 +73,6 @@ public class GCYNFirstDegreeMaterials {
                 .components(Zirconium, 1, Silicon, 1, Oxygen, 4)
                 .iconSet(SHINY)
                 .build();
-
 
         ZirconiumDioxide = new Material.Builder(459, gcynId("zirconium_dioxide"))
                 .dust()
@@ -154,7 +152,6 @@ public class GCYNFirstDegreeMaterials {
         HeavyWater.setProperty(GCYNPropertyKey.COOLANT,
                 new CoolantProperty(HeavyWater, HighPressureHeavyWater, FluidStorageKeys.LIQUID, 4., 1000,
                         374.4, 2064000, 4228.)
-                        .setAccumulatesHydrogen(true));
-
+                                .setAccumulatesHydrogen(true));
     }
 }

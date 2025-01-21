@@ -1,5 +1,17 @@
 package gregicality.nuclear.mixins.gregtech;
 
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.inventory.EntityEquipmentSlot;
+import net.minecraft.item.ItemStack;
+import net.minecraft.world.World;
+
+import org.jetbrains.annotations.NotNull;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+
 import gregicality.nuclear.api.items.armor.ArmorLogicExtension;
 import gregicality.nuclear.api.unification.material.MaterialExtension;
 import gregicality.nuclear.api.unification.material.properties.GCYNPropertyKey;
@@ -11,16 +23,6 @@ import gregtech.api.items.metaitem.StandardMetaItem;
 import gregtech.api.unification.material.Material;
 import gregtech.api.unification.material.properties.PropertyKey;
 import gregtech.api.unification.ore.OrePrefix;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.inventory.EntityEquipmentSlot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
-import org.jetbrains.annotations.NotNull;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(value = MetaPrefixItem.class, remap = false)
 public abstract class MixinMetaPrefixItem extends StandardMetaItem {

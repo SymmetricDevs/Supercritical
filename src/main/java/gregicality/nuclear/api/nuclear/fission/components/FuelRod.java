@@ -1,6 +1,5 @@
 package gregicality.nuclear.api.nuclear.fission.components;
 
-
 import gregicality.nuclear.api.nuclear.fission.IFissionFuelStats;
 
 public class FuelRod extends ReactorComponent {

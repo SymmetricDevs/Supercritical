@@ -1,5 +1,10 @@
 package gregicality.nuclear.integration.opencomputers.drivers.specific;
 
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+
 import gregicality.nuclear.common.metatileentities.multi.MetaTileEntityFissionReactor;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
 import gregtech.integration.opencomputers.drivers.EnvironmentMetaTileEntity;
@@ -8,10 +13,6 @@ import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.ManagedEnvironment;
 import li.cil.oc.api.prefab.DriverSidedTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 
 public class DriverFissionReactor extends DriverSidedTileEntity {
 

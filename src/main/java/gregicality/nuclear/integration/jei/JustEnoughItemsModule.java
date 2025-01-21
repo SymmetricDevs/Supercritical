@@ -1,5 +1,14 @@
 package gregicality.nuclear.integration.jei;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import net.minecraft.item.ItemStack;
+import net.minecraftforge.fluids.Fluid;
+
+import org.jetbrains.annotations.NotNull;
+
 import gregicality.nuclear.GCYNValues;
 import gregicality.nuclear.api.nuclear.fission.CoolantRegistry;
 import gregicality.nuclear.api.nuclear.fission.FissionFuelRegistry;
@@ -16,21 +25,14 @@ import mezz.jei.api.IModPlugin;
 import mezz.jei.api.IModRegistry;
 import mezz.jei.api.JEIPlugin;
 import mezz.jei.api.recipe.IRecipeCategoryRegistration;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.fluids.Fluid;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 @JEIPlugin
 @GregTechModule(
-        moduleID = GCYNModules.MODULE_JEI,
-        containerID = GCYNValues.MODID,
-        modDependencies = Mods.Names.JUST_ENOUGH_ITEMS,
-        name = "GCYN JEI Integration",
-        description = "GCYN JustEnoughItems Integration Module")
+                moduleID = GCYNModules.MODULE_JEI,
+                containerID = GCYNValues.MODID,
+                modDependencies = Mods.Names.JUST_ENOUGH_ITEMS,
+                name = "GCYN JEI Integration",
+                description = "GCYN JustEnoughItems Integration Module")
 public class JustEnoughItemsModule extends IntegrationSubmodule implements IModPlugin {
 
     @Override

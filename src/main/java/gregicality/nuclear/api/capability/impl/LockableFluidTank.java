@@ -1,14 +1,14 @@
 package gregicality.nuclear.api.capability.impl;
 
-
-import gregicality.nuclear.api.capability.ILockableHandler;
-import gregtech.api.capability.impl.NotifiableFluidTank;
-import gregtech.api.metatileentity.MetaTileEntity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
+
+import gregicality.nuclear.api.capability.ILockableHandler;
+import gregtech.api.capability.impl.NotifiableFluidTank;
+import gregtech.api.metatileentity.MetaTileEntity;
 
 public class LockableFluidTank extends NotifiableFluidTank implements ILockableHandler<Fluid> {
 

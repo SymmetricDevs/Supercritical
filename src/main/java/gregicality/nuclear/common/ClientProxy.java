@@ -1,12 +1,12 @@
 package gregicality.nuclear.common;
 
-import gregicality.nuclear.client.renderer.textures.GCYNTextures;
-import gregicality.nuclear.common.blocks.GCYNMetaBlocks;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 
+import gregicality.nuclear.client.renderer.textures.GCYNTextures;
+import gregicality.nuclear.common.blocks.GCYNMetaBlocks;
 
 @Mod.EventBusSubscriber(Side.CLIENT)
 public class ClientProxy extends CommonProxy {

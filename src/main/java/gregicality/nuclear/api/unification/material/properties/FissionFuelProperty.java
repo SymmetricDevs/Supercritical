@@ -1,6 +1,5 @@
 package gregicality.nuclear.api.unification.material.properties;
 
-
 import gregicality.nuclear.api.nuclear.fission.IFissionFuelStats;
 import gregtech.api.unification.material.properties.IMaterialProperty;
 import gregtech.api.unification.material.properties.MaterialProperties;

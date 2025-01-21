@@ -1,5 +1,19 @@
 package gregicality.nuclear.common.metatileentities.multi;
 
+import static gregtech.api.util.RelativeDirection.*;
+
+import java.util.List;
+
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.World;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import gregicality.nuclear.api.recipes.GCYNRecipeMaps;
 import gregicality.nuclear.client.renderer.textures.GCYNTextures;
 import gregicality.nuclear.common.blocks.BlockNuclearCasing;
@@ -15,18 +29,6 @@ import gregtech.client.renderer.ICubeRenderer;
 import gregtech.client.renderer.texture.Textures;
 import gregtech.common.blocks.BlockMetalCasing;
 import gregtech.common.blocks.MetaBlocks;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static gregtech.api.util.RelativeDirection.*;
 
 public class MetaTileEntitySpentFuelPool extends RecipeMapMultiblockController {
 
@@ -81,7 +83,8 @@ public class MetaTileEntitySpentFuelPool extends RecipeMapMultiblockController {
                 .where('W', blocks(Blocks.WATER).or(blocks(Blocks.FLOWING_WATER)))
                 .where('U', blocks(Blocks.WATER))
                 .where('R', states(getRodState()))
-                .where('T', states(getMetalCasingState()).or(autoAbilities(true, false, true, true, false, true, false)))
+                .where('T',
+                        states(getMetalCasingState()).or(autoAbilities(true, false, true, true, false, true, false)))
                 .build();
     }
 

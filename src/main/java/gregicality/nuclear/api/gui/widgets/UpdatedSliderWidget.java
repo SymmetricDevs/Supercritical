@@ -1,5 +1,8 @@
 package gregicality.nuclear.api.gui.widgets;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
+
 import gregicality.nuclear.api.util.function.FloatSupplier;
 import gregicality.nuclear.mixins.gregtech.SliderWidgetAccessor;
 import gregtech.api.gui.IRenderContext;
@@ -7,8 +10,6 @@ import gregtech.api.gui.widgets.SliderWidget;
 import gregtech.api.util.Position;
 import gregtech.api.util.Size;
 import gregtech.api.util.function.FloatConsumer;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
 
 public class UpdatedSliderWidget extends SliderWidget {
 
@@ -32,7 +33,8 @@ public class UpdatedSliderWidget extends SliderWidget {
         self.setSliderPosition((detector.get() - self.getMin()) / (self.getMax() - self.getMin()));
         self.setDisplayStringRaw(getDisplayString());
 
-        self.getSliderIcon().draw(pos.x + (int) (self.getSliderPosition() * (float) (size.width - 8)), pos.y, self.getSliderWidth(),
+        self.getSliderIcon().draw(pos.x + (int) (self.getSliderPosition() * (float) (size.width - 8)), pos.y,
+                self.getSliderWidth(),
                 size.height);
         FontRenderer fontRenderer = Minecraft.getMinecraft().fontRenderer;
         fontRenderer.drawString(self.getDisplayStringRaw(),

@@ -1,8 +1,9 @@
 package gregicality.nuclear.mixins.gregtech;
 
+import org.spongepowered.asm.mixin.Mixin;
+
 import gregicality.nuclear.api.items.armor.ArmorLogicExtension;
 import gregtech.api.items.armor.IArmorLogic;
-import org.spongepowered.asm.mixin.Mixin;
 
 /**
  * No additional functionality is added here.
