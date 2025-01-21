@@ -1,11 +1,12 @@
 {
   "package": "gregicality.nuclear.mixins.gregtech",
-  "refmap": "mixins.susy.refmap.json",
+  "refmap": "mixins.gcyn.refmap.json",
   "target": "@env(DEFAULT)",
   "minVersion": "0.8",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "MixinCoverDetectorEnergy",
+    "MixinIArmorLogic",
     "SliderWidgetAccessor"
   ]
 }

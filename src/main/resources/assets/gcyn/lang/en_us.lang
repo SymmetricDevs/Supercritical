@@ -172,5 +172,5 @@ gcyn.multiblock.fission_reactor.invalid_components=Reactor startup failed. Some 
 gcyn.multiblock.fission_reactor.missing_inputs=Reactor startup failed. Some of the inputs ports are empty or have inappropriate contents. Please check the ports.
 
 gregtech.fluid.molten=Molten %s
-# Name Overrides
+# Name Overrides (doesn't work)
 gregtech.material.enriched_uranium_hexafluoride=Low Enriched Uranium Hexafluoride
