@@ -16,12 +16,19 @@ import java.lang.reflect.Field;
 @Mixin(value = Material.class, remap = false)
 public abstract class MixinMaterial implements MaterialExtension {
 
+    /**
+     * Cached here to avoid repeated reflection calls.
+     */
     @Unique
     private MaterialInfoAccessor gcyn$info;
 
     @Shadow
     public abstract boolean isRadioactive();
 
+    /**
+     * Work-around for the fact that MaterialInfo is private.
+     * Provides access to MaterialInfo by using reflection.
+     */
     @Unique
     public MaterialInfoAccessor gcyn$info() {
         if (gcyn$info == null) {

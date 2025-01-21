@@ -44,6 +44,6 @@ public class GCYNOrePrefix {
     }
 
     private static void setRadiationDamageFunction(OrePrefix prefix, Function<Double, Double> function) {
-        ((OrePrefixExtension) prefix).setDamageFunction(function);
+        ((OrePrefixExtension) prefix).setRadiationDamageFunction(function);
     }
 }

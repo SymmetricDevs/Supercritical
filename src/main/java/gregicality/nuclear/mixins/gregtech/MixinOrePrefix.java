@@ -16,13 +16,13 @@ public abstract class MixinOrePrefix implements OrePrefixExtension {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Override
-    public Function<Double, Double> getDamageFunction() {
+    public Function<Double, Double> getRadiationDamageFunction() {
         return gcyn$radiationDamageFunction;
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Override
-    public void setDamageFunction(Function<Double, Double> function) {
+    public void setRadiationDamageFunction(Function<Double, Double> function) {
         this.gcyn$radiationDamageFunction = function;
     }
 }

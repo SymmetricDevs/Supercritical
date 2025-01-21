@@ -5,6 +5,10 @@ import gregtech.api.unification.Element;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
+/**
+ * Uses {@link ElementExtension} to add a half-life value in seconds to {@link Element},
+ * replacing the original long value, while maintaining (some sort of) compatibility.
+ */
 @Mixin(value = Element.class, remap = false)
 public abstract class MixinElement implements ElementExtension {
 

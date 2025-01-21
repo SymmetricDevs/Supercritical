@@ -1,6 +1,6 @@
 package gregicality.nuclear.mixins.gregtech;
 
-import gregicality.nuclear.api.items.armor.IRadiationResistanceArmorLogic;
+import gregicality.nuclear.api.items.armor.ArmorLogicExtension;
 import gregicality.nuclear.api.unification.material.MaterialExtension;
 import gregicality.nuclear.api.unification.material.properties.GCYNPropertyKey;
 import gregicality.nuclear.api.unification.ore.OrePrefixExtension;
@@ -56,14 +56,14 @@ public abstract class MixinMetaPrefixItem extends StandardMetaItem {
 
     @Unique
     private void gcyn$handleRadiationDamage(@NotNull Material material, EntityLivingBase entity) {
-        double radiationDamage = ((OrePrefixExtension) prefix).getDamageFunction()
+        double radiationDamage = ((OrePrefixExtension) prefix).getRadiationDamageFunction()
                 .apply(((MaterialExtension) material).getDecaysPerSecond());
         ItemStack armor = entity.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
         if (!armor.isEmpty() && armor.getItem() instanceof ArmorMetaItem<?>) {
             ArmorMetaItem<?>.ArmorMetaValueItem metaValueItem = ((ArmorMetaItem<?>) armor.getItem())
                     .getItem(armor);
             if (metaValueItem != null) {
-                radiationDamage *= ((IRadiationResistanceArmorLogic) (metaValueItem.getArmorLogic())).getRadiationResistance();
+                radiationDamage *= ((ArmorLogicExtension) (metaValueItem.getArmorLogic())).getRadiationResistance();
             }
         }
         if (radiationDamage > 0.0) {
@@ -72,10 +72,7 @@ public abstract class MixinMetaPrefixItem extends StandardMetaItem {
         }
     }
 
-    /**
-     * @author MCTian-mi
-     * @reason Can't really figure out a better way than this...
-     */
+    // Can't really figure out a better way than a total overwrite like this...
     @Override
     public void onUpdate(@NotNull ItemStack itemStack, @NotNull World worldIn, @NotNull Entity entityIn, int itemSlot,
                          boolean isSelected) {
@@ -90,7 +87,7 @@ public abstract class MixinMetaPrefixItem extends StandardMetaItem {
                     }
 
                     // Handle radiation damage
-                    if (((OrePrefixExtension) prefix).getDamageFunction() != null) {
+                    if (((OrePrefixExtension) prefix).getRadiationDamageFunction() != null) {
                         gcyn$handleRadiationDamage(material, entity);
                     }
                 }

@@ -15,7 +15,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(value = CoverDetectorEnergy.class, remap = false)
 public abstract class MixinCoverDetectorEnergy extends CoverDetectorBase {
 
-    public MixinCoverDetectorEnergy(@NotNull CoverDefinition definition, @NotNull CoverableView coverableView, @NotNull EnumFacing attachedSide) {
+    public MixinCoverDetectorEnergy(@NotNull CoverDefinition definition, @NotNull CoverableView coverableView,
+                                    @NotNull EnumFacing attachedSide) {
         super(definition, coverableView, attachedSide);
     }
 
