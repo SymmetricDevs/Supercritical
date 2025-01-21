@@ -47,14 +47,14 @@ gcyn.material.neptunium_235=Neptunium 235
 gcyn.material.neptunium_236=Neptunium 236
 gcyn.material.neptunium_237=Neptunium 237
 
-gcyn.material.plutonium_0=Plutonium
+gcyn.material.plutonium=Plutonium
 gcyn.material.plutonium_238=Plutonium 238
 gcyn.material.plutonium_240=Plutonium 240
 
 gcyn.material.plutonium_242=Plutonium 242
 gcyn.material.plutonium_244=Plutonium 244
 
-gcyn.material.uranium_0=Uranium
+gcyn.material.uranium=Uranium
 gcyn.material.uranium_239=Uranium 239
 
 gcyn.material.high_pressure_steam=High Pressure Steam

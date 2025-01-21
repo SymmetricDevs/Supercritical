@@ -17,6 +17,7 @@ import gregtech.api.block.VariantItemBlock;
 import gregtech.api.modules.ModuleContainerRegistryEvent;
 import gregtech.api.unification.OreDictUnifier;
 import gregtech.api.unification.material.Material;
+import gregtech.api.unification.material.event.MaterialRegistryEvent;
 import gregtech.api.unification.material.event.PostMaterialEvent;
 import gregtech.common.items.MetaItems;
 import gregtech.modules.ModuleManager;
@@ -121,6 +122,11 @@ public class CommonProxy {
                 CoolantRegistry.registerCoolant(material.getFluid(prop.getCoolantKey()), prop);
             }
         }
+    }
+
+    @SubscribeEvent
+    public static void createMaterialRegistry(MaterialRegistryEvent event) {
+        GregTechAPI.materialManager.createRegistry(GCYNValues.MODID);
     }
 
     @SubscribeEvent

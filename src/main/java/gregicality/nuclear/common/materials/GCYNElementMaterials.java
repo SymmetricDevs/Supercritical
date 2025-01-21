@@ -16,7 +16,7 @@ public class GCYNElementMaterials {
 
     public static void register() {
 
-        Uranium = new Material.Builder(131, gcynId("uranium_0")) // '_0' to avoid conflict with ceu uranium-238
+        Uranium = new Material.Builder(131, gcynId("uranium"))
                 .ingot(3)
                 .liquid(new FluidBuilder().temperature(1405))
                 .color(0x32F032).iconSet(METALLIC)
@@ -73,7 +73,7 @@ public class GCYNElementMaterials {
                 .element(GCYNElements.Pu244)
                 .build();
 
-        Plutonium = new Material.Builder(141, gcynId("plutonium_0")) // '_0' to avoid conflict with ceu plutonium-239
+        Plutonium = new Material.Builder(141, gcynId("plutonium"))
                 .color(0xF03232).iconSet(METALLIC)
                 .element(Elements.Pu)
                 .build();
