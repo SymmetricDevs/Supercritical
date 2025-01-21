@@ -1,6 +1,7 @@
 package gregicality.nuclear.api.recipes;
 
 import gregicality.nuclear.api.recipes.builders.NoEnergyRecipeBuilder;
+import gregicality.nuclear.common.GCYNConfigHolder;
 import gregtech.api.gui.GuiTextures;
 import gregtech.api.gui.widgets.ProgressWidget;
 import gregtech.api.recipes.RecipeMap;
@@ -10,7 +11,7 @@ import gregtech.core.sound.GTSoundEvents;
 public class GCYNRecipeMaps {
 
     public static final RecipeMap<NoEnergyRecipeBuilder> HEAT_EXCHANGER_RECIPES = new RecipeMap<>("heat_exchanger", 1,
-            0, 2, 2, new NoEnergyRecipeBuilder(), false)
+            0, 2, 2, new NoEnergyRecipeBuilder(), GCYNConfigHolder.misc.enableHX)
                     .setProgressBar(GuiTextures.PROGRESS_BAR_ARROW_MULTIPLE, ProgressWidget.MoveType.HORIZONTAL)
                     .setSound(GTSoundEvents.COOLING);
 

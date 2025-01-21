@@ -5,6 +5,7 @@ import static gregtech.loaders.recipe.CraftingComponent.CABLE_QUAD;
 import static gregtech.loaders.recipe.CraftingComponent.SENSOR;
 
 import gregicality.nuclear.api.unification.material.GCYNMaterials;
+import gregicality.nuclear.common.GCYNConfigHolder;
 import gregicality.nuclear.common.blocks.BlockFissionCasing;
 import gregicality.nuclear.common.blocks.GCYNMetaBlocks;
 import gregicality.nuclear.common.metatileentities.GCYNMetaTileEntities;
@@ -27,11 +28,14 @@ public class GCYNMetaTileEnityLoader {
                 'R', new UnificationEntry(OrePrefix.rotor, Materials.Steel),
                 'W', CABLE_QUAD.getIngredient(GTValues.EV));
 
-        ModHandler.addShapedRecipe(true, "heat_exchanger", GCYNMetaTileEntities.HEAT_EXCHANGER.getStackForm(), "FFF",
-                "PCP", "FFF",
-                'C', new UnificationEntry(OrePrefix.circuit, MarkerMaterials.Tier.HV),
-                'P', new UnificationEntry(OrePrefix.pipeLargeFluid, GCYNMaterials.Inconel),
-                'F', MetaBlocks.METAL_CASING.getItemVariant(STEEL_SOLID));
+        if (GCYNConfigHolder.misc.enableHX) {
+            ModHandler.addShapedRecipe(true, "heat_exchanger", GCYNMetaTileEntities.HEAT_EXCHANGER.getStackForm(),
+                    "FFF",
+                    "PCP", "FFF",
+                    'C', new UnificationEntry(OrePrefix.circuit, MarkerMaterials.Tier.HV),
+                    'P', new UnificationEntry(OrePrefix.pipeLargeFluid, GCYNMaterials.Inconel),
+                    'F', MetaBlocks.METAL_CASING.getItemVariant(STEEL_SOLID));
+        }
 
         ModHandler.addShapedRecipe(true, "gas_centrifuge", GCYNMetaTileEntities.GAS_CENTRIFUGE.getStackForm(), "FFF",
                 "WRW", "CCC",

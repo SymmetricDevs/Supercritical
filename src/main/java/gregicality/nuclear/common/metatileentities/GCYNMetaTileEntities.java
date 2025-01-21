@@ -3,6 +3,7 @@ package gregicality.nuclear.common.metatileentities;
 import static gregicality.nuclear.api.util.GCYNUtility.gcynId;
 import static gregtech.common.metatileentities.MetaTileEntities.registerMetaTileEntity;
 
+import gregicality.nuclear.common.GCYNConfigHolder;
 import gregicality.nuclear.common.metatileentities.multi.MetaTileEntityFissionReactor;
 import gregicality.nuclear.common.metatileentities.multi.MetaTileEntityHeatExchanger;
 import gregicality.nuclear.common.metatileentities.multi.MetaTileEntitySpentFuelPool;
@@ -24,7 +25,10 @@ public class GCYNMetaTileEntities {
     public static MetaTileEntityGasCentrifuge GAS_CENTRIFUGE;
 
     public static void init() {
-        HEAT_EXCHANGER = registerMetaTileEntity(15044, new MetaTileEntityHeatExchanger(gcynId("heat_exchanger")));
+        if (GCYNConfigHolder.misc.enableHX) {
+            HEAT_EXCHANGER = registerMetaTileEntity(15044, new MetaTileEntityHeatExchanger(gcynId("heat_exchanger")));
+        }
+
         FISSION_REACTOR = registerMetaTileEntity(1043, new MetaTileEntityFissionReactor(gcynId("fission_reactor")));
         SPENT_FUEL_POOL = registerMetaTileEntity(1044, new MetaTileEntitySpentFuelPool(gcynId("spent_fuel_pool")));
         GAS_CENTRIFUGE = registerMetaTileEntity(1046, new MetaTileEntityGasCentrifuge(gcynId("gas_centrifuge")));

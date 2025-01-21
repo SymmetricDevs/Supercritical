@@ -30,6 +30,8 @@ public final class GCYNEventHandlers {
 
     @SubscribeEvent
     public static void registerMaterialsPost(PostMaterialEvent event) {
-        GCYNMaterialModifications.init();
+        if (GCYNConfigHolder.misc.enableMaterialModifications) {
+            GCYNMaterialModifications.init();
+        }
     }
 }
