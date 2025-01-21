@@ -6,6 +6,7 @@ import gregtech.api.unification.ore.OrePrefix;
 import net.minecraft.client.resources.I18n;
 
 import java.util.Collections;
+import java.util.function.Function;
 
 public class GCYNOrePrefix {
     // Nuclear stuff, introduced by Zalgo and Bruberu
@@ -32,12 +33,17 @@ public class GCYNOrePrefix {
     public static final OrePrefix dustFissionByproduct = new OrePrefix("dustFissionByproduct", -1, null,
             GCYNMaterialIconType.dustFissionByproduct, 0, material -> material.hasProperty(GCYNPropertyKey.FISSION_FUEL));
 
-    // TODO: damn it
-//    fuelRod.radiationDamageFunction = (neutrons) -> neutrons / 10e23;
-//    fuelPellet.radiationDamageFunction = (neutrons) -> neutrons / 160e23;
-//
-//    fuelRodDepleted.radiationDamageFunction = (neutrons) -> neutrons / 1.5e23;
-//    fuelRodHotDepleted.radiationDamageFunction = (neutrons) -> neutrons / 1e23;
-//    fuelRodHotDepleted.heatDamageFunction = (x) -> 2f;
-//    fuelPelletDepleted.radiationDamageFunction = (neutrons) -> neutrons / 24e23;
+    public static void init() {
+        setRadiationDamageFunction(fuelRod, neutrons -> neutrons / 10e23);
+        setRadiationDamageFunction(fuelPellet, neutrons -> neutrons / 160e23);
+
+        setRadiationDamageFunction(fuelRodDepleted, neutrons -> neutrons / 1.5e23);
+        setRadiationDamageFunction(fuelRodHotDepleted, neutrons -> neutrons / 1e23);
+        fuelRodHotDepleted.heatDamageFunction = x -> 2f;
+        setRadiationDamageFunction(fuelPelletDepleted, neutrons -> neutrons / 24e23);
+    }
+
+    private static void setRadiationDamageFunction(OrePrefix prefix, Function<Double, Double> function) {
+        ((OrePrefixExtension) prefix).setDamageFunction(function);
+    }
 }

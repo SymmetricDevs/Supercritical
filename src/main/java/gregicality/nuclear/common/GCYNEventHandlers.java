@@ -1,6 +1,7 @@
 package gregicality.nuclear.common;
 
 import gregicality.nuclear.GCYNValues;
+import gregicality.nuclear.api.unification.ore.GCYNOrePrefix;
 import gregicality.nuclear.common.materials.*;
 import gregtech.api.unification.material.event.MaterialEvent;
 import gregtech.api.unification.material.event.PostMaterialEvent;
@@ -23,6 +24,8 @@ public final class GCYNEventHandlers {
         GCYNFirstDegreeMaterials.register();
         GCYNSecondDegreeMaterials.register();
         GCYNUnknownCompositionMaterials.register();
+
+        GCYNOrePrefix.init();
     }
 
     @SubscribeEvent

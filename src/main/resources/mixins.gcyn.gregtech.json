@@ -5,8 +5,13 @@
   "minVersion": "0.8",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "MaterialInfoAccessor",
     "MixinCoverDetectorEnergy",
+    "MixinElement",
     "MixinIArmorLogic",
+    "MixinMaterial",
+    "MixinMetaPrefixItem",
+    "MixinOrePrefix",
     "SliderWidgetAccessor"
   ]
 }
