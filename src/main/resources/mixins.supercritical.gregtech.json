@@ -1,0 +1,17 @@
+{
+  "package": "supercritical.mixins.gregtech",
+  "refmap": "mixins.supercritical.refmap.json",
+  "target": "@env(DEFAULT)",
+  "minVersion": "0.8",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "MaterialInfoAccessor",
+    "MixinCoverDetectorEnergy",
+    "MixinElement",
+    "MixinIArmorLogic",
+    "MixinMaterial",
+    "MixinMetaPrefixItem",
+    "MixinOrePrefix",
+    "SliderWidgetAccessor"
+  ]
+}
