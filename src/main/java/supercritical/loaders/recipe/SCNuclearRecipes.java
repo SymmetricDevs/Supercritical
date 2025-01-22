@@ -3,7 +3,6 @@ package supercritical.loaders.recipe;
 import static gregtech.api.GTValues.*;
 import static gregtech.api.recipes.RecipeMaps.*;
 import static gregtech.api.unification.material.Materials.*;
-import static gregtech.api.unification.material.Materials.DepletedUraniumDioxide;
 import static gregtech.api.unification.ore.OrePrefix.*;
 import static supercritical.api.recipes.SCRecipeMaps.GAS_CENTRIFUGE_RECIPES;
 import static supercritical.api.unification.material.SCMaterials.*;

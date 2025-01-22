@@ -42,17 +42,17 @@ dependencies {
     api(rfg.deobf("curse.maven:opencomputers-223008:5274236"))
 
 
-    implementation rfg.deobf("curse.maven:gregicality-multiblocks-564858:5619513")
-    implementation rfg.deobf("curse.maven:gregtech-food-option-477021:5994740")
-    implementation rfg.deobf("curse.maven:susycore-846224:6101213")
+    compileOnly rfg.deobf("curse.maven:gregicality-multiblocks-564858:5619513")
+    compileOnly rfg.deobf("curse.maven:gregtech-food-option-477021:5994740")
+    compileOnly rfg.deobf("curse.maven:susycore-846224:6101213")
 
     // SuSy Core needs you
-    implementation rfg.deobf('curse.maven:geckolib-388172:4020277')
-    implementation rfg.deobf("curse.maven:universal-mod-core-371784:4975229") // Universal-Mod-Care v1.2.1
-    implementation rfg.deobf("curse.maven:track-api-282613:2825260") // Track-API v1.2.0
-    implementation rfg.deobf("curse.maven:immersive-railroading-277736:4970105") // Immersive-Railroading v1.10.0
+    compileOnly rfg.deobf('curse.maven:geckolib-388172:4020277')
+    compileOnly rfg.deobf("curse.maven:universal-mod-core-371784:4975229") // Universal-Mod-Care v1.2.1
+    compileOnly rfg.deobf("curse.maven:track-api-282613:2825260") // Track-API v1.2.0
+    compileOnly rfg.deobf("curse.maven:immersive-railroading-277736:4970105") // Immersive-Railroading v1.10.0
 
-    implementation rfg.deobf("curse.maven:pyrotech-306676:5351359")
-    implementation rfg.deobf("curse.maven:athenaeum-284350:4633750")
-    implementation rfg.deobf("curse.maven:dropt-284973:5405050")
+    compileOnly rfg.deobf("curse.maven:pyrotech-306676:5351359")
+    compileOnly rfg.deobf("curse.maven:athenaeum-284350:4633750")
+    compileOnly rfg.deobf("curse.maven:dropt-284973:5405050")
 }
