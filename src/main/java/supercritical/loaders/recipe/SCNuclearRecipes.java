@@ -3,6 +3,7 @@ package supercritical.loaders.recipe;
 import static gregtech.api.GTValues.*;
 import static gregtech.api.recipes.RecipeMaps.*;
 import static gregtech.api.unification.material.Materials.*;
+import static gregtech.api.unification.material.Materials.DepletedUraniumDioxide;
 import static gregtech.api.unification.ore.OrePrefix.*;
 import static supercritical.api.recipes.SCRecipeMaps.GAS_CENTRIFUGE_RECIPES;
 import static supercritical.api.unification.material.SCMaterials.*;
@@ -112,6 +113,7 @@ public class SCNuclearRecipes {
                 .buildAndRegister();
 
         CHEMICAL_RECIPES.recipeBuilder().duration(200).EUt(VA[LV])
+                .fluidInputs(DepletedUraniumHexafluoride.getFluid(1000))
                 .fluidInputs(Water.getFluid(2000))
                 .fluidInputs(Hydrogen.getFluid(2000))
                 .output(dust, DepletedUraniumDioxide, 3)
