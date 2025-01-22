@@ -1,6 +1,10 @@
 package supercritical.api.unification.material;
 
 import gregtech.api.unification.material.Material;
+import supercritical.common.materials.ElementMaterials;
+import supercritical.common.materials.FirstDegreeMaterials;
+import supercritical.common.materials.SecondDegreeMaterials;
+import supercritical.common.materials.UnknownCompositionMaterials;
 
 public class SCMaterials {
 
@@ -52,4 +56,26 @@ public class SCMaterials {
     public static Material HEU235;
     public static Material LowGradeMOX;
     public static Material HighGradeMOX;
+
+    public static void register() {
+        /*
+         * Ranges 1-499
+         */
+        ElementMaterials.register();
+
+        /*
+         * Ranges 500-999
+         */
+        FirstDegreeMaterials.register();
+
+        /*
+         * Ranges 1000-1499
+         */
+        SecondDegreeMaterials.register();
+
+        /*
+         * Ranges 1500-1999
+         */
+        UnknownCompositionMaterials.register();
+    }
 }
