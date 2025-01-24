@@ -1,6 +1,7 @@
 package supercritical.api.unification.material;
 
 import gregtech.api.unification.material.Material;
+import supercritical.common.SCConfigHolder;
 import supercritical.common.materials.ElementMaterials;
 import supercritical.common.materials.FirstDegreeMaterials;
 import supercritical.common.materials.SecondDegreeMaterials;
@@ -58,6 +59,8 @@ public class SCMaterials {
     public static Material HighGradeMOX;
 
     public static void register() {
+        if (SCConfigHolder.misc.disableAllRecipes) return;
+
         /*
          * Ranges 1-499
          */

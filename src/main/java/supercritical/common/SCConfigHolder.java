@@ -62,9 +62,15 @@ public class SCConfigHolder {
         public boolean enableHX = true;
 
         @Config.Comment({
-                "Remove all recipes in Supercritical",
+                "Remove all recipes from Supercritical",
                 "Default: false"
         })
         public boolean disableAllRecipes = false;
+
+        @Config.Comment({
+                "Remove all materials from Supercritical",
+                "Default: false"
+        })
+        public boolean disableAllMaterials = false;
     }
 }
