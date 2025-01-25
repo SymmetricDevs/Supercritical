@@ -59,7 +59,7 @@ public class SCMaterials {
     public static Material HighGradeMOX;
 
     public static void register() {
-        if (SCConfigHolder.misc.disableAllRecipes) return;
+        if (SCConfigHolder.misc.disableAllMaterials) return;
 
         /*
          * Ranges 1-499
