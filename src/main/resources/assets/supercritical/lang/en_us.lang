@@ -46,6 +46,7 @@ item.material.oreprefix.dustFissionByproduct=%s Fission Byproduct Dust
 supercritical.material.neptunium_235=Neptunium 235
 supercritical.material.neptunium_236=Neptunium 236
 supercritical.material.neptunium_237=Neptunium 237
+supercritical.material.neptunium_239=Neptunium 239
 
 supercritical.material.plutonium=Plutonium
 supercritical.material.plutonium_238=Plutonium 238
