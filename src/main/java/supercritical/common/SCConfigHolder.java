@@ -68,7 +68,7 @@ public class SCConfigHolder {
         public boolean disableAllRecipes = false;
 
         @Config.Comment({
-                "Remove all materials from Supercritical",
+                "Remove all materials from Supercritical, except Corium",
                 "Default: false"
         })
         public boolean disableAllMaterials = false;

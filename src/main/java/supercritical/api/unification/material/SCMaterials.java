@@ -1,5 +1,10 @@
 package supercritical.api.unification.material;
 
+import static gregtech.api.unification.material.info.MaterialFlags.*;
+import static gregtech.api.unification.material.info.MaterialIconSet.DULL;
+import static supercritical.api.util.SCUtility.scId;
+
+import gregtech.api.fluids.FluidBuilder;
 import gregtech.api.unification.material.Material;
 import supercritical.common.SCConfigHolder;
 import supercritical.common.materials.ElementMaterials;
@@ -59,6 +64,17 @@ public class SCMaterials {
     public static Material HighGradeMOX;
 
     public static void register() {
+        /*
+         * Registers Curium with id 0.
+         * Essential for reactor meltdown.
+         */
+        Corium = new Material.Builder(0, scId("corium"))
+                .liquid(new FluidBuilder().temperature(2500).block().density(8.0D).viscosity(10000))
+                .color(0x7A6B50)
+                .iconSet(DULL)
+                .flags(NO_UNIFICATION, STICKY, GLOWING)
+                .build();
+
         if (SCConfigHolder.misc.disableAllMaterials) return;
 
         /*
