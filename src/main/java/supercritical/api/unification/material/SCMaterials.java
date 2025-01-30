@@ -2,6 +2,7 @@ package supercritical.api.unification.material;
 
 import gregtech.api.unification.material.Material;
 import supercritical.common.SCConfigHolder;
+import supercritical.common.materials.CoriumMaterials;
 import supercritical.common.materials.ElementMaterials;
 import supercritical.common.materials.FirstDegreeMaterials;
 import supercritical.common.materials.SecondDegreeMaterials;
@@ -59,6 +60,7 @@ public class SCMaterials {
     public static Material HighGradeMOX;
 
     public static void register() {
+        CoriumMaterials.register();
         if (SCConfigHolder.misc.disableAllMaterials) return;
 
         /*
