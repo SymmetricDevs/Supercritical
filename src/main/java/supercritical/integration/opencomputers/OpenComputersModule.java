@@ -11,8 +11,7 @@ import supercritical.SCValues;
 import supercritical.integration.opencomputers.drivers.specific.DriverFissionReactor;
 import supercritical.modules.SCModules;
 
-@GregTechModule(
-                moduleID = SCModules.MODULE_OC,
+@GregTechModule(moduleID = SCModules.MODULE_OC,
                 containerID = SCValues.MODID,
                 modDependencies = Mods.Names.OPEN_COMPUTERS,
                 name = "Supercritical OpenComputers Integration",

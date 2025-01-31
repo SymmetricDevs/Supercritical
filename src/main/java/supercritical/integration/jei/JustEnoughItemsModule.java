@@ -27,8 +27,7 @@ import supercritical.integration.jei.basic.FissionFuelInfo;
 import supercritical.modules.SCModules;
 
 @JEIPlugin
-@GregTechModule(
-                moduleID = SCModules.MODULE_JEI,
+@GregTechModule(moduleID = SCModules.MODULE_JEI,
                 containerID = SCValues.MODID,
                 modDependencies = Mods.Names.JUST_ENOUGH_ITEMS,
                 name = "Supercritical JEI Integration",

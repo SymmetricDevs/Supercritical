@@ -14,6 +14,7 @@ import gregtech.api.unification.stack.MaterialStack;
  * {@link Material.MaterialInfo} is private.
  * This allows us to indirectly reference the private class in the mixin.
  */
+@SuppressWarnings("JavadocReference")
 @Mixin(targets = "gregtech.api.unification.material.Material$MaterialInfo", remap = false)
 public interface MaterialInfoAccessor {
 

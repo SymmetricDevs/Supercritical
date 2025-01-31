@@ -4,9 +4,14 @@
     "description": "(1.12) Adding fission reactor and atomic energy to GregTech CE Unofficial",
     "version": "${version}",
     "mcversion": "${mcversion}",
-    "logoFile": "",
-    "url": "",
-    "authorList": [],
+    "logoFile": "assets/supercritical/textures/supercritical_logo.png",
+    "url": "https://github.com/SymmetricDevs/Supercritical",
+    "authorList": [
+        "SymmetricDevs"
+    ],
     "credits": "",
-    "dependencies": []
+    "dependencies": [
+        "gregtech",
+        "mixinbooter"
+    ]
 }]

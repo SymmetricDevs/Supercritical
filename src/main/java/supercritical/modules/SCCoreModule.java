@@ -8,8 +8,7 @@ import gregtech.api.modules.IGregTechModule;
 import supercritical.SCValues;
 import supercritical.api.util.SCLog;
 
-@GregTechModule(
-                moduleID = SCModules.MODULE_CORE,
+@GregTechModule(moduleID = SCModules.MODULE_CORE,
                 containerID = SCValues.MODID,
                 name = "Supercritical Core Module",
                 description = "Core module of Supercritical",
