@@ -11,6 +11,7 @@
     "MixinIArmorLogic",
     "MixinMaterial",
     "MixinMetaPrefixItem",
+    "MultiblockShapeInfoBuilderAccessor",
     "MixinOrePrefix",
     "SliderWidgetAccessor"
   ]

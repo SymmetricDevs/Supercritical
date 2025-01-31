@@ -8,6 +8,7 @@ import java.util.Objects;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.PacketBuffer;
@@ -43,7 +44,9 @@ import gregtech.api.metatileentity.multiblock.*;
 import gregtech.api.pattern.*;
 import gregtech.api.util.*;
 import gregtech.client.renderer.ICubeRenderer;
+import gregtech.common.ConfigHolder;
 import gregtech.common.blocks.MetaBlocks;
+import gregtech.common.metatileentities.MetaTileEntities;
 import supercritical.SCValues;
 import supercritical.api.capability.ICoolantHandler;
 import supercritical.api.capability.IFuelRodHandler;
@@ -56,11 +59,13 @@ import supercritical.api.nuclear.fission.*;
 import supercritical.api.nuclear.fission.components.ControlRod;
 import supercritical.api.nuclear.fission.components.CoolantChannel;
 import supercritical.api.nuclear.fission.components.FuelRod;
+import supercritical.api.pattern.DirectionalShpeInfoBuilder;
 import supercritical.api.unification.material.SCMaterials;
 import supercritical.api.util.SCUtility;
 import supercritical.client.renderer.textures.SCTextures;
 import supercritical.common.blocks.BlockFissionCasing;
 import supercritical.common.blocks.SCMetaBlocks;
+import supercritical.common.metatileentities.SCMetaTileEntities;
 import supercritical.common.metatileentities.multi.multiblockpart.MetaTileEntityControlRodPort;
 import supercritical.common.metatileentities.multi.multiblockpart.MetaTileEntityCoolantExportHatch;
 import supercritical.common.metatileentities.multi.multiblockpart.MetaTileEntityFuelRodImportBus;
@@ -935,127 +940,127 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         INVALID_COMPONENT
     }
 
-    // @Override
-    // public List<MultiblockShapeInfo> getMatchingShapes() {
-    // List<MultiblockShapeInfo> shapes = new ArrayList<>();
-    //
-    // for (int diameter = 5; diameter <= 15; diameter += 2) {
-    // int radius = diameter % 2 == 0 ? (int) Math.floor(diameter / 2.f) :
-    // Math.round((diameter - 1) / 2.f);
-    // StringBuilder interiorBuilder = new StringBuilder();
-    //
-    // String[] interiorSlice = new String[diameter];
-    // String[] controllerSlice;
-    // String[] topSlice;
-    // String[] bottomSlice;
-    //
-    // // First loop over the matrix
-    // for (int i = 0; i < diameter; i++) {
-    // for (int j = 0; j < diameter; j++) {
-    // if (Math.pow(i - Math.floor(diameter / 2.), 2) +
-    // Math.pow(j - Math.floor(diameter / 2.), 2) <
-    // Math.pow(radius + 0.5f, 2)) {
-    // interiorBuilder.append('A');
-    // } else {
-    // interiorBuilder.append(' ');
-    // }
-    // }
-    //
-    // interiorSlice[i] = interiorBuilder.toString();
-    // interiorBuilder.setLength(0);
-    // }
-    //
-    // // Second loop is to detect where to put walls, the controller and I/O
-    // for (int i = 0; i < diameter; i++) {
-    // for (int j = 0; j < diameter; j++) {
-    // if (interiorSlice[i].charAt(j) != 'A') {
-    // continue;
-    // }
-    //
-    // int outerI = i + (int) Math.signum(i - (diameter / 2));
-    //
-    // if (Math.pow(outerI - Math.floor(diameter / 2.), 2) +
-    // Math.pow(j - Math.floor(diameter / 2.), 2) >
-    // Math.pow(radius + 0.5f, 2)) {
-    // interiorSlice[i] = GCYNUtility.replace(interiorSlice[i], j, 'V');
-    // }
-    //
-    // int outerJ = j + (int) Math.signum(j - (diameter / 2));
-    // if (Math.pow(i - Math.floor(diameter / 2.), 2) +
-    // Math.pow(outerJ - Math.floor(diameter / 2.), 2) >
-    // Math.pow(radius + 0.5f, 2)) {
-    // interiorSlice[i] = GCYNUtility.replace(interiorSlice[i], j, 'V');
-    // }
-    // }
-    // }
-    //
-    // controllerSlice = interiorSlice.clone();
-    // topSlice = interiorSlice.clone();
-    // bottomSlice = interiorSlice.clone();
-    // controllerSlice[0] = controllerSlice[0].substring(0, (int) Math.floor(diameter / 2.)) + "SM" +
-    // controllerSlice[0].substring((int) Math.floor(diameter / 2.) + 2);
-    //
-    // // Example hatches
-    // controllerSlice[1] = controllerSlice[1].substring(0, (int) Math.floor(diameter / 2.) - 1) + "fff" +
-    // controllerSlice[1].substring((int) Math.floor(diameter / 2.) + 2);
-    // controllerSlice[2] = controllerSlice[2].substring(0, (int) Math.floor(diameter / 2.) - 1) + "fcf" +
-    // controllerSlice[2].substring((int) Math.floor(diameter / 2.) + 2);
-    // controllerSlice[3] = controllerSlice[3].substring(0, (int) Math.floor(diameter / 2.) - 1) + "frf" +
-    // controllerSlice[3].substring((int) Math.floor(diameter / 2.) + 2);
-    //
-    // topSlice[1] = topSlice[1].substring(0, (int) Math.floor(diameter / 2.) - 1) + "eee" +
-    // topSlice[1].substring((int) Math.floor(diameter / 2.) + 2);
-    // topSlice[2] = topSlice[2].substring(0, (int) Math.floor(diameter / 2.) - 1) + "ebe" +
-    // topSlice[2].substring((int) Math.floor(diameter / 2.) + 2);
-    // topSlice[3] = topSlice[3].substring(0, (int) Math.floor(diameter / 2.) - 1) + "eqe" +
-    // topSlice[3].substring((int) Math.floor(diameter / 2.) + 2);
-    //
-    // bottomSlice[1] = bottomSlice[1].substring(0, (int) Math.floor(diameter / 2.) - 1) + "ggg" +
-    // bottomSlice[1].substring((int) Math.floor(diameter / 2.) + 2);
-    // bottomSlice[2] = bottomSlice[2].substring(0, (int) Math.floor(diameter / 2.) - 1) + "gdg" +
-    // bottomSlice[2].substring((int) Math.floor(diameter / 2.) + 2);
-    // bottomSlice[3] = bottomSlice[3].substring(0, (int) Math.floor(diameter / 2.) - 1) + "gVg" +
-    // bottomSlice[3].substring((int) Math.floor(diameter / 2.) + 2);
-    //
-    // for (int i = 0; i < diameter; i++) {
-    // topSlice[i] = topSlice[i].replace('A', 'V');
-    // bottomSlice[i] = bottomSlice[i].replace('A', 'V');
-    // }
-    // MultiblockShapeInfo.Builder builder = MultiblockShapeInfo.builder(/*RelativeDirection.RIGHT,
-    // RelativeDirection.FRONT, RelativeDirection.UP*/); // TODO: Fix this
-    // builder.aisle(topSlice);
-    // for (int i = 0; i < heightBottom - 1; i++) {
-    // builder.aisle(interiorSlice);
-    // }
-    // builder.aisle(controllerSlice);
-    // for (int i = 0; i < heightTop - 1; i++) {
-    // builder.aisle(interiorSlice);
-    // }
-    // builder.aisle(bottomSlice);
-    // shapes.add(builder.where('S', GCYNMetaTileEntities.FISSION_REACTOR, EnumFacing.NORTH)
-    // // A for interior components, which are air here
-    // .where('A', Blocks.AIR.getDefaultState())
-    // // Technically a duplicate, but this just makes things easier
-    // .where(' ', Blocks.AIR.getDefaultState())
-    // // I for the inputs on the top
-    // .where('V', getVesselState())
-    // .where('f', getFuelChannelState())
-    // .where('c', getCoolantChannelState())
-    // .where('r', getControlRodChannelState())
-    // .where('e', GCYNMetaTileEntities.FUEL_ROD_INPUT, EnumFacing.UP)
-    // .where('g', GCYNMetaTileEntities.FUEL_ROD_OUTPUT, EnumFacing.DOWN)
-    // .where('b', GCYNMetaTileEntities.COOLANT_INPUT, EnumFacing.UP)
-    // .where('d', GCYNMetaTileEntities.COOLANT_OUTPUT, EnumFacing.DOWN)
-    // .where('q', GCYNMetaTileEntities.CONTROL_ROD, EnumFacing.UP)
-    // .where('m', GCYNMetaTileEntities.CONTROL_ROD_MODERATED, EnumFacing.UP)
-    //
-    // // B for the vessel blocks on the walls
-    // .where('M', () -> ConfigHolder.machines.enableMaintenance ? MetaTileEntities.MAINTENANCE_HATCH :
-    // getVesselState(), EnumFacing.NORTH)
-    // .build());
-    // }
-    // return shapes;
-    // }
+    @Override
+    public List<MultiblockShapeInfo> getMatchingShapes() {
+        List<MultiblockShapeInfo> shapes = new ArrayList<>();
+
+        for (int diameter = 5; diameter <= 15; diameter += 2) {
+            int radius = diameter % 2 == 0 ? (int) Math.floor(diameter / 2.f) :
+                    Math.round((diameter - 1) / 2.f);
+            StringBuilder interiorBuilder = new StringBuilder();
+
+            String[] interiorSlice = new String[diameter];
+            String[] controllerSlice;
+            String[] topSlice;
+            String[] bottomSlice;
+
+            // First loop over the matrix
+            for (int i = 0; i < diameter; i++) {
+                for (int j = 0; j < diameter; j++) {
+                    if (Math.pow(i - Math.floor(diameter / 2.), 2) +
+                            Math.pow(j - Math.floor(diameter / 2.), 2) <
+                            Math.pow(radius + 0.5f, 2)) {
+                        interiorBuilder.append('A');
+                    } else {
+                        interiorBuilder.append(' ');
+                    }
+                }
+
+                interiorSlice[i] = interiorBuilder.toString();
+                interiorBuilder.setLength(0);
+            }
+
+            // Second loop is to detect where to put walls, the controller and I/O
+            for (int i = 0; i < diameter; i++) {
+                for (int j = 0; j < diameter; j++) {
+                    if (interiorSlice[i].charAt(j) != 'A') {
+                        continue;
+                    }
+
+                    int outerI = i + (int) Math.signum(i - (diameter / 2));
+
+                    if (Math.pow(outerI - Math.floor(diameter / 2.), 2) +
+                            Math.pow(j - Math.floor(diameter / 2.), 2) >
+                            Math.pow(radius + 0.5f, 2)) {
+                        interiorSlice[i] = SCUtility.replace(interiorSlice[i], j, 'V');
+                    }
+
+                    int outerJ = j + (int) Math.signum(j - (diameter / 2));
+                    if (Math.pow(i - Math.floor(diameter / 2.), 2) +
+                            Math.pow(outerJ - Math.floor(diameter / 2.), 2) >
+                            Math.pow(radius + 0.5f, 2)) {
+                        interiorSlice[i] = SCUtility.replace(interiorSlice[i], j, 'V');
+                    }
+                }
+            }
+
+            controllerSlice = interiorSlice.clone();
+            topSlice = interiorSlice.clone();
+            bottomSlice = interiorSlice.clone();
+            controllerSlice[0] = controllerSlice[0].substring(0, (int) Math.floor(diameter / 2.)) + "SM" +
+                    controllerSlice[0].substring((int) Math.floor(diameter / 2.) + 2);
+
+            // Example hatches
+            controllerSlice[1] = controllerSlice[1].substring(0, (int) Math.floor(diameter / 2.) - 1) + "fff" +
+                    controllerSlice[1].substring((int) Math.floor(diameter / 2.) + 2);
+            controllerSlice[2] = controllerSlice[2].substring(0, (int) Math.floor(diameter / 2.) - 1) + "fcf" +
+                    controllerSlice[2].substring((int) Math.floor(diameter / 2.) + 2);
+            controllerSlice[3] = controllerSlice[3].substring(0, (int) Math.floor(diameter / 2.) - 1) + "frf" +
+                    controllerSlice[3].substring((int) Math.floor(diameter / 2.) + 2);
+
+            topSlice[1] = topSlice[1].substring(0, (int) Math.floor(diameter / 2.) - 1) + "eee" +
+                    topSlice[1].substring((int) Math.floor(diameter / 2.) + 2);
+            topSlice[2] = topSlice[2].substring(0, (int) Math.floor(diameter / 2.) - 1) + "ebe" +
+                    topSlice[2].substring((int) Math.floor(diameter / 2.) + 2);
+            topSlice[3] = topSlice[3].substring(0, (int) Math.floor(diameter / 2.) - 1) + "eqe" +
+                    topSlice[3].substring((int) Math.floor(diameter / 2.) + 2);
+
+            bottomSlice[1] = bottomSlice[1].substring(0, (int) Math.floor(diameter / 2.) - 1) + "ggg" +
+                    bottomSlice[1].substring((int) Math.floor(diameter / 2.) + 2);
+            bottomSlice[2] = bottomSlice[2].substring(0, (int) Math.floor(diameter / 2.) - 1) + "gdg" +
+                    bottomSlice[2].substring((int) Math.floor(diameter / 2.) + 2);
+            bottomSlice[3] = bottomSlice[3].substring(0, (int) Math.floor(diameter / 2.) - 1) + "gVg" +
+                    bottomSlice[3].substring((int) Math.floor(diameter / 2.) + 2);
+
+            for (int i = 0; i < diameter; i++) {
+                topSlice[i] = topSlice[i].replace('A', 'V');
+                bottomSlice[i] = bottomSlice[i].replace('A', 'V');
+            }
+            DirectionalShpeInfoBuilder builder = new DirectionalShpeInfoBuilder(RelativeDirection.RIGHT,
+                    RelativeDirection.FRONT, RelativeDirection.UP);
+            builder.aisle(topSlice);
+            for (int i = 0; i < heightBottom - 1; i++) {
+                builder.aisle(interiorSlice);
+            }
+            builder.aisle(controllerSlice);
+            for (int i = 0; i < heightTop - 1; i++) {
+                builder.aisle(interiorSlice);
+            }
+            builder.aisle(bottomSlice);
+            shapes.add(builder.where('S', SCMetaTileEntities.FISSION_REACTOR, EnumFacing.NORTH)
+                    // A for interior components, which are air here
+                    .where('A', Blocks.AIR.getDefaultState())
+                    // Technically a duplicate, but this just makes things easier
+                    .where(' ', Blocks.AIR.getDefaultState())
+                    // I for the inputs on the top
+                    .where('V', getVesselState())
+                    .where('f', getFuelChannelState())
+                    .where('c', getCoolantChannelState())
+                    .where('r', getControlRodChannelState())
+                    .where('e', SCMetaTileEntities.FUEL_ROD_INPUT, EnumFacing.UP)
+                    .where('g', SCMetaTileEntities.FUEL_ROD_OUTPUT, EnumFacing.DOWN)
+                    .where('b', SCMetaTileEntities.COOLANT_INPUT, EnumFacing.UP)
+                    .where('d', SCMetaTileEntities.COOLANT_OUTPUT, EnumFacing.DOWN)
+                    .where('q', SCMetaTileEntities.CONTROL_ROD, EnumFacing.UP)
+                    .where('m', SCMetaTileEntities.CONTROL_ROD_MODERATED, EnumFacing.UP)
+
+                    // B for the vessel blocks on the walls
+                    .where('M', () -> ConfigHolder.machines.enableMaintenance ? MetaTileEntities.MAINTENANCE_HATCH :
+                            getVesselState(), EnumFacing.NORTH)
+                    .build());
+        }
+        return shapes;
+    }
 
     @Override
     public void addInformation(ItemStack stack, @Nullable World world, @NotNull List<String> tooltip,
@@ -1092,5 +1097,9 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
 
     public double getControlRodInsertion() {
         return controlRodInsertionValue;
+    }
+
+    protected static class PatternBuilder {
+
     }
 }
