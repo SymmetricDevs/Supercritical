@@ -47,7 +47,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Read current mod version
         id: read_version
@@ -118,7 +118,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: "v${{ inputs.version }}"
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           files: "build/libs/*.jar"
           generate_release_notes: true
           fail_on_unmatched_files: true
