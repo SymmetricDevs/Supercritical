@@ -85,15 +85,6 @@ jobs:
         if: env.UPDATED == 'false' # only change new version if it's not already updated
         run: sed -i "s/modVersion.*=.*/modVersion = ${{ github.event.inputs.version }}/g" gradle.properties
 
-      - name: Commit and push gradle.properties
-        if: env.UPDATED == 'false' # only push new version if it's not already updated
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: "Bump version to ${{ github.event.inputs.version }}"
-          commit_options: "--no-verify"
-          file_pattern: gradle.properties
-          tagging_message: "v${{ github.event.inputs.version }}"
-
       - name: Check for publishing
         run: |
           if [ "$publish-gh" == "false" ] && [ "${{ inputs.publish-cf-mr }}" == "false" ]; then
