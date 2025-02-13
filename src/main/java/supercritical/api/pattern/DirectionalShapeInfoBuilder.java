@@ -21,7 +21,7 @@ import supercritical.mixins.gregtech.MultiblockShapeInfoBuilderAccessor;
 /**
  * Extends {@link MultiblockShapeInfo.Builder} to incorporate directional awareness.
  */
-public class DirectionalShpeInfoBuilder extends MultiblockShapeInfo.Builder {
+public class DirectionalShapeInfoBuilder extends MultiblockShapeInfo.Builder {
 
     protected final MultiblockShapeInfoBuilderAccessor self = (MultiblockShapeInfoBuilderAccessor) this;
 
@@ -30,12 +30,12 @@ public class DirectionalShpeInfoBuilder extends MultiblockShapeInfo.Builder {
     /**
      * @param structureDir The directions that the provided block pattern is based upon (character, string, row).
      */
-    public DirectionalShpeInfoBuilder(@NotNull RelativeDirection... structureDir) {
+    public DirectionalShapeInfoBuilder(@NotNull RelativeDirection... structureDir) {
         this(structureDir[0], structureDir[1], structureDir[2]);
     }
 
-    public DirectionalShpeInfoBuilder(@NotNull RelativeDirection one, @NotNull RelativeDirection two,
-                                      @NotNull RelativeDirection three) {
+    public DirectionalShapeInfoBuilder(@NotNull RelativeDirection one, @NotNull RelativeDirection two,
+                                       @NotNull RelativeDirection three) {
         this.structureDir[0] = Objects.requireNonNull(one);
         this.structureDir[1] = Objects.requireNonNull(two);
         this.structureDir[2] = Objects.requireNonNull(three);
@@ -51,29 +51,29 @@ public class DirectionalShpeInfoBuilder extends MultiblockShapeInfo.Builder {
     }
 
     @Override
-    public DirectionalShpeInfoBuilder aisle(String... data) {
+    public DirectionalShapeInfoBuilder aisle(String... data) {
         super.aisle(data);
         return this;
     }
 
     @Override
-    public DirectionalShpeInfoBuilder where(char symbol, BlockInfo value) {
+    public DirectionalShapeInfoBuilder where(char symbol, BlockInfo value) {
         super.where(symbol, value);
         return this;
     }
 
     @Override
-    public DirectionalShpeInfoBuilder where(char symbol, IBlockState blockState) {
+    public DirectionalShapeInfoBuilder where(char symbol, IBlockState blockState) {
         return where(symbol, new BlockInfo(blockState));
     }
 
     @Override
-    public DirectionalShpeInfoBuilder where(char symbol, IBlockState blockState, TileEntity tileEntity) {
+    public DirectionalShapeInfoBuilder where(char symbol, IBlockState blockState, TileEntity tileEntity) {
         return where(symbol, new BlockInfo(blockState, tileEntity));
     }
 
     @Override
-    public DirectionalShpeInfoBuilder where(char symbol, MetaTileEntity tileEntity, EnumFacing frontSide) {
+    public DirectionalShapeInfoBuilder where(char symbol, MetaTileEntity tileEntity, EnumFacing frontSide) {
         MetaTileEntityHolder holder = new MetaTileEntityHolder();
         holder.setMetaTileEntity(tileEntity);
         holder.getMetaTileEntity().onPlacement();
@@ -85,7 +85,7 @@ public class DirectionalShpeInfoBuilder extends MultiblockShapeInfo.Builder {
      * @param partSupplier Should supply either a MetaTileEntity or an IBlockState.
      */
     @Override
-    public DirectionalShpeInfoBuilder where(char symbol, Supplier<?> partSupplier, EnumFacing frontSideIfTE) {
+    public DirectionalShapeInfoBuilder where(char symbol, Supplier<?> partSupplier, EnumFacing frontSideIfTE) {
         Object part = partSupplier.get();
         if (part instanceof IBlockState) {
             return where(symbol, (IBlockState) part);
@@ -134,8 +134,8 @@ public class DirectionalShpeInfoBuilder extends MultiblockShapeInfo.Builder {
     }
 
     @Override
-    public DirectionalShpeInfoBuilder shallowCopy() {
-        DirectionalShpeInfoBuilder builder = new DirectionalShpeInfoBuilder(this.structureDir);
+    public DirectionalShapeInfoBuilder shallowCopy() {
+        DirectionalShapeInfoBuilder builder = new DirectionalShapeInfoBuilder(this.structureDir);
         var builderAccessor = (MultiblockShapeInfoBuilderAccessor) builder;
         builderAccessor.setShape(new ArrayList<>(self.getShape()));
         builderAccessor.setSymbolMap(new HashMap<>(self.getSymbolMap()));
