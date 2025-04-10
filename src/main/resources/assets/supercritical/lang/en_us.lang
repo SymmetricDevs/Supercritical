@@ -130,6 +130,9 @@ supercritical.machine.gas_centrifuge.name=Gas Centrifuge
 supercritical.machine.fission_reactor.tooltip=Blowy-uppy yumyum generator
 supercritical.machine.heat_exchanger.tooltip=Molecular hot potato player
 
+supercritical.machine.spent_fuel_pool.tooltip.parallel=§dMax Parallel: §f%s per block of pool length
+supercritical.machine.gas_centrifuge.tooltip.parallel=§dMax Parallel: §f1 + number of added columns
+
 supercritical.coolant.general=§9Can be used as a coolant§7
 supercritical.coolant.exit_temp=Hot coolant temperature: %d K
 supercritical.coolant.heat_capacity=Heat capacity: %d J/kgK
@@ -173,5 +176,6 @@ supercritical.multiblock.fission_reactor.invalid_components=Reactor startup fail
 supercritical.multiblock.fission_reactor.missing_inputs=Reactor startup failed. Some of the inputs ports are empty or have inappropriate contents. Please check the ports.
 
 gregtech.fluid.molten=Molten %s
+
 # Name Overrides (doesn't work)
 gregtech.material.enriched_uranium_hexafluoride=Low Enriched Uranium Hexafluoride

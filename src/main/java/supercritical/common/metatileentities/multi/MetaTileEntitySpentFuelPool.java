@@ -32,6 +32,8 @@ import supercritical.common.blocks.SCMetaBlocks;
 
 public class MetaTileEntitySpentFuelPool extends RecipeMapMultiblockController {
 
+    public static final int PARALLEL_PER_LENGTH = 32;
+
     public MetaTileEntitySpentFuelPool(ResourceLocation metaTileEntityId) {
         super(metaTileEntityId, SCRecipeMaps.SPENT_FUEL_POOL_RECIPES);
     }
@@ -57,7 +59,7 @@ public class MetaTileEntitySpentFuelPool extends RecipeMapMultiblockController {
     @Override
     protected void formStructure(PatternMatchContext context) {
         super.formStructure(context);
-        this.recipeMapWorkable.setParallelLimit(structurePattern.formedRepetitionCount[0] * 32);
+        this.recipeMapWorkable.setParallelLimit(structurePattern.formedRepetitionCount[0] * PARALLEL_PER_LENGTH);
     }
 
     @Override
@@ -97,6 +99,6 @@ public class MetaTileEntitySpentFuelPool extends RecipeMapMultiblockController {
     public void addInformation(ItemStack stack, @Nullable World player, @NotNull List<String> tooltip,
                                boolean advanced) {
         super.addInformation(stack, player, tooltip, advanced);
-        tooltip.add(I18n.format("gregtech.universal.tooltip.parallel", "32 per block of pool length"));
+        tooltip.add(I18n.format("supercritical.machine.spent_fuel_pool.tooltip.parallel", PARALLEL_PER_LENGTH));
     }
 }
