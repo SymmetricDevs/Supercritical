@@ -1,5 +1,18 @@
 package supercritical.common.metatileentities.multi.electric;
 
+import static gregtech.api.util.RelativeDirection.*;
+
+import java.util.List;
+
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.World;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import gregtech.api.capability.impl.MultiblockRecipeLogic;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
@@ -12,22 +25,11 @@ import gregtech.client.renderer.ICubeRenderer;
 import gregtech.client.renderer.texture.Textures;
 import gregtech.common.blocks.BlockBoilerCasing;
 import gregtech.common.blocks.MetaBlocks;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import supercritical.api.recipes.SCRecipeMaps;
 import supercritical.client.renderer.textures.SCTextures;
 import supercritical.common.blocks.BlockGasCentrifugeCasing;
 import supercritical.common.blocks.BlockNuclearCasing;
 import supercritical.common.blocks.SCMetaBlocks;
-
-import java.util.List;
-
-import static gregtech.api.util.RelativeDirection.*;
 
 public class MetaTileEntityGasCentrifuge extends RecipeMapMultiblockController {
 
