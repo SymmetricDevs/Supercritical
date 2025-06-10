@@ -36,7 +36,7 @@ public class FluidRecipeHandler {
         waterAmt = 600;
         // Slightly more efficient
         coolantAmt = (int) Math.ceil(100 * 4168 * waterAmt * multiplier / (coolant.getSpecificHeatCapacity() *
-                (coolant.getHotHPCoolant().getFluid().getTemperature() - mat.getFluid().getTemperature())));;
+                (coolant.getHotHPCoolant().getFluid().getTemperature() - mat.getFluid().getTemperature())));
 
         SCRecipeMaps.HEAT_EXCHANGER_RECIPES.recipeBuilder().duration(1).circuitMeta(2)
                 .fluidInputs(coolant.getHotHPCoolant().getFluid(coolantAmt), Materials.Water.getFluid(waterAmt))
