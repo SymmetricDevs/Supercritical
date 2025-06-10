@@ -3,6 +3,7 @@ package supercritical.loaders.recipe.handlers;
 import static gregtech.api.GTValues.*;
 import static gregtech.api.recipes.RecipeMaps.CANNER_RECIPES;
 import static gregtech.api.recipes.RecipeMaps.FORMING_PRESS_RECIPES;
+import static gregtech.api.recipes.RecipeMaps.BLAST_RECIPES;
 import static gregtech.api.unification.ore.OrePrefix.dust;
 import static supercritical.api.recipes.SCRecipeMaps.SPENT_FUEL_POOL_RECIPES;
 import static supercritical.api.unification.ore.SCOrePrefix.*;
@@ -37,6 +38,11 @@ public class NuclearRecipeHandler {
         FORMING_PRESS_RECIPES.recipeBuilder().duration(25).EUt(VA[EV])
                 .input(dust, material, 1)
                 .notConsumable(MetaItems.SHAPE_MOLD_CYLINDER)
+                .output(fuelPelletRaw, material)
+                .buildAndRegister();
+                
+        BLAST_RECIPES.recipeBuilder().duration(15).EUt(VA[HV]).blastFurnaceTemp(2000)
+                .input(fuelPelletRaw, material)
                 .output(fuelPellet, material)
                 .buildAndRegister();
 

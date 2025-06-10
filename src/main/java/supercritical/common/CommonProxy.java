@@ -86,6 +86,7 @@ public class CommonProxy {
                 SCOrePrefix.fuelRod,
                 SCOrePrefix.fuelRodDepleted,
                 SCOrePrefix.fuelRodHotDepleted,
+                SCOrePrefix.fuelPelletRaw,
                 SCOrePrefix.fuelPellet,
                 SCOrePrefix.fuelPelletDepleted,
                 SCOrePrefix.dustSpentFuel,

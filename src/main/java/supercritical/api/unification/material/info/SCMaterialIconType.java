@@ -8,6 +8,7 @@ public class SCMaterialIconType {
     public static final MaterialIconType fuelRod = new MaterialIconType("fuelRod");
     public static final MaterialIconType fuelRodDepleted = new MaterialIconType("fuelRodDepleted");
     public static final MaterialIconType fuelRodHotDepleted = new MaterialIconType("fuelRodHotDepleted");
+    public static final MaterialIconType fuelPelletRaw = new MaterialIconType("fuelPelletRaw");
     public static final MaterialIconType fuelPellet = new MaterialIconType("fuelPellet");
     public static final MaterialIconType fuelPelletDepleted = new MaterialIconType("fuelPelletDepleted");
 
