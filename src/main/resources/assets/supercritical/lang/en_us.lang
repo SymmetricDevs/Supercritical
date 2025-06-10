@@ -37,6 +37,7 @@ metaitem.nuclear.tooltip.neutron_time.3=Avg. neutron: %ds (§4Very unsafe§r)
 item.material.oreprefix.fuelRod=%s Fuel Rod
 item.material.oreprefix.fuelRodDepleted=%s Depleted Fuel Rod
 item.material.oreprefix.fuelRodHotDepleted=%s Hot Depleted Fuel Rod
+item.material.oreprefix.fuelPelletRaw=%s Raw Fuel Pellet
 item.material.oreprefix.fuelPellet=%s Fuel Pellet
 item.material.oreprefix.fuelPelletDepleted=%s Depleted Fuel Pellet
 item.material.oreprefix.dustSpentFuel=%s Spent Fuel Dust
