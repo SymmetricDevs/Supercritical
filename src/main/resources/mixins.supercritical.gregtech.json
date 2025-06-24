@@ -5,13 +5,14 @@
   "minVersion": "0.8",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "AbstractRecipeLogicAccessor",
     "MixinCoverDetectorEnergy",
     "MixinElement",
     "MixinIArmorLogic",
     "MixinMaterial",
     "MixinMetaPrefixItem",
-    "MultiblockShapeInfoBuilderAccessor",
     "MixinOrePrefix",
+    "MultiblockShapeInfoBuilderAccessor",
     "SliderWidgetAccessor"
   ]
 }
