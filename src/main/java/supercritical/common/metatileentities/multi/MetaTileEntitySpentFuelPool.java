@@ -158,6 +158,7 @@ public class MetaTileEntitySpentFuelPool extends RecipeMapMultiblockController {
                                boolean advanced) {
         super.addInformation(stack, player, tooltip, advanced);
         tooltip.add(I18n.format("supercritical.machine.spent_fuel_pool.tooltip.parallel", PARALLEL_PER_LENGTH));
+        tooltip.add(I18n.format("supercritical.machine.fluid_auto_fill.tooltip"));
     }
 
     @Override

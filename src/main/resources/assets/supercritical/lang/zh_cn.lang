@@ -134,6 +134,8 @@ supercritical.machine.heat_exchanger.tooltip=分子级烫手山芋玩家
 supercritical.machine.spent_fuel_pool.tooltip.parallel=§d最大并行：§f%s * 长度
 supercritical.machine.gas_centrifuge.tooltip.parallel=§d最大并行：§f1 + 额外列数
 
+supercritical.machine.fluid_auto_fill.tooltip=§3该多方块中的流体可以通过向输入仓提供流体来自动填充
+
 supercritical.coolant.general=§9可被用作冷却剂§7
 supercritical.coolant.exit_temp=热冷却液温度：%d K
 supercritical.coolant.heat_capacity=热容：%d J/kgK
