@@ -1,5 +1,5 @@
 # This workflow must be manually triggered. It accepts a version and a release type.
-# First it sets the version in gradle.properties to the new version and pushes it.
+# First it sets the version in buildscript.properties to the new version and pushes it.
 # Then it generates a log, based on commits.
 # After that builds a jar and uploads it to curseforge/modrinth/GitHub releases
 
@@ -25,7 +25,7 @@ on:
         type: boolean
       publish-mr:
         description: Publish to MR
-        default: true
+        default: false
         type: boolean
       publish-gh:
         description: Publish to Github
@@ -54,7 +54,7 @@ jobs:
       - name: Read current mod version
         id: read_version
         run: |
-          mod_version=$(grep "modVersion" gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
+          mod_version=$(grep "modVersion" buildscript.properties | cut -d'=' -f2 | tr -d '[:space:]')
           echo "Current mod version: $mod_version"
           if [ "$mod_version" == "${{inputs.version}}" ]; then
             echo "UPDATED=true" >> $GITHUB_ENV
@@ -83,7 +83,7 @@ jobs:
 
       - name: Set version
         if: env.UPDATED == 'false' # only change new version if it's not already updated
-        run: sed -i "s/modVersion.*=.*/modVersion = ${{ github.event.inputs.version }}/g" gradle.properties
+        run: sed -i "s/modVersion.*=.*/modVersion = ${{ github.event.inputs.version }}/g" buildscript.properties
 
       - name: Check for publishing
         run: |
