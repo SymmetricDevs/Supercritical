@@ -11,7 +11,7 @@ import zone.rong.mixinbooter.ILateMixinLoader;
 
 public class SCLateMixinLoader implements ILateMixinLoader {
 
-    public static final List<String> modMixins = ImmutableList.of("gregtech");
+    public static final List<String> modMixins = ImmutableList.of("gregtech", "fluidlogged_api");
 
     public static boolean shouldEnableModMixin(String mod) {
         return Loader.isModLoaded(mod);
