@@ -1,76 +1,84 @@
 package supercritical.common;
 
 import net.minecraftforge.common.config.Config;
+import net.minecraftforge.common.config.Config.*;
 
 import supercritical.SCValues;
 
 @Config(modid = SCValues.MODID)
 public class SCConfigHolder {
 
-    @Config.Comment("Config options for Supercritical")
-    @Config.Name("Nuclear Options")
+    @Comment("Config options for Supercritical")
+    @Name("Nuclear Options")
     public static NuclearOptions nuclear = new NuclearOptions();
 
-    @Config.Comment("Miscellaneous options for Supercritical")
-    @Config.Name("Misc Options")
+    @Comment("Miscellaneous options for Supercritical")
+    @Name("Misc Options")
     public static MiscOptions misc = new MiscOptions();
 
     public static class NuclearOptions {
 
-        @Config.Comment({
+        @Comment({
                 "Nuclear Max Power multiplier for balancing purposes.",
                 "Default: 0.1"
         })
-        @Config.RangeDouble(min = 0, max = 10000)
+        @RangeDouble(min = 0, max = 10000)
         public double nuclearPowerMultiplier = 0.1;
 
-        @Config.Comment({
+        @Comment({
                 "How much the amount of power required to boil a coolant is divided by.",
                 "Default: 14"
         })
-        @Config.RangeDouble(min = 0.1, max = 1000)
+        @RangeDouble(min = 0.1, max = 1000)
         public double fissionCoolantDivisor = 14;
 
-        @Config.Comment({
+        @Comment({
                 "The level of detail to which fission reactors are analyzed. May cause more lag at higher values.",
                 "Default: 100"
         })
-        @Config.RangeInt(min = 5, max = 10000)
+        @RangeInt(min = 5, max = 10000)
         public double fissionReactorResolution = 100;
 
-        @Config.Comment({
+        @Comment({
                 "Nuclear coolant heat exchanger recipe efficiency multiplier for balancing purposes.",
                 "Default: 0.1"
         })
-        @Config.RangeDouble(min = 0, max = 1000)
+        @RangeDouble(min = 0, max = 1000)
         public double heatExchangerEfficiencyMultiplier = 0.25;
     }
 
     public static class MiscOptions {
 
-        @Config.Comment({
+        @Comment({
                 "Do material modifications, like adding flags or properties.",
                 "Modpack devs might want to disable this to reduce conflicts.",
                 "Default: true"
         })
         public boolean enableMaterialModifications = true;
 
-        @Config.Comment({
+        @Comment({
                 "Whether to register heat exchanger or not. Useful for SuSy.",
                 "Default: true"
         })
         public boolean enableHX = true;
 
-        @Config.Comment({
-                "Remove all recipes from Supercritical",
+        @Comment({
+                "Remove all recipes from Supercritical.",
                 "Default: false"
         })
         public boolean disableAllRecipes = false;
 
-        @Config.Comment({
-                "Remove all materials from Supercritical, except Corium",
+        @Comment({
+                "Remove all materials from Supercritical, except Corium.",
                 "Default: false"
         })
         public boolean disableAllMaterials = false;
+
+        @Comment({
+                "Make auto-filled fluid block showup in the JEI / in-world preview.",
+                "Default: false"
+        })
+        @RequiresMcRestart
+        public boolean showFluidsForAutoFillingMultiblocks = false;
     }
 }

@@ -19,6 +19,7 @@ import gregtech.api.capability.impl.AbstractRecipeLogic;
 import gregtech.api.metatileentity.multiblock.MultiblockControllerBase;
 import gregtech.api.pattern.TraceabilityPredicate;
 import gregtech.api.util.BlockInfo;
+import supercritical.common.SCConfigHolder;
 import supercritical.mixins.gregtech.AbstractRecipeLogicAccessor;
 
 @SuppressWarnings("unused")
@@ -55,7 +56,10 @@ public class SCPredicates {
                     }
                     return false;
                 },
-                () -> new BlockInfo[] { new BlockInfo(Blocks.AIR) });
+                () -> new BlockInfo[] {
+                        SCConfigHolder.misc.showFluidsForAutoFillingMultiblocks ?
+                                new BlockInfo(stillState) : new BlockInfo(Blocks.AIR)
+                });
     }
 
     public static void fillFluid(MultiblockControllerBase multi, List<BlockPos> toFill, FluidStack fluidStack) {
