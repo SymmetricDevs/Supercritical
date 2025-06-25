@@ -20,6 +20,9 @@ public class SCMetaBlocks {
     public static BlockGasCentrifugeCasing GAS_CENTRIFUGE_CASING;
     public static BlockPanelling PANELLING;
 
+    // Molten Corium
+    public static BlockMoltenCorium MOLTEN_CORIUM;
+
     public static void init() {
         FISSION_CASING = new BlockFissionCasing();
         FISSION_CASING.setRegistryName("fission_casing");
@@ -29,6 +32,8 @@ public class SCMetaBlocks {
         GAS_CENTRIFUGE_CASING.setRegistryName("gas_centrifuge_casing");
         PANELLING = new BlockPanelling();
         PANELLING.setRegistryName("panelling");
+
+        MOLTEN_CORIUM = BlockMoltenCorium.register();
     }
 
     @SideOnly(Side.CLIENT)

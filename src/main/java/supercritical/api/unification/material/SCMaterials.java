@@ -69,7 +69,10 @@ public class SCMaterials {
          * Essential for reactor meltdown.
          */
         Corium = new Material.Builder(0, scId("corium"))
-                .liquid(new FluidBuilder().temperature(2500).block().density(8.0D).viscosity(10000))
+                .liquid(new FluidBuilder()
+                        .temperature(2500)
+                        .density(8.0D)
+                        .viscosity(10000))
                 .color(0x7A6B50)
                 .iconSet(DULL)
                 .flags(NO_UNIFICATION, STICKY, GLOWING)
