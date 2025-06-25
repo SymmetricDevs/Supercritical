@@ -63,6 +63,7 @@ import supercritical.api.pattern.DirectionalShapeInfoBuilder;
 import supercritical.api.unification.material.SCMaterials;
 import supercritical.api.util.SCUtility;
 import supercritical.client.renderer.textures.SCTextures;
+import supercritical.common.SCConfigHolder;
 import supercritical.common.blocks.BlockFissionCasing;
 import supercritical.common.blocks.SCMetaBlocks;
 import supercritical.common.metatileentities.SCMetaTileEntities;
@@ -1071,6 +1072,11 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         tooltip.add(I18n.format("supercritical.machine.fission_reactor.tooltip.3"));
     }
 
+    @Override
+    public boolean allowsExtendedFacing() {
+        return SCConfigHolder.misc.allowExtendedFacingForFissionReactor;
+    }
+
     public double getMaxPower() {
         return maxPower;
     }
@@ -1097,9 +1103,5 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
 
     public double getControlRodInsertion() {
         return controlRodInsertionValue;
-    }
-
-    protected static class PatternBuilder {
-
     }
 }
