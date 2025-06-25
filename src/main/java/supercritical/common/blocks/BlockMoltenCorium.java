@@ -52,8 +52,7 @@ public class BlockMoltenCorium extends GTFluidBlock implements IFluidloggableFlu
 
     @Nullable
     @Override
-    public Boolean isEntityInsideMaterial(
-                                          @NotNull IBlockAccess world,
+    public Boolean isEntityInsideMaterial(@NotNull IBlockAccess world,
                                           @NotNull BlockPos blockpos,
                                           @NotNull IBlockState iblockstate,
                                           @NotNull Entity entity,
