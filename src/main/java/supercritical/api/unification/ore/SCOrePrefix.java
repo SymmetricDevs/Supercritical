@@ -1,14 +1,15 @@
 package supercritical.api.unification.ore;
 
 import java.util.Collections;
-import java.util.function.Function;
 
 import net.minecraft.client.resources.I18n;
 
 import gregtech.api.unification.ore.OrePrefix;
+import lombok.experimental.ExtensionMethod;
 import supercritical.api.unification.material.info.SCMaterialIconType;
 import supercritical.api.unification.material.properties.SCPropertyKey;
 
+@ExtensionMethod(OrePrefixExtension.Handler.class)
 public class SCOrePrefix {
 
     // Nuclear stuff, introduced by Zalgo and Bruberu
@@ -40,17 +41,13 @@ public class SCOrePrefix {
             material -> material.hasProperty(SCPropertyKey.FISSION_FUEL));
 
     public static void init() {
-        setRadiationDamageFunction(fuelRod, neutrons -> neutrons / 10e23);
-        setRadiationDamageFunction(fuelPelletRaw, neutrons -> neutrons / 160e23);
-        setRadiationDamageFunction(fuelPellet, neutrons -> neutrons / 160e23);
+        fuelRod.setRadiationDamageFunction(neutrons -> neutrons / 10e23);
+        fuelPelletRaw.setRadiationDamageFunction(neutrons -> neutrons / 160e23);
+        fuelPellet.setRadiationDamageFunction(neutrons -> neutrons / 160e23);
 
-        setRadiationDamageFunction(fuelRodDepleted, neutrons -> neutrons / 1.5e23);
-        setRadiationDamageFunction(fuelRodHotDepleted, neutrons -> neutrons / 1e23);
+        fuelRodDepleted.setRadiationDamageFunction(neutrons -> neutrons / 1.5e23);
+        fuelRodHotDepleted.setRadiationDamageFunction(neutrons -> neutrons / 1e23);
         fuelRodHotDepleted.heatDamageFunction = x -> 2f;
-        setRadiationDamageFunction(fuelPelletDepleted, neutrons -> neutrons / 24e23);
-    }
-
-    private static void setRadiationDamageFunction(OrePrefix prefix, Function<Double, Double> function) {
-        ((OrePrefixExtension) prefix).setRadiationDamageFunction(function);
+        fuelPelletDepleted.setRadiationDamageFunction(neutrons -> neutrons / 24e23);
     }
 }

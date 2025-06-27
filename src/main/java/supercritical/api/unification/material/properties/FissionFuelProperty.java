@@ -3,25 +3,39 @@ package supercritical.api.unification.material.properties;
 import gregtech.api.unification.material.properties.IMaterialProperty;
 import gregtech.api.unification.material.properties.MaterialProperties;
 import gregtech.api.unification.material.properties.PropertyKey;
+import lombok.Getter;
+import lombok.Setter;
 import supercritical.api.nuclear.fission.IFissionFuelStats;
 
 public class FissionFuelProperty implements IMaterialProperty, IFissionFuelStats {
 
     // The max temperature the fuel can handle before it liquefies.
+    @Getter(onMethod_ = { @Override })
     private int maxTemperature;
     // Scales how long the fuel rod lasts in the reactor.
+    @Getter(onMethod_ = { @Override })
     private int duration;
     // How likely it is to absorb a neutron that had touched a moderator.
+    @Setter
+    @Getter(onMethod_ = { @Override })
     private double slowNeutronCaptureCrossSection;
     // How likely it is to absorb a neutron that has not yet touched a moderator.
+    @Setter
+    @Getter(onMethod_ = { @Override })
     private double fastNeutronCaptureCrossSection;
     // How likely it is for a moderated neutron to cause fission in this fuel.
+    @Setter
+    @Getter(onMethod_ = { @Override })
     private double slowNeutronFissionCrossSection;
     // How likely it is for a not-yet-moderated neutron to cause fission in this fuel.
+    @Setter
+    @Getter(onMethod_ = { @Override })
     private double fastNeutronFissionCrossSection;
     // The average time for a neutron to be emitted during a fission event. Do not make this accurate.
+    @Setter
+    @Getter(onMethod_ = { @Override })
     private double neutronGenerationTime;
-    private String id;
+    private final String id;
 
     @Override
     public void verifyProperty(MaterialProperties properties) {
@@ -41,19 +55,9 @@ public class FissionFuelProperty implements IMaterialProperty, IFissionFuelStats
         this.id = id;
     }
 
-    @Override
-    public int getMaxTemperature() {
-        return maxTemperature;
-    }
-
     public void setMaxTemperature(int maxTemperature) {
         if (maxTemperature <= 0) throw new IllegalArgumentException("Max temperature must be greater than zero!");
         this.maxTemperature = maxTemperature;
-    }
-
-    @Override
-    public int getDuration() {
-        return duration;
     }
 
     public void setDuration(int duration) {
@@ -62,52 +66,7 @@ public class FissionFuelProperty implements IMaterialProperty, IFissionFuelStats
     }
 
     @Override
-    public double getSlowNeutronCaptureCrossSection() {
-        return slowNeutronCaptureCrossSection;
-    }
-
-    public void setSlowNeutronCaptureCrossSection(double slowNeutronCaptureCrossSection) {
-        this.slowNeutronCaptureCrossSection = slowNeutronCaptureCrossSection;
-    }
-
-    @Override
-    public double getFastNeutronCaptureCrossSection() {
-        return fastNeutronCaptureCrossSection;
-    }
-
-    public void setFastNeutronCaptureCrossSection(double fastNeutronCaptureCrossSection) {
-        this.fastNeutronCaptureCrossSection = fastNeutronCaptureCrossSection;
-    }
-
-    @Override
-    public double getSlowNeutronFissionCrossSection() {
-        return slowNeutronFissionCrossSection;
-    }
-
-    public void setSlowNeutronFissionCrossSection(double slowNeutronFissionCrossSection) {
-        this.slowNeutronFissionCrossSection = slowNeutronFissionCrossSection;
-    }
-
-    @Override
-    public double getFastNeutronFissionCrossSection() {
-        return fastNeutronFissionCrossSection;
-    }
-
-    public void setFastNeutronFissionCrossSection(double fastNeutronFissionCrossSection) {
-        this.fastNeutronFissionCrossSection = fastNeutronFissionCrossSection;
-    }
-
-    @Override
-    public double getNeutronGenerationTime() {
-        return neutronGenerationTime;
-    }
-
-    @Override
     public String getID() {
-        return this.id;
-    }
-
-    public void setNeutronGenerationTime(double neutronGenerationTime) {
-        this.neutronGenerationTime = neutronGenerationTime;
+        return id;
     }
 }

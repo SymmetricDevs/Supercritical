@@ -40,6 +40,7 @@ public class DriverFissionReactor extends DriverSidedTileEntity {
         return null;
     }
 
+    @SuppressWarnings("unused")
     public final static class EnvironmentFissionReactor extends
                                                         EnvironmentMetaTileEntity<MetaTileEntityFissionReactor> {
 

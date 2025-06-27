@@ -47,6 +47,7 @@ import gregtech.client.renderer.ICubeRenderer;
 import gregtech.common.ConfigHolder;
 import gregtech.common.blocks.MetaBlocks;
 import gregtech.common.metatileentities.MetaTileEntities;
+import lombok.Getter;
 import supercritical.SCValues;
 import supercritical.api.capability.ICoolantHandler;
 import supercritical.api.capability.IFuelRodHandler;
@@ -84,15 +85,21 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
     private boolean isFlowingCorrectly = true;
     private double controlRodInsertionValue;
     private LockingState lockingState = LockingState.UNLOCKED;
-
-    private double temperature;
-    private double maxTemperature;
-    private double pressure;
-    private double maxPressure;
-    private double power;
-    private double maxPower;
     private double kEff;
     private double fuelDepletionPercent;
+
+    @Getter
+    private double temperature;
+    @Getter
+    private double maxTemperature;
+    @Getter
+    private double pressure;
+    @Getter
+    private double maxPressure;
+    @Getter
+    private double power;
+    @Getter
+    private double maxPower;
 
     private NBTTagCompound transientData;
 
@@ -1075,30 +1082,6 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
     @Override
     public boolean allowsExtendedFacing() {
         return SCConfigHolder.misc.allowExtendedFacingForFissionReactor;
-    }
-
-    public double getMaxPower() {
-        return maxPower;
-    }
-
-    public double getPower() {
-        return power;
-    }
-
-    public double getMaxPressure() {
-        return maxPressure;
-    }
-
-    public double getPressure() {
-        return pressure;
-    }
-
-    public double getMaxTemperature() {
-        return maxTemperature;
-    }
-
-    public double getTemperature() {
-        return temperature;
     }
 
     public double getControlRodInsertion() {

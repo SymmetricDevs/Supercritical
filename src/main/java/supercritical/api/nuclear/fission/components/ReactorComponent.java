@@ -1,17 +1,29 @@
 package supercritical.api.nuclear.fission.components;
 
+import lombok.Getter;
+import lombok.Setter;
+
 public class ReactorComponent {
 
+    @Getter
     private final double moderationFactor;
+    @Getter
     protected double maxTemperature;
+    @Getter
     private final double thermalConductivity;
+    @Getter
     private final double mass;
 
+    @Getter
     private int x;
+    @Getter
     private int y;
 
     private final boolean isValid;
 
+    // The index of the reactor component, which is -1 if unset
+    @Setter
+    @Getter
     private int index = -1;
 
     public ReactorComponent(double moderationFactor, double maxTemperature, double thermalConductivity, double mass,
@@ -28,41 +40,11 @@ public class ReactorComponent {
         this.y = y;
     }
 
-    public void setIndex(int index) {
-        this.index = index;
-    }
-
-    public double getModerationFactor() {
-        return moderationFactor;
-    }
-
-    public double getMaxTemperature() {
-        return maxTemperature;
-    }
-
-    public double getThermalConductivity() {
-        return thermalConductivity;
-    }
-
     public boolean isValid() {
         return isValid;
     }
 
-    /**
-     * @return The index of the reactor component, which is -1 if unset
-     */
-    public int getIndex() {
-        return index;
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean samePositionAs(ReactorComponent component) {
         return this.getX() == component.getX() && this.getY() == component.getY();
     }
@@ -70,9 +52,5 @@ public class ReactorComponent {
     public double getDistance(ReactorComponent component) {
         return Math.sqrt(Math.pow(this.getX() - component.getX(), 2) +
                 Math.pow(this.getY() - component.getY(), 2));
-    }
-
-    public double getMass() {
-        return mass;
     }
 }

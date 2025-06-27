@@ -57,4 +57,11 @@ dependencies {
     compileOnly rfg.deobf("curse.maven:dropt-284973:5405050")
 
     compileOnly rfg.deobf("curse.maven:fluidlogged-api-485654:4564413")
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok:1.18.38'
+    annotationProcessor 'org.projectlombok:lombok:1.18.38'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.38'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.38'
 }

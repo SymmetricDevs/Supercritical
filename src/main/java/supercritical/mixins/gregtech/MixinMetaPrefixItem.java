@@ -19,12 +19,18 @@ import gregtech.api.items.metaitem.StandardMetaItem;
 import gregtech.api.unification.material.Material;
 import gregtech.api.unification.material.properties.PropertyKey;
 import gregtech.api.unification.ore.OrePrefix;
+import lombok.experimental.ExtensionMethod;
 import supercritical.api.items.armor.ArmorLogicExtension;
 import supercritical.api.unification.material.MaterialExtension;
 import supercritical.api.unification.material.properties.SCPropertyKey;
 import supercritical.api.unification.ore.OrePrefixExtension;
 
 @Mixin(value = MetaPrefixItem.class, remap = false)
+@ExtensionMethod({
+        OrePrefixExtension.Handler.class,
+        MaterialExtension.Handler.class,
+        ArmorLogicExtension.Handler.class
+})
 public abstract class MixinMetaPrefixItem extends StandardMetaItem {
 
     @Shadow
@@ -58,14 +64,14 @@ public abstract class MixinMetaPrefixItem extends StandardMetaItem {
 
     @Unique
     private void sc$handleRadiationDamage(@NotNull Material material, EntityLivingBase entity) {
-        double radiationDamage = ((OrePrefixExtension) prefix).getRadiationDamageFunction()
-                .apply(((MaterialExtension) material).getDecaysPerSecond());
+        double radiationDamage = prefix.getRadiationDamageFunction()
+                .apply(material.getDecaysPerSecond());
         ItemStack armor = entity.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
         if (!armor.isEmpty() && armor.getItem() instanceof ArmorMetaItem<?>) {
             ArmorMetaItem<?>.ArmorMetaValueItem metaValueItem = ((ArmorMetaItem<?>) armor.getItem())
                     .getItem(armor);
             if (metaValueItem != null) {
-                radiationDamage *= ((ArmorLogicExtension) (metaValueItem.getArmorLogic())).getRadiationResistance();
+                radiationDamage *= metaValueItem.getArmorLogic().getRadiationResistance();
             }
         }
         if (radiationDamage > 0.0) {
@@ -89,7 +95,7 @@ public abstract class MixinMetaPrefixItem extends StandardMetaItem {
                     }
 
                     // Handle radiation damage
-                    if (((OrePrefixExtension) prefix).getRadiationDamageFunction() != null) {
+                    if (prefix.getRadiationDamageFunction() != null) {
                         sc$handleRadiationDamage(material, entity);
                     }
                 }
