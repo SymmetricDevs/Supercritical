@@ -92,7 +92,6 @@ public class FissionReactor {
      * {@link FissionReactor#prepareInitialConditions()}
      */
     private double coolantBaseTemperature;
-    public double maxFuelDepletion = 1;
     public double fuelDepletion = -1;
     private double neutronPoisonAmount; // can kill reactor if power is lowered and this value is high
     private double decayProductsAmount;
@@ -130,7 +129,6 @@ public class FissionReactor {
     private double coolantMass;
     public double fuelMass;
     private double structuralMass;
-    public boolean needsOutput;
     public boolean controlRodRegulationOn = true;
     protected boolean isOn = false;
 
@@ -453,10 +451,6 @@ public class FissionReactor {
         CoolantChannel.normalizeWeights(effectiveCoolantChannels);
     }
 
-    public boolean isDepleted() {
-        return fuelDepletion >= maxFuelDepletion || fuelDepletion < 0;
-    }
-
     public void resetFuelDepletion() {
         this.fuelDepletion = 0;
     }
@@ -466,15 +460,10 @@ public class FissionReactor {
         coolantBoilingPointStandardPressure = 0;
         coolantExitTemperature = 0;
         coolantHeatOfVaporization = 0;
-        maxFuelDepletion = 0;
         weightedGenerationTime = 0;
 
         for (FuelRod rod : fuelRods) {
-            maxFuelDepletion += rod.getDuration();
             weightedGenerationTime += rod.getNeutronGenerationTime();
-        }
-        if (fuelDepletion < 0) {
-            fuelDepletion = maxFuelDepletion;
         }
         weightedGenerationTime /= fuelRods.size();
 
@@ -678,7 +667,6 @@ public class FissionReactor {
         tagCompound.setDouble("AccumulatedHydrogen", this.accumulatedHydrogen);
         tagCompound.setDouble("NeutronPoisonAmount", this.neutronPoisonAmount);
         tagCompound.setDouble("DecayProductsAmount", this.decayProductsAmount);
-        tagCompound.setBoolean("NeedsOutput", this.needsOutput);
         tagCompound.setDouble("ControlRodInsertion", this.controlRodInsertion);
         tagCompound.setBoolean("IsOn", this.isOn);
         tagCompound.setBoolean("ControlRodRegulationOn", this.controlRodRegulationOn);
@@ -695,7 +683,6 @@ public class FissionReactor {
         this.accumulatedHydrogen = tagCompound.getDouble("AccumulatedHydrogen");
         this.neutronPoisonAmount = tagCompound.getDouble("NeutronPoisonAmount");
         this.decayProductsAmount = tagCompound.getDouble("DecayProductsAmount");
-        this.needsOutput = tagCompound.getBoolean("NeedsOutput");
         this.controlRodInsertion = tagCompound.getDouble("ControlRodInsertion");
         this.isOn = tagCompound.getBoolean("IsOn");
         this.controlRodRegulationOn = tagCompound.getBoolean("ControlRodRegulationOn");

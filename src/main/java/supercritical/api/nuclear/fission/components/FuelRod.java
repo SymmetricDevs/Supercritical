@@ -23,6 +23,7 @@ public class FuelRod extends ReactorComponent {
         return fuel.getSlowNeutronFissionCrossSection();
     }
 
+
     public double getNeutronGenerationTime() {
         return fuel.getNeutronGenerationTime();
     }

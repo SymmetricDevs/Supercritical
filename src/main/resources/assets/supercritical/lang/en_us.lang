@@ -184,3 +184,5 @@ gregtech.fluid.molten=Molten %s
 
 # Name Overrides (doesn't work)
 gregtech.material.enriched_uranium_hexafluoride=Low Enriched Uranium Hexafluoride
+
+fuelbus.void=Void the current partially depleted fuel!
