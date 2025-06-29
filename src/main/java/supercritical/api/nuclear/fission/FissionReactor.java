@@ -322,6 +322,8 @@ public class FissionReactor {
                  * We do want to account for the macroscopic cross sections of the fuel rods and the neutrons released in that fission, though.
                  */
                 mij /= resolution;
+                faij /= resolution;
+                saij /= resolution;
                 // Basic calculations approximating the numbers of neutrons that go from I to J
                 double dist = rodOne.getDistance(rodTwo);
                 double unabsorbedFast = Math.exp(-faij * dist) / dist;
