@@ -239,6 +239,16 @@ public class FissionReactor {
         }
     }
 
+    public static void linearNormalize(double[] vector) {
+        double sum = 0;
+        for (double component : vector) {
+            sum += component;
+        }
+        for (int i = 0; i < vector.length; i++) {
+            vector[i] /= sum;
+        }
+    }
+
     public static void multiply(double[][] matrix, double[] vector) {
         double[] result = new double[vector.length];
         for (int i = 0; i < matrix.length; i++) {
@@ -357,8 +367,16 @@ public class FissionReactor {
             normalize(vector);
             multiply(geometricMatrixNeutrons, vector);
         }
-        // We must still correct for the reactor depth.
         double kCalc = getMagnitude(vector);
+        if (addToEffectiveLists) {
+            linearNormalize(vector);
+            for (int i = 0; i < fuelRods.size(); i++) {
+                fuelRods.get(i).setWeight(vector[i]);
+            }
+        }
+
+
+        // We must still correct for the reactor depth.
         kCalc *= reactorDepth / (1. + reactorDepth);
         return kCalc;
     }

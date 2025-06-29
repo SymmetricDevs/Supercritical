@@ -41,9 +41,9 @@ public class SCConfigHolder {
 
         @Comment({
                 "The number of times the neutron multiplication value is calculated. May cause more lag at higher values.",
-                "Default: 6"
+                "Default: 10"
         })
-        public int fissionReactorPowerIterations = 6;
+        public int fissionReactorPowerIterations = 10;
 
 
         @Comment({

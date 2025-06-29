@@ -110,8 +110,8 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
         if (this.partialFuel == null)
             return 0;
         if (this.getController() == null || !(this.getController() instanceof MetaTileEntityFissionReactor reactor) || !reactor.isLocked())
-            return 1 - (depletionPoint / this.partialFuel.getDuration());
-        return 1 - ((depletionPoint - reactor.getTotalDepletion()) / this.partialFuel.getDuration());
+            return 1 - (depletionPoint / partialFuel.getDuration());
+        return 1 - ((depletionPoint - (reactor.getTotalDepletion() * internalFuelRod.getWeight())) / partialFuel.getDuration());
     }
 
     public void voidPartialFuel() {
@@ -294,7 +294,7 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
 
     @Override
     public void resetDepletion(double fuelDepletion) {
-        this.depletionPoint -= fuelDepletion;
+        this.depletionPoint -= fuelDepletion * this.internalFuelRod.getWeight();
     }
 
     @Override
