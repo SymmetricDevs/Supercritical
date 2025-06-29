@@ -52,6 +52,12 @@ public class SCConfigHolder {
         })
         @RangeDouble(min = 0, max = 1000)
         public double heatExchangerEfficiencyMultiplier = 0.25;
+
+        @Comment({
+                "Whether to enable meltdowns and associated explosions or not.",
+                "Default: true"
+        })
+        public boolean enableMeltdown = true;
     }
 
     public static class MiscOptions {

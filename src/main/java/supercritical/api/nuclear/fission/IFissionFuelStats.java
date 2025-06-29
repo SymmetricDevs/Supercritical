@@ -85,14 +85,6 @@ public interface IFissionFuelStats {
         return getSlowNeutronFissionCrossSection() * getReleasedNeutrons() / getRequiredNeutrons();
     }
 
-    default double getFastMicroscopicCaptureCrossSection() {
-        return Math.log(getFastNeutronCaptureCrossSection());
-    }
-
-    default double getSlowMicroscopicCaptureCrossSection() {
-        return Math.log(getSlowNeutronCaptureCrossSection());
-    }
-
     /**
      * @return A unique ID for this fuel.
      */

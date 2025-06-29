@@ -5,18 +5,15 @@ import static supercritical.SCValues.FISSION_LOCK_UPDATE;
 import java.io.IOException;
 import java.util.List;
 
-import com.cleanroommc.modularui.widgets.ButtonWidget;
-import gregtech.api.gui.Widget;
-import gregtech.api.gui.widgets.ClickButtonWidget;
-import gregtech.api.gui.widgets.SlotWidget;
+import gregtech.api.gui.widgets.*;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.Packet;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
@@ -30,7 +27,6 @@ import codechicken.lib.vec.Matrix4;
 import gregtech.api.capability.IControllable;
 import gregtech.api.gui.GuiTextures;
 import gregtech.api.gui.ModularUI;
-import gregtech.api.gui.widgets.BlockableSlotWidget;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
 import gregtech.api.metatileentity.multiblock.IMultiblockAbilityPart;
@@ -58,6 +54,7 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
     private IFissionFuelStats partialFuel;
     private FuelRod internalFuelRod;
     private double depletionPoint;
+    private IItemHandlerModifiable partialFuelDisplay;
 
     public MetaTileEntityFuelRodImportBus(ResourceLocation metaTileEntityId) {
         super(metaTileEntityId, 4, false);
@@ -94,12 +91,27 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
         builder.widget(new BlockableSlotWidget(importItems, 0, 40, 18, true, true)
                 .setIsBlocked(this::isLocked).setBackgroundTexture(GuiTextures.SLOT));
 
-        builder.widget(new SlotWidget(importItems, 0, 136, 18, false, false)
-                .setBackgroundTexture(GuiTextures.BLOCKS_INPUT));
+        builder.widget(new SlotWidget(partialFuelDisplay, 0, 118, 18, false, false)
+                .setBackgroundTexture(GuiTextures.MAINTENANCE_ICON));
 
-        builder.widget(new ClickButtonWidget(136, 40, 18, 18, "fuelbus.void", (d) -> voidPartialFuel()));
+        builder.widget(new ClickButtonWidget(140, 18, 18, 18, "", (d) -> voidPartialFuel())
+                .setTooltipText("fuelbus.void")
+                .setButtonTexture(GuiTextures.BUTTON_VOID_NONE)
+                .setShouldClientCallback(true));
+
+        builder.widget(new AdvancedTextWidget(10, 43, (list) -> {
+            list.add(new TextComponentTranslation("supercritical.gui.fission.depletion", String.format("%.2f", getCurrentDepletionRatio() * 100)));
+        }, 0));
 
         return builder.bindPlayerInventory(player.inventory, GuiTextures.SLOT, 7, 60);
+    }
+
+    public double getCurrentDepletionRatio() {
+        if (this.partialFuel == null)
+            return 0;
+        if (this.getController() == null || !(this.getController() instanceof MetaTileEntityFissionReactor reactor) || !reactor.isLocked())
+            return 1 - (depletionPoint / this.partialFuel.getDuration());
+        return 1 - ((depletionPoint - reactor.getTotalDepletion()) / this.partialFuel.getDuration());
     }
 
     public void voidPartialFuel() {
@@ -107,8 +119,19 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
                 ((MetaTileEntityFissionReactor) this.getController()).isLocked())
             return;
         setPartialFuel(null);
-        setLock(false);
         depletionPoint = 0;
+        setLock(false);
+    }
+
+    @Override
+    protected void initializeInventory() {
+        super.initializeInventory();
+        partialFuelDisplay = new ItemStackHandler(1) {
+            @Override
+            public @NotNull ItemStack getStackInSlot(int slot) {
+                return getLockedObject();
+            }
+        };
     }
 
     @Override
@@ -237,7 +260,9 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
             return false;
         }
         this.partialFuel = prop;
-        if (this.internalFuelRod != null) {
+        if (prop == null) {
+            this.internalFuelRod = null;
+        } else if (this.internalFuelRod != null) {
             this.internalFuelRod.setFuel(prop);
         }
         return true;
@@ -255,7 +280,7 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
 
     @Override
     public void markUndepleted() {
-        this.depletionPoint += this.internalFuelRod.getFuel().getDuration();
+        this.depletionPoint += this.partialFuel.getDuration();
     }
 
     @Override

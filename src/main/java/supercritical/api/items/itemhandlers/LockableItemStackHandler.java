@@ -11,7 +11,7 @@ import supercritical.api.capability.ILockableHandler;
 public class LockableItemStackHandler extends NotifiableItemStackHandler implements ILockableHandler<ItemStack> {
 
     protected boolean locked;
-    protected ItemStack lockedItemStack;
+    protected ItemStack lockedItemStack = ItemStack.EMPTY;
 
     public LockableItemStackHandler(MetaTileEntity entityToNotify, boolean isExport) {
         super(entityToNotify, 1, entityToNotify, isExport);
@@ -22,6 +22,9 @@ public class LockableItemStackHandler extends NotifiableItemStackHandler impleme
         this.locked = isLocked;
         if (isLocked && !this.getStackInSlot(0).isEmpty()) {
             lockedItemStack = this.getStackInSlot(0).copy();
+            lockedItemStack.setCount(1);
+        } else {
+            lockedItemStack = ItemStack.EMPTY;
         }
     }
 

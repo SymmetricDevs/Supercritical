@@ -42,13 +42,13 @@ public class MaterialModifications {
 
         // Uraninite
         // Uraninite. // TODO: How???
-        Uraninite.setProperty(SCPropertyKey.FISSION_FUEL, new FissionFuelProperty(1800, 300,
+        Uraninite.setProperty(SCPropertyKey.FISSION_FUEL, new FissionFuelProperty(1800, 30000,
                 Uraninite.getRegistryName(), 2.4)
                 .setSlowNeutronCaptureCrossSection(1)
                 .setSlowNeutronFissionCrossSection(1)
-                .setDecayRate(100)
+                .setDecayRate(0.001)
                 .setReleasedNeutrons(3)
-                .setReleasedHeatEnergy(1000)
+                .setReleasedHeatEnergy(0.01)
         );
         // Uranium Hexafluoride
         // UraniumHexafluoride // TODO: How???

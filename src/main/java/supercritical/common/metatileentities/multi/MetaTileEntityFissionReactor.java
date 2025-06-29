@@ -63,6 +63,7 @@ import supercritical.api.pattern.DirectionalShapeInfoBuilder;
 import supercritical.api.unification.material.SCMaterials;
 import supercritical.api.util.SCUtility;
 import supercritical.client.renderer.textures.SCTextures;
+import supercritical.common.SCConfigHolder;
 import supercritical.common.blocks.BlockFissionCasing;
 import supercritical.common.blocks.SCMetaBlocks;
 import supercritical.common.metatileentities.SCMetaTileEntities;
@@ -91,7 +92,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
     private double power;
     private double maxPower;
     private double kEff;
-    private double fuelDepletionPercent;
+    private double totalDepletion;
 
     private NBTTagCompound transientData;
 
@@ -116,10 +117,10 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         } else if (index == 1) {
             return this.pressure / this.maxPressure;
         } else {
-            if (this.maxPower / this.power > Math.exp(12)) {
+            if (this.maxPower / this.power > Math.exp(9)) {
                 return 0;
             }
-            return (Math.log(this.power / this.maxPower) + 12) / 12;
+            return (Math.log(this.power / this.maxPower) + 9) / 9;
         }
     }
 
@@ -207,8 +208,6 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                                 "supercritical.gui.fission.lock." + lockingState.toString().toLowerCase()),
                         getLockedTextColor()));
         list.add(new TextComponentTranslation("supercritical.gui.fission.k_eff", String.format("%.4f", this.kEff)));
-        list.add(new TextComponentTranslation("supercritical.gui.fission.depletion",
-                String.format("%.2f", this.fuelDepletionPercent * 100)));
     }
 
     protected EnumFacing getUp() {
@@ -405,14 +404,16 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                             this.setLockingState(LockingState.FUEL_CLOGGED);
                             break;
                         }
+                        fuelImport.getOutputStackHandler(this.height - 1).insertItem(0,
+                                FissionFuelRegistry.getDepletedFuel(fuelImport.getFuel()), false);
+                        fuelImport.markUndepleted();
                         if (fuelImport.getInputStackHandler().extractItem(0, 1, true).isEmpty()) {
                             canWork = false;
+                            fuelImport.setPartialFuel(null); // Clear the partial fuel; it wouldn't have existed
                             this.setLockingState(LockingState.MISSING_FUEL);
                             break;
                         }
-                        fuelImport.getOutputStackHandler(this.height - 1).insertItem(0,
-                                FissionFuelRegistry.getDepletedFuel(fuelImport.getFuel()), true);
-                        fuelImport.getInputStackHandler().extractItem(0, 1, true);
+                        fuelImport.getInputStackHandler().extractItem(0, 1, false);
                     }
                 }
 
@@ -424,6 +425,9 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
 
             this.syncReactorStats();
 
+            if (!SCConfigHolder.nuclear.enableMeltdown) {
+                return;
+            }
             boolean melts = this.fissionReactor.checkForMeltdown();
             boolean explodes = this.fissionReactor.checkForExplosion();
             double hydrogen = this.fissionReactor.accumulatedHydrogen;
@@ -731,6 +735,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         this.maxPower = this.fissionReactor.maxPower;
         this.kEff = this.fissionReactor.kEff;
         this.controlRodInsertionValue = this.fissionReactor.controlRodInsertion;
+        this.totalDepletion = this.fissionReactor.fuelDepletion;
         writeCustomData(SCValues.SYNC_REACTOR_STATS, (packetBuffer -> {
             packetBuffer.writeDouble(this.temperature);
             packetBuffer.writeDouble(this.maxTemperature);
@@ -740,6 +745,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
             packetBuffer.writeDouble(this.maxPower);
             packetBuffer.writeDouble(this.kEff);
             packetBuffer.writeDouble(this.controlRodInsertionValue);
+            packetBuffer.writeDouble(this.totalDepletion);
         }));
         this.markDirty();
     }
@@ -757,6 +763,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
             this.maxPower = buf.readDouble();
             this.kEff = buf.readDouble();
             this.controlRodInsertionValue = buf.readDouble();
+            this.totalDepletion = buf.readDouble();
         } else if (dataId == SCValues.SYNC_LOCKING_STATE) {
             this.lockingState = buf.readEnumValue(LockingState.class);
             this.scheduleRenderUpdate();
@@ -782,6 +789,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         }
         if (this.fissionReactor != null) {
             this.fissionReactor.turnOff();
+            this.fissionReactor.resetFuelDepletion();
         }
         if (this.lockingState == LockingState.LOCKED) { // Don't remove warnings
             this.setLockingState(LockingState.UNLOCKED);
@@ -1102,7 +1110,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         return controlRodInsertionValue;
     }
 
-    protected static class PatternBuilder {
-
+    public double getTotalDepletion() {
+        return totalDepletion;
     }
 }

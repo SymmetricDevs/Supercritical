@@ -35,9 +35,9 @@ public class FuelRod extends ReactorComponent {
     @Override
     public double getAbsorptionFactor(boolean controlsInserted, boolean isThermal) {
         if (isThermal) {
-            return this.fuel.getSlowMicroscopicCaptureCrossSection();
+            return this.fuel.getSlowNeutronCaptureCrossSection();
         } else {
-            return this.fuel.getFastMicroscopicCaptureCrossSection();
+            return this.fuel.getFastNeutronCaptureCrossSection();
         }
     }
 
