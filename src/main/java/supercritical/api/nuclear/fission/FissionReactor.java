@@ -123,6 +123,10 @@ public class FissionReactor {
 
     // very much changed here for balance purposes
 
+    private double decayNeutrons;
+    private double neutronFlux;
+    private double neutronToPowerConversion;
+
     private double coolantMass;
     public double fuelMass;
     private double structuralMass;
@@ -222,12 +226,33 @@ public class FissionReactor {
         }
     }
 
-    public void computeGeometry() {
-        effectiveControlRods.clear();
-        effectiveCoolantChannels.clear();
-        moderatorTipped = false;
-        double[][] geometricMatrixSlowNeutrons = new double[fuelRods.size()][fuelRods.size()];
-        double[][] geometricMatrixFastNeutrons = new double[fuelRods.size()][fuelRods.size()];
+    public static double getMagnitude(double[] vector) {
+        double magnitude = 0;
+        for (double component : vector) {
+            magnitude += component * component;
+        }
+        return Math.sqrt(magnitude);
+    }
+
+    public static void normalize(double[] vector) {
+        double magnitude = getMagnitude(vector);
+        for (int i = 0; i < vector.length; i++) {
+            vector[i] /= magnitude;
+        }
+    }
+
+    public static void multiply(double[][] matrix, double[] vector) {
+        double[] result = new double[vector.length];
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[i].length; j++) {
+                result[i] += matrix[i][j] * vector[j];
+            }
+        }
+        System.arraycopy(result, 0, vector, 0, result.length);
+    }
+
+    public double computeK(boolean addToEffectiveLists, boolean controlRodsInserted) {
+        double[][] geometricMatrixNeutrons = new double[fuelRods.size()][fuelRods.size()];
 
         /*
          * We calculate geometric factor matrices to determine how many neutrons go from the i-th to the j-th fuel rod
@@ -236,8 +261,9 @@ public class FissionReactor {
          */
         for (int i = 0; i < fuelRods.size(); i++) {
             for (int j = 0; j < i; j++) {
-                boolean pathIsClear = true;
-                double mij = 0;
+                double mij = 0; // Integrates over the moderation factor; read "moderation from I to J"
+                double saij = 0; // Integrates over slow neutron fission, scattering and capture; read "slow absorption from I to J"
+                double faij = 0; // Integrates over fast neutron fission, scattering and capture; read "fast absorption from I to J"
                 FuelRod rodOne = fuelRods.get(i);
                 FuelRod rodTwo = fuelRods.get(j);
 
@@ -261,32 +287,30 @@ public class FissionReactor {
                     if (component == null) {
                         continue;
                     }
+                    if (component.getModerationFactor() > 0) {
+                        mij += component.getModerationFactor();
+                        saij = (faij + saij) / 2; // This is an approximation!
+                    }
 
-                    mij += component.getModerationFactor();
+                    saij += component.getAbsorptionFactor(controlRodsInserted, true);
+                    faij += component.getAbsorptionFactor(controlRodsInserted, false);
+                    if (component instanceof FuelRod fuel && !component.samePositionAs(fuelRods.get(i)) &&
+                            !component.samePositionAs(fuelRods.get(j))) {
+                        saij += fuel.getFuel().getSlowMicroscopicCaptureCrossSection();
+                        faij += fuel.getFuel().getFastMicroscopicCaptureCrossSection();
+                    }
 
-                    if (x == prevX && y == prevY) {
+                    if (!addToEffectiveLists || (x == prevX && y == prevY)) {
                         continue;
                     }
                     prevX = x;
                     prevY = y;
 
                     /*
-                     * For simplicity, we pretend that fuel rods are completely opaque to neutrons, paths that hit fuel
-                     * rods are ignored as obstructed
-                     */
-                    if (component instanceof FuelRod && !component.samePositionAs(fuelRods.get(i)) &&
-                            !component.samePositionAs(fuelRods.get(j))) {
-                        pathIsClear = false;
-                        break;
-                    }
-
-                    /*
                      * We keep track of which active elements we hit, so we can determine how important they are
                      * relative to the others later
                      */
-                    if (component instanceof ControlRod rod) {
-                        rod.addFuelRodPair();
-                    } else if (component instanceof CoolantChannel channel) {
+                    if (component instanceof CoolantChannel channel) {
                         channel.addFuelRodPair();
                     }
                 }
@@ -296,64 +320,85 @@ public class FissionReactor {
                  * neutrons along the path, we pretend that fuel rods are infinitely tall and thin for simplicity
                  * This means the fraction of slow neutrons will go as (1-exp(-m * x))/x where x is the distance between
                  * the cells
-                 * The fraction of fast neutrons is simply one minus the fraction of slow neutrons
+                 * The fraction of fast neutrons is simply one minus the fraction of slow neutrons.
+                 * We do want to account for the macroscopic cross sections of the fuel rods and the neutrons released in that fission, though.
                  */
-                if (pathIsClear) {
-                    mij /= resolution;
-                    geometricMatrixSlowNeutrons[i][j] = (1.0 -
-                            Math.exp(-mij * rodOne.getDistance(rodTwo))) /
-                            rodOne.getDistance(rodTwo);
-                    geometricMatrixSlowNeutrons[j][i] = geometricMatrixSlowNeutrons[i][j];
-                    geometricMatrixFastNeutrons[i][j] = 1.0 /
-                            rodOne.getDistance(rodTwo) - geometricMatrixSlowNeutrons[i][j];
-                    geometricMatrixFastNeutrons[j][i] = geometricMatrixFastNeutrons[i][j];
-                }
+                mij /= resolution;
+                // Basic calculations approximating the numbers of neutrons that go from I to J
+                double dist = rodOne.getDistance(rodTwo);
+                double unabsorbedFast = Math.exp(-faij * dist) / dist;
+                double unabsorbedSlow = Math.exp(-saij * dist) / dist;
+                double fast = Math.exp(-mij * dist) / dist;
+                double slow = (1 / dist - fast) * unabsorbedSlow;
+                fast = fast * unabsorbedFast;
+                // First use the parameters for the second rod; I to J
+                double slowNeutronFissionMultiplier = rodTwo.getFuel().getSlowFissionMultiplier();
+                double fastNeutronFissionMultiplier = rodTwo.getFuel().getFastFissionMultiplier();
+                geometricMatrixNeutrons[i][j] = slow * slowNeutronFissionMultiplier + fast * fastNeutronFissionMultiplier;
+                // Then use the parameters for the first rod; J to I
+                slowNeutronFissionMultiplier = rodOne.getFuel().getSlowFissionMultiplier();
+                fastNeutronFissionMultiplier = rodOne.getFuel().getFastFissionMultiplier();
+                geometricMatrixNeutrons[j][i] = slow * slowNeutronFissionMultiplier + fast * fastNeutronFissionMultiplier;
             }
         }
 
         /*
+         * We now perform the power iteration algorithm to approximate kEff.
+         * We create a guess of a vector with all elements set to 1, which we then normalize.
+         * We then calculate the resulting vector by multiplying it with the geometric matrix, and normalize it again.
+         * This repeats a few times, and the resulting magnitude of the vector is the approximate kEff (the largest eigenvalue).
+         */
+
+        double[] vector = new double[fuelRods.size()];
+        for (int i = 0; i < fuelRods.size(); i++) {
+            vector[i] = 1;
+        }
+        for (int i = 0; i < SCConfigHolder.nuclear.fissionReactorPowerIterations; i++) {
+            normalize(vector);
+            multiply(geometricMatrixNeutrons, vector);
+        }
+        // We must still correct for the reactor depth.
+        double kCalc = getMagnitude(vector);
+        kCalc *= reactorDepth / (1. + reactorDepth);
+        return kCalc;
+    }
+
+    public void computeGeometry() {
+        effectiveControlRods.clear();
+        effectiveCoolantChannels.clear();
+        moderatorTipped = false;
+
+        // We compute K twice to see the effectiveness of the control rods.
+        k = computeK(true, false);
+        double kExperimental = computeK(false, true);
+
+        this.computeControlRodWeights(((kExperimental - 1) / kExperimental) - ((k - 1) / k));
+
+        /*
          * We now use the data we have on the geometry to calculate the reactor's stats
          */
-        double avgGeometricFactorSlowNeutrons = 0;
-        double avgGeometricFactorFastNeutrons = 0;
-
         double avgHighEnergyFissionFactor = 0;
         double avgLowEnergyFissionFactor = 0;
-        double avgHighEnergyCaptureFactor = 0;
-        double avgLowEnergyCaptureFactor = 0;
+        neutronToPowerConversion = 0;
+        decayNeutrons = 0;
 
         double avgFuelRodDistance = 0;
 
         for (int iIdx = 0; iIdx < fuelRods.size(); iIdx++) {
             FuelRod i = fuelRods.get(iIdx);
-            for (int jIdx = 0; jIdx < iIdx; jIdx++) {
-                FuelRod j = fuelRods.get(jIdx);
-                avgGeometricFactorSlowNeutrons += geometricMatrixSlowNeutrons[i.getIndex()][j.getIndex()];
-                avgGeometricFactorFastNeutrons += geometricMatrixFastNeutrons[i.getIndex()][j.getIndex()];
-
-                avgFuelRodDistance += i.getDistance(j);
-            }
             avgHighEnergyFissionFactor += i.getHEFissionFactor();
             avgLowEnergyFissionFactor += i.getLEFissionFactor();
-            avgHighEnergyCaptureFactor += i.getHECaptureFactor();
-            avgLowEnergyCaptureFactor += i.getLECaptureFactor();
+            neutronToPowerConversion += i.getFuel().getReleasedNeutrons() / i.getFuel().getReleasedHeatEnergy();
+            decayNeutrons += i.getFuel().getDecayRate();
         }
 
         if (fuelRods.size() > 1) {
-            avgGeometricFactorSlowNeutrons *= 0.25 / fuelRods.size();
-            avgGeometricFactorFastNeutrons *= 0.25 / fuelRods.size();
-
             avgHighEnergyFissionFactor /= fuelRods.size();
             avgLowEnergyFissionFactor /= fuelRods.size();
-            avgHighEnergyCaptureFactor /= fuelRods.size();
-            avgLowEnergyCaptureFactor /= fuelRods.size();
+            neutronToPowerConversion /= fuelRods.size();
 
             avgFuelRodDistance /= (fuelRods.size() * fuelRods.size() - fuelRods.size());
             avgFuelRodDistance *= 2;
-
-            double kSlow = avgLowEnergyFissionFactor / avgLowEnergyCaptureFactor * avgGeometricFactorSlowNeutrons;
-            double kFast = avgHighEnergyFissionFactor / avgHighEnergyCaptureFactor * avgGeometricFactorFastNeutrons;
-            k = (kSlow + kFast) * reactorDepth / (1. + reactorDepth);
 
             double depthDiameterDifference = 0.5 * (reactorDepth - reactorRadius * 2) / reactorRadius;
             double sigmoid = 1 / (1 + Math.exp(-depthDiameterDifference));
@@ -370,7 +415,7 @@ public class FissionReactor {
         /*
          * We give each control rod and coolant channel a weight depending on how many fuel rods they affect
          */
-        this.computeControlRodWeights();
+
         this.computeCoolantChannelWeights();
 
         controlRodFactor = ControlRod.controlRodFactor(effectiveControlRods, this.controlRodInsertion);
@@ -382,14 +427,16 @@ public class FissionReactor {
      * Loops over all the control rods, determines which ones actually affect reactivity, and gives them a weight
      * depending on how many fuel rods they affect
      */
-    protected void computeControlRodWeights() {
+    protected void computeControlRodWeights(double totalWorth) {
+        double totalWeight = 0;
         for (ControlRod rod : controlRods) {
             rod.computeWeightFromFuelRodMap();
             if (rod.getWeight() > 0) {
                 effectiveControlRods.add(rod);
+                totalWeight += rod.getWeight();
             }
         }
-        ControlRod.normalizeWeights(effectiveControlRods, fuelRods.size());
+        ControlRod.normalizeWeights(effectiveControlRods, totalWeight, totalWorth);
     }
 
     /**
@@ -491,10 +538,6 @@ public class FissionReactor {
                 double idealHeatFlux = heatFluxPerAreaAndTemp * 4 * reactorDepth *
                         (temperature - cooledTemperature);
 
-                // Don't cut off cooling when it turns off
-                if (realMaxPower() != this.getDecayHeat() && realMaxPower() != 0) {
-                    idealHeatFlux = Math.min(idealHeatFlux, realMaxPower() * 1e6 / coolantChannels.size());
-                }
 
                 double idealFluidUsed = idealHeatFlux / heatRemovedPerLiter;
                 double cappedFluidUsed = Math.min(drained, idealFluidUsed);
@@ -573,30 +616,31 @@ public class FissionReactor {
         this.neutronPoisonAmount *= decayProductRate * Math.exp(-crossSectionRatio * power / surfaceArea);
     }
 
-    public double getDecayHeat() {
-        return this.neutronPoisonAmount * 0.05 + this.decayProductsAmount * 0.1 + 0.0001; // The extra constant is to
+    public double getTotalDecayNeutrons() {
+        return this.neutronPoisonAmount * 0.05 + this.decayProductsAmount * 0.1 + this.decayNeutrons; // The extra constant is to
         // kickstart the reactor.
     }
 
     public void updatePower() {
         if (this.isOn) {
-            this.kEff = this.k;
+            this.neutronFlux += getTotalDecayNeutrons();
             // Since the power defect is a change in the reactivity rho (1 - 1 / kEff), we have to do this thing.
             // (1 - 1 / k) = rho(k) => rho^-1(rho) = 1 / (1 - rho)
             // rho^-1(rho(k) - defect) is thus 1 / (1 - (1 - 1/k - defect)) = 1 / (1/k + defect)
-            this.kEff = 1 / ((1 / this.kEff) + powerDefectCoefficient * (this.power / this.maxPower) +
+            this.kEff = 1 / ((1 / this.k) + powerDefectCoefficient * (this.power / this.maxPower) +
                     neutronPoisonAmount * crossSectionRatio / surfaceArea + controlRodFactor);
             this.kEff = Math.max(0, this.kEff);
 
             double inverseReactorPeriod = (this.kEff - 1) / weightedGenerationTime;
 
-            this.power += 0.001; // Let it kickstart itself
-            this.power *= Math.exp(inverseReactorPeriod);
+            this.neutronFlux *= Math.exp(inverseReactorPeriod);
 
-            this.fuelDepletion += this.power;
+            this.fuelDepletion += this.neutronFlux;
+            this.decayProductsAmount += Math.max(neutronFlux, 0.) / 1000;
 
-            this.decayProductsAmount += Math.max(power, 0.) / 1000;
+            this.power = this.neutronFlux * this.neutronToPowerConversion;
         } else {
+            this.neutronFlux *= 0.5;
             this.power *= 0.5;
         }
         this.decayProductsAmount *= decayProductRate;
@@ -606,7 +650,7 @@ public class FissionReactor {
         if (this.moderatorTipped && (this.controlRodInsertion <= 9. / 16 && this.controlRodInsertion >= 7. / 16)) {
             return this.maxPower * 1.1;
         } else if (!this.isOn) {
-            return this.getDecayHeat();
+            return this.getTotalDecayNeutrons();
         } else {
             return this.maxPower;
         }

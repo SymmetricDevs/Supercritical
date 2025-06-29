@@ -23,20 +23,21 @@ public class FuelRod extends ReactorComponent {
         return fuel.getSlowNeutronFissionCrossSection();
     }
 
-    public double getHECaptureFactor() {
-        return fuel.getFastNeutronCaptureCrossSection();
-    }
-
-    public double getLECaptureFactor() {
-        return fuel.getSlowNeutronCaptureCrossSection();
-    }
-
     public double getNeutronGenerationTime() {
         return fuel.getNeutronGenerationTime();
     }
 
     public IFissionFuelStats getFuel() {
         return fuel;
+    }
+
+    @Override
+    public double getAbsorptionFactor(boolean controlsInserted, boolean isThermal) {
+        if (isThermal) {
+            return this.fuel.getSlowMicroscopicCaptureCrossSection();
+        } else {
+            return this.fuel.getFastMicroscopicCaptureCrossSection();
+        }
     }
 
     public void setFuel(IFissionFuelStats property) {

@@ -21,6 +21,11 @@ public class FissionFuelProperty implements IMaterialProperty, IFissionFuelStats
     private double fastNeutronFissionCrossSection;
     // The average time for a neutron to be emitted during a fission event. Do not make this accurate.
     private double neutronGenerationTime;
+    private double releasedNeutrons;
+    private double requiredNeutrons;
+    private double releasedHeatEnergy;
+    private double decayRate;
+
     private String id;
 
     @Override
@@ -38,6 +43,12 @@ public class FissionFuelProperty implements IMaterialProperty, IFissionFuelStats
         this.slowNeutronFissionCrossSection = slowNeutronFissionCrossSection;
         this.fastNeutronFissionCrossSection = fastNeutronFissionCrossSection;
         this.neutronGenerationTime = neutronGenerationTime;
+        this.id = id;
+    }
+
+    public FissionFuelProperty(int maxTemperature, int duration, String id) {
+        this.maxTemperature = maxTemperature;
+        this.duration = duration;
         this.id = id;
     }
 
@@ -61,13 +72,15 @@ public class FissionFuelProperty implements IMaterialProperty, IFissionFuelStats
         this.duration = duration;
     }
 
+    // Capture cross-sections
     @Override
     public double getSlowNeutronCaptureCrossSection() {
         return slowNeutronCaptureCrossSection;
     }
 
-    public void setSlowNeutronCaptureCrossSection(double slowNeutronCaptureCrossSection) {
+    public FissionFuelProperty setSlowNeutronCaptureCrossSection(double slowNeutronCaptureCrossSection) {
         this.slowNeutronCaptureCrossSection = slowNeutronCaptureCrossSection;
+        return this;
     }
 
     @Override
@@ -75,17 +88,20 @@ public class FissionFuelProperty implements IMaterialProperty, IFissionFuelStats
         return fastNeutronCaptureCrossSection;
     }
 
-    public void setFastNeutronCaptureCrossSection(double fastNeutronCaptureCrossSection) {
+    public FissionFuelProperty setFastNeutronCaptureCrossSection(double fastNeutronCaptureCrossSection) {
         this.fastNeutronCaptureCrossSection = fastNeutronCaptureCrossSection;
+        return this;
     }
 
+    // Fission cross-sections
     @Override
     public double getSlowNeutronFissionCrossSection() {
         return slowNeutronFissionCrossSection;
     }
 
-    public void setSlowNeutronFissionCrossSection(double slowNeutronFissionCrossSection) {
+    public FissionFuelProperty setSlowNeutronFissionCrossSection(double slowNeutronFissionCrossSection) {
         this.slowNeutronFissionCrossSection = slowNeutronFissionCrossSection;
+        return this;
     }
 
     @Override
@@ -95,6 +111,46 @@ public class FissionFuelProperty implements IMaterialProperty, IFissionFuelStats
 
     public void setFastNeutronFissionCrossSection(double fastNeutronFissionCrossSection) {
         this.fastNeutronFissionCrossSection = fastNeutronFissionCrossSection;
+    }
+
+    @Override
+    public double getReleasedNeutrons() {
+        return releasedNeutrons;
+    }
+
+    public FissionFuelProperty setReleasedNeutrons(double releasedNeutrons) {
+        this.releasedNeutrons = releasedNeutrons;
+        return this;
+    }
+
+    @Override
+    public double getRequiredNeutrons() {
+        return requiredNeutrons;
+    }
+
+    public FissionFuelProperty setRequiredNeutrons(double requiredNeutrons) {
+        this.requiredNeutrons = requiredNeutrons;
+        return this;
+    }
+
+
+    @Override
+    public double getReleasedHeatEnergy() {
+        return releasedHeatEnergy;
+    }
+
+    public FissionFuelProperty setReleasedHeatEnergy(double releasedHeatEnergy) {
+        this.releasedHeatEnergy = releasedHeatEnergy;
+        return this;
+    }
+
+    public double getDecayRate() {
+        return decayRate;
+    }
+
+    public FissionFuelProperty setDecayRate(double decayRate) {
+        this.decayRate = decayRate;
+        return this;
     }
 
     @Override
@@ -110,4 +166,6 @@ public class FissionFuelProperty implements IMaterialProperty, IFissionFuelStats
     public void setNeutronGenerationTime(double neutronGenerationTime) {
         this.neutronGenerationTime = neutronGenerationTime;
     }
+
+
 }

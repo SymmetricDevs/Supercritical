@@ -36,6 +36,10 @@ public class ReactorComponent {
         return moderationFactor;
     }
 
+    public double getAbsorptionFactor(boolean controlsInserted, boolean isThermal) {
+        return 0;
+    }
+
     public double getMaxTemperature() {
         return maxTemperature;
     }

@@ -40,6 +40,13 @@ public class SCConfigHolder {
         public double fissionReactorResolution = 100;
 
         @Comment({
+                "The number of times the neutron multiplication value is calculated. May cause more lag at higher values.",
+                "Default: 6"
+        })
+        public int fissionReactorPowerIterations = 6;
+
+
+        @Comment({
                 "Nuclear coolant heat exchanger recipe efficiency multiplier for balancing purposes.",
                 "Default: 0.1"
         })

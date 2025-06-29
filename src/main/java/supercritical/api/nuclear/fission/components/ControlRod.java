@@ -16,20 +16,20 @@ public class ControlRod extends ReactorComponent {
 
     /**
      * Normalizes the weights of a list of control rods based on the true number of fuel rod pairs.
-     * 
+     *
      * @param effectiveControlRods The control rods to normalize.
-     * @param fuelRodNum           The number of fuel rods in the reactor.
+     * @param totalWeight          The current total control rod weight.
+     * @param totalWorth           The total control rod worth (what totalWeight *should* be).
      */
-    public static void normalizeWeights(List<ControlRod> effectiveControlRods, int fuelRodNum) {
+    public static void normalizeWeights(List<ControlRod> effectiveControlRods, double totalWeight, double totalWorth) {
         for (ControlRod control_rod : effectiveControlRods) {
-            if (fuelRodNum != 1)
-                control_rod.weight /= (fuelRodNum * fuelRodNum) - fuelRodNum;
+            control_rod.weight = control_rod.weight / totalWeight * totalWorth;
         }
     }
 
     /**
      * Determines the effect of a list of control rods based on how far they are inserted into a reactor.
-     * 
+     *
      * @param effectiveControlRods The list of control rods to be analyzed.
      * @param insertion            How far the control rods are inserted into the reactor, from 0 to 1.
      * @return A number representing the reactivity change of the reactor from the control rods.
@@ -48,6 +48,11 @@ public class ControlRod extends ReactorComponent {
             }
         }
         return crf;
+    }
+
+    @Override
+    public double getAbsorptionFactor(boolean controlsInserted, boolean isThermal) {
+        return controlsInserted ? 4 : 0; // Fuel rods
     }
 
     /**
