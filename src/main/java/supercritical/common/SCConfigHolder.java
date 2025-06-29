@@ -93,5 +93,12 @@ public class SCConfigHolder {
         })
         @RequiresMcRestart
         public boolean showFluidsForAutoFillingMultiblocks = false;
+
+        @Comment({
+                "Allow extended facing for Fission Reactor.",
+                "Default: false"
+        })
+        @RequiresMcRestart
+        public boolean allowExtendedFacingForFissionReactor = false;
     }
 }

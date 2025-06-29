@@ -1,7 +1,9 @@
 package supercritical.api.nuclear.fission.components;
 
+import lombok.Getter;
 import supercritical.api.nuclear.fission.IFissionFuelStats;
 
+@Getter
 public class FuelRod extends ReactorComponent {
 
     private IFissionFuelStats fuel;
@@ -30,15 +32,6 @@ public class FuelRod extends ReactorComponent {
 
     public IFissionFuelStats getFuel() {
         return fuel;
-    }
-
-    @Override
-    public double getAbsorptionFactor(boolean controlsInserted, boolean isThermal) {
-        if (isThermal) {
-            return this.fuel.getSlowNeutronCaptureCrossSection();
-        } else {
-            return this.fuel.getFastNeutronCaptureCrossSection();
-        }
     }
 
     public void setFuel(IFissionFuelStats property) {

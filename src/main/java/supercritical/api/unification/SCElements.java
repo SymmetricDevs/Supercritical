@@ -3,7 +3,9 @@ package supercritical.api.unification;
 import static gregtech.api.unification.Elements.*;
 
 import gregtech.api.unification.Element;
+import lombok.experimental.ExtensionMethod;
 
+@ExtensionMethod(ElementExtension.Handler.class)
 public class SCElements {
 
     public static final Element U239 = add(92, 147, -1, null, "Uranium-239", "U-239", true);
@@ -17,27 +19,23 @@ public class SCElements {
     public static final Element Pu244 = add(94, 150, -1, null, "Plutonium-244", "Pu-244", true);
 
     static {
-        setHalfLiveSeconds(U, 1.4090285e+17);
-        setHalfLiveSeconds(U238, 1.4090285e+17);
-        setHalfLiveSeconds(U235, 2.2195037e+16);
-        setHalfLiveSeconds(U239, 1407);
+        U.setHalfLiveSeconds(1.4090285e+17);
+        U238.setHalfLiveSeconds(1.4090285e+17);
+        U235.setHalfLiveSeconds(2.2195037e+16);
+        U239.setHalfLiveSeconds(1407);
 
-        setHalfLiveSeconds(Np, -1);
-        setHalfLiveSeconds(Np235, -1);
-        setHalfLiveSeconds(Np236, -1);
-        setHalfLiveSeconds(Np237, -1);
-        setHalfLiveSeconds(Np239, -1);
+        Np.setHalfLiveSeconds(-1);
+        Np235.setHalfLiveSeconds(-1);
+        Np236.setHalfLiveSeconds(-1);
+        Np237.setHalfLiveSeconds(-1);
+        Np239.setHalfLiveSeconds(-1);
 
-        setHalfLiveSeconds(Pu, -1);
-        setHalfLiveSeconds(Pu238, 2765707200d);
-        setHalfLiveSeconds(Pu239, 760332960000d);
-        setHalfLiveSeconds(Pu240, 206907696000d);
-        setHalfLiveSeconds(Pu241, 450649440d);
-        setHalfLiveSeconds(Pu242, 1.1826e+13);
-        setHalfLiveSeconds(Pu244, 2.52288e+15);
-    }
-
-    private static void setHalfLiveSeconds(Element element, double halfLife) {
-        ((ElementExtension) element).setHalfLiveSeconds(halfLife);
+        Pu.setHalfLiveSeconds(-1);
+        Pu238.setHalfLiveSeconds(2765707200d);
+        Pu239.setHalfLiveSeconds(760332960000d);
+        Pu240.setHalfLiveSeconds(206907696000d);
+        Pu241.setHalfLiveSeconds(450649440d);
+        Pu242.setHalfLiveSeconds(1.1826e+13);
+        Pu244.setHalfLiveSeconds(2.52288e+15);
     }
 }

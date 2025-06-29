@@ -4,7 +4,7 @@ import gregtech.api.unification.material.info.MaterialIconType;
 
 public class SCMaterialIconType {
 
-    // Nuclear MaterialIcontypes
+    // Nuclear MaterialIconTypes
     public static final MaterialIconType fuelRod = new MaterialIconType("fuelRod");
     public static final MaterialIconType fuelRodDepleted = new MaterialIconType("fuelRodDepleted");
     public static final MaterialIconType fuelRodHotDepleted = new MaterialIconType("fuelRodHotDepleted");

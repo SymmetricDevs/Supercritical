@@ -2,8 +2,14 @@ package supercritical.api.nuclear.fission.components;
 
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+
 public class ControlRod extends ReactorComponent {
 
+    // How much the control rod affects reactivity
+    @Setter
+    @Getter
     private double weight;
     private final boolean tipModeration;
     private int relatedFuelRodPairs;
@@ -53,20 +59,6 @@ public class ControlRod extends ReactorComponent {
     @Override
     public double getAbsorptionFactor(boolean controlsInserted, boolean isThermal) {
         return controlsInserted ? 4 : 0; // Fuel rods
-    }
-
-    /**
-     * @return How much the control rod affects reactivity.
-     */
-    public double getWeight() {
-        return weight;
-    }
-
-    /**
-     * @param weight How much the control rod should affect reactivity.
-     */
-    public void setWeight(double weight) {
-        this.weight = weight;
     }
 
     /**

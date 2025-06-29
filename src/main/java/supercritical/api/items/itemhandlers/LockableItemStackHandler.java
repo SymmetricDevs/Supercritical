@@ -6,10 +6,12 @@ import org.jetbrains.annotations.NotNull;
 
 import gregtech.api.capability.impl.NotifiableItemStackHandler;
 import gregtech.api.metatileentity.MetaTileEntity;
+import lombok.Getter;
 import supercritical.api.capability.ILockableHandler;
 
 public class LockableItemStackHandler extends NotifiableItemStackHandler implements ILockableHandler<ItemStack> {
 
+    @Getter
     protected boolean locked;
     protected ItemStack lockedItemStack = ItemStack.EMPTY;
 
@@ -26,10 +28,6 @@ public class LockableItemStackHandler extends NotifiableItemStackHandler impleme
         } else {
             lockedItemStack = ItemStack.EMPTY;
         }
-    }
-
-    public boolean isLocked() {
-        return this.locked;
     }
 
     @NotNull

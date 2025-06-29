@@ -1,14 +1,11 @@
 package supercritical.api.items.armor;
 
 import gregtech.api.items.armor.IArmorLogic;
-import supercritical.mixins.gregtech.MixinIArmorLogic;
-import supercritical.mixins.gregtech.MixinMetaPrefixItem;
+import lombok.experimental.UtilityClass;
 
-/**
- * An interface for radiation resistance implementation in {@link IArmorLogic}.
- * Implement this in your armor logic class and override the default value to apply the resistance.
- * Also see {@link MixinIArmorLogic} and {@link MixinMetaPrefixItem}.
- */
+/// An interface for radiation resistance implementation in [IArmorLogic].
+/// Implement this in your armor logic class and override the default value to apply the resistance.
+/// Also see [MixinIArmorLogic] and [MixinMetaPrefixItem].
 public interface ArmorLogicExtension {
 
     /**
@@ -16,5 +13,13 @@ public interface ArmorLogicExtension {
      */
     default float getRadiationResistance() {
         return 1.0f;
+    }
+
+    @UtilityClass
+    class Handler {
+
+        public float getRadiationResistance(IArmorLogic armorLogic) {
+            return ((ArmorLogicExtension) armorLogic).getRadiationResistance();
+        }
     }
 }
