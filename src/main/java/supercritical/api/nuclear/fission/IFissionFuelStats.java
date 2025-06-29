@@ -88,5 +88,5 @@ public interface IFissionFuelStats {
     /**
      * @return A unique ID for this fuel.
      */
-    String getID();
+    String getId();
 }

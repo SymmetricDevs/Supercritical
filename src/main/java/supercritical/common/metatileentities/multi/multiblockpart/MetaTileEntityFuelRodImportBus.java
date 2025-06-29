@@ -185,7 +185,7 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound data) {
         data.setBoolean("locked", getLockedImport().isLocked());
-        if (partialFuel != null) data.setString("partialFuel", this.partialFuel.getID());
+        if (partialFuel != null) data.setString("partialFuel", this.partialFuel.getId());
         data.setDouble("depletionPoint", depletionPoint);
         return super.writeToNBT(data);
     }

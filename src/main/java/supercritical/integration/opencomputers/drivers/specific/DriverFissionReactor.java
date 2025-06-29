@@ -85,7 +85,7 @@ public class DriverFissionReactor extends DriverSidedTileEntity {
 
         @Callback(doc = "function(insertion:boolean) --  Sets how much control rods are inserted, in [0, 1]")
         public Object[] setControlRodInsertion(final Context context, final Arguments args) {
-            tileEntity.setControlRodInsertionValue((float) args.checkDouble(0));
+            tileEntity.setControlRodInsertion((float) args.checkDouble(0));
             return new Object[] {};
         }
 

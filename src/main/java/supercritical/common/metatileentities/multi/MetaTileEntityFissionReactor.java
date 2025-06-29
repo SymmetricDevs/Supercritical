@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import lombok.Getter;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
@@ -68,8 +69,6 @@ import supercritical.common.blocks.BlockFissionCasing;
 import supercritical.common.blocks.SCMetaBlocks;
 import supercritical.common.metatileentities.SCMetaTileEntities;
 import supercritical.common.metatileentities.multi.multiblockpart.MetaTileEntityControlRodPort;
-import supercritical.common.metatileentities.multi.multiblockpart.MetaTileEntityCoolantExportHatch;
-import supercritical.common.metatileentities.multi.multiblockpart.MetaTileEntityFuelRodImportBus;
 
 public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         implements IDataInfoProvider, IProgressBarMultiblock, ICustomEnergyCover {
@@ -82,17 +81,26 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
     private int flowRate = 1;
     // Used for maintenance mechanics
     private boolean isFlowingCorrectly = true;
-    private double controlRodInsertionValue;
     private LockingState lockingState = LockingState.UNLOCKED;
 
-    private double temperature;
-    private double maxTemperature;
-    private double pressure;
-    private double maxPressure;
-    private double power;
-    private double maxPower;
     private double kEff;
+
+    @Getter
     private double totalDepletion;
+    @Getter
+    private double controlRodInsertion;
+    @Getter
+    private double temperature;
+    @Getter
+    private double maxTemperature;
+    @Getter
+    private double pressure;
+    @Getter
+    private double maxPressure;
+    @Getter
+    private double power;
+    @Getter
+    private double maxPower;
 
     private NBTTagCompound transientData;
 
@@ -152,10 +160,10 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         if (flowRate < 1) flowRate = 1;
     }
 
-    public void setControlRodInsertionValue(float value) {
-        this.controlRodInsertionValue = value;
+    public void setControlRodInsertion(float value) {
+        this.controlRodInsertion = value;
         if (fissionReactor != null)
-            fissionReactor.updateControlRodInsertion(controlRodInsertionValue);
+            fissionReactor.updateControlRodInsertion(controlRodInsertion);
     }
 
     public boolean isLocked() {
@@ -281,8 +289,8 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
 
         builder.widget(new UpdatedSliderWidget("supercritical.gui.fission.control_rod_insertion", 10, 60, 220,
                 18, 0.0f, 1.0f,
-                (float) controlRodInsertionValue, this::setControlRodInsertionValue,
-                () -> (float) this.controlRodInsertionValue) {
+                (float) controlRodInsertion, this::setControlRodInsertion,
+                () -> (float) this.controlRodInsertion) {
 
             @Override
             protected String getDisplayString() {
@@ -657,7 +665,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
     protected void formStructure(PatternMatchContext context) {
         super.formStructure(context);
         if (fissionReactor == null) {
-            fissionReactor = new FissionReactor(this.diameter - 2, this.height - 2, controlRodInsertionValue);
+            fissionReactor = new FissionReactor(this.diameter - 2, this.height - 2, controlRodInsertion);
         }
     }
 
@@ -667,7 +675,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         data.setInteger("heightTop", this.heightTop);
         data.setInteger("heightBottom", this.heightBottom);
         data.setInteger("flowRate", this.flowRate);
-        data.setDouble("controlRodInsertion", this.controlRodInsertionValue);
+        data.setDouble("controlRodInsertion", this.controlRodInsertion);
         data.setBoolean("locked", this.lockingState == LockingState.LOCKED);
         data.setDouble("kEff", this.kEff);
         if (fissionReactor != null) {
@@ -684,7 +692,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         this.heightTop = data.getInteger("heightTop");
         this.heightBottom = data.getInteger("heightBottom");
         this.flowRate = data.getInteger("flowRate");
-        this.controlRodInsertionValue = data.getDouble("controlRodInsertion");
+        this.controlRodInsertion = data.getDouble("controlRodInsertion");
         this.height = this.heightTop + this.heightBottom + 1;
         this.kEff = data.getDouble("kEff");
         if (data.getBoolean("locked")) {
@@ -702,10 +710,10 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         buf.writeInt(this.heightTop);
         buf.writeInt(this.heightBottom);
         buf.writeInt(this.flowRate);
-        buf.writeDouble(this.controlRodInsertionValue);
+        buf.writeDouble(this.controlRodInsertion);
         if (this.lockingState == LockingState.SHOULD_LOCK) {
             if (fissionReactor == null) {
-                this.fissionReactor = new FissionReactor(this.diameter - 2, this.height - 2, controlRodInsertionValue);
+                this.fissionReactor = new FissionReactor(this.diameter - 2, this.height - 2, controlRodInsertion);
             }
             this.lockAndPrepareReactor();
             this.fissionReactor.deserializeNBT(transientData);
@@ -720,7 +728,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         this.heightTop = buf.readInt();
         this.heightBottom = buf.readInt();
         this.flowRate = buf.readInt();
-        this.controlRodInsertionValue = buf.readDouble();
+        this.controlRodInsertion = buf.readDouble();
         if (buf.readBoolean()) {
             this.lockingState = LockingState.LOCKED;
         }
@@ -734,7 +742,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         this.power = this.fissionReactor.power;
         this.maxPower = this.fissionReactor.maxPower;
         this.kEff = this.fissionReactor.kEff;
-        this.controlRodInsertionValue = this.fissionReactor.controlRodInsertion;
+        this.controlRodInsertion = this.fissionReactor.controlRodInsertion;
         this.totalDepletion = this.fissionReactor.fuelDepletion;
         writeCustomData(SCValues.SYNC_REACTOR_STATS, (packetBuffer -> {
             packetBuffer.writeDouble(this.temperature);
@@ -744,7 +752,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
             packetBuffer.writeDouble(this.power);
             packetBuffer.writeDouble(this.maxPower);
             packetBuffer.writeDouble(this.kEff);
-            packetBuffer.writeDouble(this.controlRodInsertionValue);
+            packetBuffer.writeDouble(this.controlRodInsertion);
             packetBuffer.writeDouble(this.totalDepletion);
         }));
         this.markDirty();
@@ -762,7 +770,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
             this.power = buf.readDouble();
             this.maxPower = buf.readDouble();
             this.kEff = buf.readDouble();
-            this.controlRodInsertionValue = buf.readDouble();
+            this.controlRodInsertion = buf.readDouble();
             this.totalDepletion = buf.readDouble();
         } else if (dataId == SCValues.SYNC_LOCKING_STATE) {
             this.lockingState = buf.readEnumValue(LockingState.class);
@@ -1082,35 +1090,5 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         tooltip.add(I18n.format("supercritical.machine.fission_reactor.tooltip.3"));
     }
 
-    public double getMaxPower() {
-        return maxPower;
-    }
 
-    public double getPower() {
-        return power;
-    }
-
-    public double getMaxPressure() {
-        return maxPressure;
-    }
-
-    public double getPressure() {
-        return pressure;
-    }
-
-    public double getMaxTemperature() {
-        return maxTemperature;
-    }
-
-    public double getTemperature() {
-        return temperature;
-    }
-
-    public double getControlRodInsertion() {
-        return controlRodInsertionValue;
-    }
-
-    public double getTotalDepletion() {
-        return totalDepletion;
-    }
 }

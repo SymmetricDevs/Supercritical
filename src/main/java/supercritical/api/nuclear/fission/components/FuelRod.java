@@ -3,9 +3,8 @@ package supercritical.api.nuclear.fission.components;
 import lombok.Getter;
 import supercritical.api.nuclear.fission.IFissionFuelStats;
 
-@Getter
 public class FuelRod extends ReactorComponent {
-
+    @Getter
     private IFissionFuelStats fuel;
 
     public FuelRod(double maxTemperature, double thermalConductivity, IFissionFuelStats fuel, double mass) {
@@ -17,22 +16,10 @@ public class FuelRod extends ReactorComponent {
         return fuel.getDuration();
     }
 
-    public double getHEFissionFactor() {
-        return fuel.getFastNeutronFissionCrossSection();
-    }
-
-    public double getLEFissionFactor() {
-        return fuel.getSlowNeutronFissionCrossSection();
-    }
-
-
     public double getNeutronGenerationTime() {
         return fuel.getNeutronGenerationTime();
     }
 
-    public IFissionFuelStats getFuel() {
-        return fuel;
-    }
 
     public void setFuel(IFissionFuelStats property) {
         this.fuel = property;
