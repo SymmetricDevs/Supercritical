@@ -40,6 +40,10 @@ public class ReactorComponent {
         this.y = y;
     }
 
+    public double getAbsorptionFactor(boolean controlsInserted, boolean isThermal) {
+        return 0;
+    }
+
     public boolean isValid() {
         return isValid;
     }

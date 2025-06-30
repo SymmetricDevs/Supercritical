@@ -15,6 +15,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.IFluidTank;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
 
@@ -55,6 +56,7 @@ public class MetaTileEntityCoolantImportHatch extends MetaTileEntityMultiblockNo
     private boolean workingEnabled;
     private LockableFluidTank fluidTank;
     private ICoolantStats coolant;
+    public MetaTileEntityCoolantExportHatch pairedHatch;
 
     public MetaTileEntityCoolantImportHatch(ResourceLocation metaTileEntityId) {
         super(metaTileEntityId, 4, false);
@@ -121,19 +123,25 @@ public class MetaTileEntityCoolantImportHatch extends MetaTileEntityMultiblockNo
 
     @Override
     public boolean checkValidity(int depth) {
+        this.pairedHatch = getExportHatch(depth);
+        return this.pairedHatch != null;
+    }
+
+    public MetaTileEntityCoolantExportHatch getExportHatch(int depth) {
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(this.getPos());
         for (int i = 1; i < depth; i++) {
             if (getWorld().getBlockState(pos.move(this.frontFacing.getOpposite())) !=
                     SCMetaBlocks.FISSION_CASING.getState(BlockFissionCasing.FissionCasingType.COOLANT_CHANNEL)) {
-                return false;
+                return null;
             }
         }
-        if (getWorld()
-                .getTileEntity(pos.move(this.frontFacing.getOpposite())) instanceof IGregTechTileEntity gtTe) {
-            return gtTe.getMetaTileEntity().metaTileEntityId
-                    .equals(SCMetaTileEntities.COOLANT_OUTPUT.metaTileEntityId);
+        if (getWorld().getTileEntity(pos.move(this.frontFacing.getOpposite())) instanceof IGregTechTileEntity gtTe) {
+            MetaTileEntity mte = gtTe.getMetaTileEntity();
+            if (mte instanceof MetaTileEntityCoolantExportHatch export) {
+                return export;
+            }
         }
-        return false;
+        return null;
     }
 
     @Override
@@ -204,6 +212,11 @@ public class MetaTileEntityCoolantImportHatch extends MetaTileEntityMultiblockNo
     @Override
     public @NotNull LockableFluidTank getFluidTank() {
         return this.fluidTank;
+    }
+
+    @Override
+    public ICoolantHandler getOutputHandler() {
+        return pairedHatch;
     }
 
     @Override

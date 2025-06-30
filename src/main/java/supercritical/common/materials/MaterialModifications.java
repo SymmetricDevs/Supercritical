@@ -1,6 +1,7 @@
 package supercritical.common.materials;
 
 import static gregtech.api.unification.material.Materials.*;
+import static supercritical.api.unification.material.SCMaterials.HEU235;
 import static supercritical.api.unification.material.SCMaterials.HighPressureSteam;
 
 import gregtech.api.fluids.FluidBuilder;
@@ -41,11 +42,22 @@ public class MaterialModifications {
         StainlessSteel.addFlags(MaterialFlags.GENERATE_ROUND);
 
         // Uraninite
-        // Uraninite. // TODO: How???
-        Uraninite.setProperty(SCPropertyKey.FISSION_FUEL, new FissionFuelProperty(
-                1800, 300, 55., 1.,
-                1000., 0., 2.4, Uraninite.getRegistryName()));
 
+        HEU235.setProperty(SCPropertyKey.FISSION_FUEL, FissionFuelProperty.builder(HEU235.getRegistryName(), 1800, 60000, 2.5)
+                .slowNeutronCaptureCrossSection(2)
+                .slowNeutronFissionCrossSection(2)
+                .requiredNeutrons(3)
+                .releasedHeatEnergy(0.01)
+                .decayRate(0.05)
+                .build());
+        // Uraninite. // TODO: How???
+        Uraninite.setProperty(SCPropertyKey.FISSION_FUEL, FissionFuelProperty.builder(Uraninite.getRegistryName(), 1800, 60000, 2.4)
+                .slowNeutronCaptureCrossSection(1)
+                .slowNeutronFissionCrossSection(1)
+                .requiredNeutrons(3)
+                .releasedHeatEnergy(0.01)
+                .decayRate(0.001)
+                .build());
         // Uranium Hexafluoride
         // UraniumHexafluoride // TODO: How???
 
