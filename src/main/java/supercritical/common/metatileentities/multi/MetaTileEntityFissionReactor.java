@@ -78,7 +78,6 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
     private int heightTop;
     private int heightBottom;
     private int height;
-    private int flowRate = 1;
     // Used for maintenance mechanics
     private boolean isFlowingCorrectly = true;
     private LockingState lockingState = LockingState.UNLOCKED;
@@ -153,11 +152,6 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
     @NotNull
     protected static IBlockState getControlRodChannelState() {
         return SCMetaBlocks.FISSION_CASING.getState(BlockFissionCasing.FissionCasingType.CONTROL_ROD_CHANNEL);
-    }
-
-    private void setFlowRate(float flowrate) {
-        this.flowRate = (int) flowrate;
-        if (flowRate < 1) flowRate = 1;
     }
 
     public void setControlRodInsertion(float value) {
@@ -298,10 +292,6 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                         String.format("%.2f%%", this.getSliderValue() * 100));
             }
         }.setBackground(SCGuiTextures.DARK_SLIDER_BACKGROUND).setSliderIcon(SCGuiTextures.DARK_SLIDER_ICON));
-        builder.widget(
-                new SliderWidget("supercritical.gui.fission.coolant_flow", 10, 80, 220, 18, 0.0f, 16000.f, flowRate,
-                        this::setFlowRate).setBackground(SCGuiTextures.DARK_SLIDER_BACKGROUND)
-                        .setSliderIcon(SCGuiTextures.DARK_SLIDER_ICON));
 
         builder.widget(new AdvancedTextWidget(9, 20, this::addDisplayText, 0xFFFFFF)
                 .setMaxWidthLimit(220)
@@ -429,7 +419,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                     this.unlockAll();
                 }
             }
-            this.updateReactorState(isFlowingCorrectly ? flowRate : 0);
+            this.updateReactorState();
 
             this.syncReactorStats();
 
@@ -674,7 +664,6 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         data.setInteger("diameter", this.diameter);
         data.setInteger("heightTop", this.heightTop);
         data.setInteger("heightBottom", this.heightBottom);
-        data.setInteger("flowRate", this.flowRate);
         data.setDouble("controlRodInsertion", this.controlRodInsertion);
         data.setBoolean("locked", this.lockingState == LockingState.LOCKED);
         data.setDouble("kEff", this.kEff);
@@ -691,7 +680,6 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         this.diameter = data.getInteger("diameter");
         this.heightTop = data.getInteger("heightTop");
         this.heightBottom = data.getInteger("heightBottom");
-        this.flowRate = data.getInteger("flowRate");
         this.controlRodInsertion = data.getDouble("controlRodInsertion");
         this.height = this.heightTop + this.heightBottom + 1;
         this.kEff = data.getDouble("kEff");
@@ -709,7 +697,6 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         buf.writeInt(this.diameter);
         buf.writeInt(this.heightTop);
         buf.writeInt(this.heightBottom);
-        buf.writeInt(this.flowRate);
         buf.writeDouble(this.controlRodInsertion);
         if (this.lockingState == LockingState.SHOULD_LOCK) {
             if (fissionReactor == null) {
@@ -727,7 +714,6 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         this.diameter = buf.readInt();
         this.heightTop = buf.readInt();
         this.heightBottom = buf.readInt();
-        this.flowRate = buf.readInt();
         this.controlRodInsertion = buf.readDouble();
         if (buf.readBoolean()) {
             this.lockingState = LockingState.LOCKED;
@@ -913,9 +899,9 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         }
     }
 
-    private void updateReactorState(int flowRate) {
+    private void updateReactorState() {
         this.fissionReactor.updatePower();
-        this.fissionReactor.updateTemperature(flowRate);
+        this.fissionReactor.updateTemperature();
         this.fissionReactor.updatePressure();
         this.fissionReactor.updateNeutronPoisoning();
         this.fissionReactor.regulateControlRods();
