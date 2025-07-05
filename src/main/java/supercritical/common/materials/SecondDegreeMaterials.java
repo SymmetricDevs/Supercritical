@@ -24,7 +24,6 @@ public class SecondDegreeMaterials {
                 .build()
                 .setFormula("UO2", true);
 
-        ;
         LEU235.setProperty(SCPropertyKey.FISSION_FUEL,
                 FissionFuelProperty.builder(LEU235.getRegistryName(), 1500, 75000, 3.5)
                         .slowNeutronCaptureCrossSection(1.5)
