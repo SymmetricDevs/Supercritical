@@ -294,6 +294,10 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
 
     @Override
     public void resetDepletion(double fuelDepletion) {
+        if (this.internalFuelRod == null) {
+            // Only happens when the reactor fails to form
+            return;
+        }
         this.depletionPoint -= fuelDepletion * this.internalFuelRod.getWeight();
     }
 
