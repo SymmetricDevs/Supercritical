@@ -7,10 +7,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
 import org.jetbrains.annotations.NotNull;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.*;
 
 import gregtech.api.damagesources.DamageSources;
 import gregtech.api.items.armor.ArmorMetaItem;
@@ -75,15 +72,20 @@ public abstract class MixinMetaPrefixItem extends StandardMetaItem {
             }
         }
         if (radiationDamage > 0.0) {
-            entity.attackEntityFrom(DamageSources.getRadioactiveDamage().setDamageBypassesArmor(),
-                    (float) radiationDamage);
+            entity.attackEntityFrom(DamageSources.getRadioactiveDamage(), (float) radiationDamage);
         }
     }
 
-    // Can't really figure out a better way than a total overwrite like this...
+    /**
+     * @author Tian_mi
+     * @reason Can't really figure out a better way than a total overwrite like this...
+     */
+    @Overwrite
     @Override
-    public void onUpdate(@NotNull ItemStack itemStack, @NotNull World worldIn, @NotNull Entity entityIn, int itemSlot,
-                         boolean isSelected) {
+    public void onUpdate(@NotNull ItemStack itemStack,
+                         @NotNull World worldIn,
+                         @NotNull Entity entityIn,
+                         int itemSlot, boolean isSelected) {
         super.onUpdate(itemStack, worldIn, entityIn, itemSlot, isSelected);
         if (metaItems.containsKey((short) itemStack.getItemDamage()) && entityIn instanceof EntityLivingBase entity) {
             if (entityIn.ticksExisted % 20 == 0) {
