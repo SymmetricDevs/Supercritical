@@ -9,7 +9,7 @@ import lombok.experimental.ExtensionMethod;
 public class SCElements {
 
     public static final Element U234 = add(92, 142, -1, null, "Uranium-234", "U-234", true);
-    public static final Element U236 = add(92, 144 -1, null, "Uranium-236", "U-236", true);
+    public static final Element U236 = add(92, 144, -1, null, "Uranium-236", "U-236", true);
     public static final Element U239 = add(92, 147, -1, null, "Uranium-239", "U-239", true);
 
     public static final Element Np235 = add(93, 142, -1, null, "Neptunium-235", "Np-235", true);
@@ -38,7 +38,7 @@ public class SCElements {
         U239.setHalfLiveSeconds(1407);
 
         Np235.setHalfLiveSeconds(34223040);
-        Np236.setHalfLiveSeconds(13305600000);
+        Np236.setHalfLiveSeconds(1.33056e+10);
         Np237.setHalfLiveSeconds(6.76801391e+13);
         Np239.setHalfLiveSeconds(66200371);
 
