@@ -270,8 +270,10 @@ public class FissionReactor {
         for (int i = 0; i < fuelRods.size(); i++) {
             for (int j = 0; j < i; j++) {
                 double mij = 0; // Integrates over the moderation factor; read "moderation from I to J"
-                double saij = 0; // Integrates over slow neutron fission, scattering and capture; read "slow absorption from I to J"
-                double faij = 0; // Integrates over fast neutron fission, scattering and capture; read "fast absorption from I to J"
+                double saij = 0; // Integrates over slow neutron fission, scattering and capture; read "slow absorption
+                                 // from I to J"
+                double faij = 0; // Integrates over fast neutron fission, scattering and capture; read "fast absorption
+                                 // from I to J"
                 FuelRod rodOne = fuelRods.get(i);
                 FuelRod rodTwo = fuelRods.get(j);
 
@@ -329,7 +331,8 @@ public class FissionReactor {
                  * This means the fraction of slow neutrons will go as (1-exp(-m * x))/x where x is the distance between
                  * the cells
                  * The fraction of fast neutrons is simply one minus the fraction of slow neutrons.
-                 * We do want to account for the macroscopic cross sections of the fuel rods and the neutrons released in that fission, though.
+                 * We do want to account for the macroscopic cross sections of the fuel rods and the neutrons released
+                 * in that fission, though.
                  */
                 mij /= resolution;
                 faij /= resolution;
@@ -344,11 +347,13 @@ public class FissionReactor {
                 // First use the parameters for the second rod; I to J
                 double slowNeutronFissionMultiplier = rodTwo.getFuel().getSlowFissionMultiplier();
                 double fastNeutronFissionMultiplier = rodTwo.getFuel().getFastFissionMultiplier();
-                geometricMatrixNeutrons[i][j] = slow * slowNeutronFissionMultiplier + fast * fastNeutronFissionMultiplier;
+                geometricMatrixNeutrons[i][j] = slow * slowNeutronFissionMultiplier +
+                        fast * fastNeutronFissionMultiplier;
                 // Then use the parameters for the first rod; J to I
                 slowNeutronFissionMultiplier = rodOne.getFuel().getSlowFissionMultiplier();
                 fastNeutronFissionMultiplier = rodOne.getFuel().getFastFissionMultiplier();
-                geometricMatrixNeutrons[j][i] = slow * slowNeutronFissionMultiplier + fast * fastNeutronFissionMultiplier;
+                geometricMatrixNeutrons[j][i] = slow * slowNeutronFissionMultiplier +
+                        fast * fastNeutronFissionMultiplier;
             }
         }
 
@@ -356,7 +361,8 @@ public class FissionReactor {
          * We now perform the power iteration algorithm to approximate kEff.
          * We create a guess of a vector with all elements set to 1, which we then normalize.
          * We then calculate the resulting vector by multiplying it with the geometric matrix, and normalize it again.
-         * This repeats a few times, and the resulting magnitude of the vector is the approximate kEff (the largest eigenvalue).
+         * This repeats a few times, and the resulting magnitude of the vector is the approximate kEff (the largest
+         * eigenvalue).
          */
 
         double[] vector = new double[fuelRods.size()];
@@ -374,7 +380,6 @@ public class FissionReactor {
                 fuelRods.get(i).setWeight(vector[i]);
             }
         }
-
 
         // We must still correct for the reactor depth.
         kCalc *= reactorDepth / (1. + reactorDepth);
@@ -530,7 +535,6 @@ public class FissionReactor {
                 double idealHeatFlux = heatFluxPerAreaAndTemp * 4 * reactorDepth *
                         (temperature - cooledTemperature);
 
-
                 double idealFluidUsed = idealHeatFlux / heatRemovedPerLiter;
                 double cappedFluidUsed = Math.min(drained, idealFluidUsed);
 
@@ -598,10 +602,11 @@ public class FissionReactor {
         }
         double timeConstant = specificHeatCapacity *
                 (1 / convectiveHeatTransferCoefficient + wallThickness / thermalConductivity) / this.surfaceArea;
-        /* Solving for x below:
-        hypotheticalTemperature = envTemperature +
-                (x - heatRemoved) / (timeConstant * (this.coolantMass + this.structuralMass + this.fuelMass));
-        */
+        /*
+         * Solving for x below:
+         * hypotheticalTemperature = envTemperature +
+         * (x - heatRemoved) / (timeConstant * (this.coolantMass + this.structuralMass + this.fuelMass));
+         */
         return ((hypotheticalTemperature - envTemperature) * (timeConstant * (this.coolantMass +
                 this.structuralMass + this.fuelMass)) + heatRemoved) / 1e6;
     }
@@ -612,7 +617,7 @@ public class FissionReactor {
     protected double coolantBoilingPoint() {
         return this.coolantBoilingPointStandardPressure;
         // return 1. / (1. / this.coolantBoilingPointStandardPressure -
-        //        R * Math.log(this.pressure / standardPressure) / this.coolantHeatOfVaporization);
+        // R * Math.log(this.pressure / standardPressure) / this.coolantHeatOfVaporization);
     }
 
     protected double coolantBoilingPoint(ICoolantStats coolant) {
@@ -620,9 +625,11 @@ public class FissionReactor {
             return coolantBoilingPoint();
         }
         return coolant.getBoilingPoint();
-/*        return 1. / (1. / coolant.getBoilingPoint() -
-                R * Math.log(this.pressure / standardPressure) /
-                        coolant.getHeatOfVaporization());*/
+        /*
+         * return 1. / (1. / coolant.getBoilingPoint() -
+         * R * Math.log(this.pressure / standardPressure) /
+         * coolant.getHeatOfVaporization());
+         */
     }
 
     public void updateTemperature() {
@@ -650,7 +657,8 @@ public class FissionReactor {
     }
 
     public double getTotalDecayNeutrons() {
-        return this.neutronPoisonAmount * 0.05 + this.decayProductsAmount * 0.1 + this.decayNeutrons; // The extra constant is to
+        return this.neutronPoisonAmount * 0.05 + this.decayProductsAmount * 0.1 + this.decayNeutrons; // The extra
+                                                                                                      // constant is to
         // kickstart the reactor.
     }
 

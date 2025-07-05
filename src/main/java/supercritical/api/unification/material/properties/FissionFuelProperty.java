@@ -5,7 +5,6 @@ import gregtech.api.unification.material.properties.MaterialProperties;
 import gregtech.api.unification.material.properties.PropertyKey;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import supercritical.api.nuclear.fission.IFissionFuelStats;
 
 @Builder
@@ -50,12 +49,12 @@ public class FissionFuelProperty implements IMaterialProperty, IFissionFuelStats
         properties.ensureSet(PropertyKey.DUST, true);
     }
 
-    public static FissionFuelPropertyBuilder builder(String id, int maxTemperature, int duration, double neutronGenerationTime) {
+    public static FissionFuelPropertyBuilder builder(String id, int maxTemperature, int duration,
+                                                     double neutronGenerationTime) {
         return new FissionFuelPropertyBuilder()
                 .id(id)
                 .maxTemperature(maxTemperature)
                 .duration(duration)
                 .neutronGenerationTime(neutronGenerationTime);
     }
-
 }

@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import lombok.Getter;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
@@ -48,6 +47,7 @@ import gregtech.client.renderer.ICubeRenderer;
 import gregtech.common.ConfigHolder;
 import gregtech.common.blocks.MetaBlocks;
 import gregtech.common.metatileentities.MetaTileEntities;
+import lombok.Getter;
 import supercritical.SCValues;
 import supercritical.api.capability.ICoolantHandler;
 import supercritical.api.capability.IFuelRodHandler;
@@ -71,7 +71,7 @@ import supercritical.common.metatileentities.SCMetaTileEntities;
 import supercritical.common.metatileentities.multi.multiblockpart.MetaTileEntityControlRodPort;
 
 public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
-        implements IDataInfoProvider, IProgressBarMultiblock, ICustomEnergyCover {
+                                          implements IDataInfoProvider, IProgressBarMultiblock, ICustomEnergyCover {
 
     private FissionReactor fissionReactor;
     private int diameter;
@@ -207,7 +207,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         super.addDisplayText(list);
         list.add(
                 TextComponentUtil.setColor(new TextComponentTranslation(
-                                "supercritical.gui.fission.lock." + lockingState.toString().toLowerCase()),
+                        "supercritical.gui.fission.lock." + lockingState.toString().toLowerCase()),
                         getLockedTextColor()));
         list.add(new TextComponentTranslation("supercritical.gui.fission.k_eff", String.format("%.4f", this.kEff)));
     }
@@ -262,21 +262,21 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                 () -> this.getFillPercentage(0),
                 4, 115, 76, 7,
                 SCGuiTextures.PROGRESS_BAR_FISSION_HEAT, ProgressWidget.MoveType.HORIZONTAL)
-                .setHoverTextConsumer(list -> this.addBarHoverText(list, 0));
+                        .setHoverTextConsumer(list -> this.addBarHoverText(list, 0));
         builder.widget(progressBar);
 
         progressBar = new ProgressWidget(
                 () -> this.getFillPercentage(1),
                 82, 115, 76, 7,
                 SCGuiTextures.PROGRESS_BAR_FISSION_PRESSURE, ProgressWidget.MoveType.HORIZONTAL)
-                .setHoverTextConsumer(list -> this.addBarHoverText(list, 1));
+                        .setHoverTextConsumer(list -> this.addBarHoverText(list, 1));
         builder.widget(progressBar);
 
         progressBar = new ProgressWidget(
                 () -> this.getFillPercentage(2),
                 160, 115, 76, 7,
                 SCGuiTextures.PROGRESS_BAR_FISSION_ENERGY, ProgressWidget.MoveType.HORIZONTAL)
-                .setHoverTextConsumer(list -> this.addBarHoverText(list, 2));
+                        .setHoverTextConsumer(list -> this.addBarHoverText(list, 2));
         builder.widget(progressBar);
 
         builder.label(9, 9, getMetaFullName(), 0xFFFFFF);
@@ -301,7 +301,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
 
         builder.widget(new ToggleButtonWidget(215, 183, 18, 18, GuiTextures.BUTTON_LOCK,
                 this::isLocked, this::tryLocking).shouldUseBaseBackground()
-                .setTooltipText("supercritical.gui.fission.lock"));
+                        .setTooltipText("supercritical.gui.fission.lock"));
         builder.widget(new ImageWidget(215, 201, 18, 6, GuiTextures.BUTTON_POWER_DETAIL));
 
         // Voiding Mode Button
@@ -322,7 +322,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
     protected @NotNull Widget getFlexButton(int x, int y, int width, int height) {
         return new ToggleButtonWidget(x, y, width, height, this::areControlRodsRegulated,
                 this::toggleControlRodRegulation).setButtonTexture(SCGuiTextures.BUTTON_CONTROL_ROD_HELPER)
-                .setTooltipText("supercritical.gui.fission.helper");
+                        .setTooltipText("supercritical.gui.fission.helper");
     }
 
     private TextFormatting getLockedTextColor() {
@@ -391,7 +391,8 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                 boolean canWork = true;
                 for (IFuelRodHandler fuelImport : this.getAbilities(SCMultiblockAbility.IMPORT_FUEL_ROD)) {
                     if (fuelImport.isDepleted(this.fissionReactor.fuelDepletion)) {
-                        // There are a few things that could cause the reactor to stop working when a fuel rod becomes depleted:
+                        // There are a few things that could cause the reactor to stop working when a fuel rod becomes
+                        // depleted:
                         // The output is blocked
                         // The input is missing
                         // We simulate both of these things, and if it fails, we unlock the entire reactor.
@@ -576,23 +577,23 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
     }
 
     public TraceabilityPredicate getImportPredicate() {
-        MultiblockAbility<?>[] allowedAbilities = {SCMultiblockAbility.IMPORT_COOLANT,
+        MultiblockAbility<?>[] allowedAbilities = { SCMultiblockAbility.IMPORT_COOLANT,
                 SCMultiblockAbility.IMPORT_FUEL_ROD,
-                SCMultiblockAbility.CONTROL_ROD_PORT};
+                SCMultiblockAbility.CONTROL_ROD_PORT };
         return tilePredicate((state, tile) -> {
-                    if (!(tile instanceof IMultiblockAbilityPart<?> &&
-                            ArrayUtils.contains(allowedAbilities, ((IMultiblockAbilityPart<?>) tile).getAbility()))) {
-                        return false;
-                    }
-                    if (tile instanceof IFissionReactorHatch hatchPart) {
-                        if (!hatchPart.checkValidity(height - 1)) {
-                            state.setError(new PatternStringError("supercritical.multiblock.pattern.error.hatch_invalid"));
-                            return false;
-                        }
-                        return true;
-                    }
+            if (!(tile instanceof IMultiblockAbilityPart<?> &&
+                    ArrayUtils.contains(allowedAbilities, ((IMultiblockAbilityPart<?>) tile).getAbility()))) {
+                return false;
+            }
+            if (tile instanceof IFissionReactorHatch hatchPart) {
+                if (!hatchPart.checkValidity(height - 1)) {
+                    state.setError(new PatternStringError("supercritical.multiblock.pattern.error.hatch_invalid"));
                     return false;
-                },
+                }
+                return true;
+            }
+            return false;
+        },
                 () -> Arrays.stream(allowedAbilities)
                         .flatMap(ability -> MultiblockAbility.REGISTRY.get(ability).stream())
                         .filter(Objects::nonNull).map(tile -> {
@@ -1075,6 +1076,4 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         tooltip.add(I18n.format("supercritical.machine.fission_reactor.tooltip.2"));
         tooltip.add(I18n.format("supercritical.machine.fission_reactor.tooltip.3"));
     }
-
-
 }

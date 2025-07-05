@@ -5,6 +5,7 @@ import lombok.Setter;
 import supercritical.api.nuclear.fission.IFissionFuelStats;
 
 public class FuelRod extends ReactorComponent {
+
     @Getter
     private IFissionFuelStats fuel;
     @Getter
@@ -23,7 +24,6 @@ public class FuelRod extends ReactorComponent {
     public double getNeutronGenerationTime() {
         return fuel.getNeutronGenerationTime();
     }
-
 
     public void setFuel(IFissionFuelStats property) {
         this.fuel = property;

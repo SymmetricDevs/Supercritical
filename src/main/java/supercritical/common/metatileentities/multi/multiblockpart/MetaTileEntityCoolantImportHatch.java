@@ -15,7 +15,6 @@ import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.IFluidTank;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
 
@@ -47,7 +46,6 @@ import supercritical.api.metatileentity.multiblock.SCMultiblockAbility;
 import supercritical.api.nuclear.fission.ICoolantStats;
 import supercritical.common.blocks.BlockFissionCasing;
 import supercritical.common.blocks.SCMetaBlocks;
-import supercritical.common.metatileentities.SCMetaTileEntities;
 
 public class MetaTileEntityCoolantImportHatch extends MetaTileEntityMultiblockNotifiablePart
                                               implements IMultiblockAbilityPart<ICoolantHandler>, ICoolantHandler,

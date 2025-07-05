@@ -5,7 +5,6 @@ import static supercritical.SCValues.FISSION_LOCK_UPDATE;
 import java.io.IOException;
 import java.util.List;
 
-import gregtech.api.gui.widgets.*;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -27,6 +26,7 @@ import codechicken.lib.vec.Matrix4;
 import gregtech.api.capability.IControllable;
 import gregtech.api.gui.GuiTextures;
 import gregtech.api.gui.ModularUI;
+import gregtech.api.gui.widgets.*;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
 import gregtech.api.metatileentity.multiblock.IMultiblockAbilityPart;
@@ -100,7 +100,8 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
                 .setShouldClientCallback(true));
 
         builder.widget(new AdvancedTextWidget(10, 43, (list) -> {
-            list.add(new TextComponentTranslation("supercritical.gui.fission.depletion", String.format("%.2f", getCurrentDepletionRatio() * 100)));
+            list.add(new TextComponentTranslation("supercritical.gui.fission.depletion",
+                    String.format("%.2f", getCurrentDepletionRatio() * 100)));
         }, 0));
 
         return builder.bindPlayerInventory(player.inventory, GuiTextures.SLOT, 7, 60);
@@ -109,9 +110,11 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
     public double getCurrentDepletionRatio() {
         if (this.partialFuel == null)
             return 0;
-        if (this.getController() == null || !(this.getController() instanceof MetaTileEntityFissionReactor reactor) || !reactor.isLocked())
+        if (this.getController() == null || !(this.getController() instanceof MetaTileEntityFissionReactor reactor) ||
+                !reactor.isLocked())
             return 1 - (depletionPoint / partialFuel.getDuration());
-        return 1 - ((depletionPoint - (reactor.getTotalDepletion() * internalFuelRod.getWeight())) / partialFuel.getDuration());
+        return 1 - ((depletionPoint - (reactor.getTotalDepletion() * internalFuelRod.getWeight())) /
+                partialFuel.getDuration());
     }
 
     public void voidPartialFuel() {
@@ -127,6 +130,7 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
     protected void initializeInventory() {
         super.initializeInventory();
         partialFuelDisplay = new ItemStackHandler(1) {
+
             @Override
             public @NotNull ItemStack getStackInSlot(int slot) {
                 return getLockedObject();
