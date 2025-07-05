@@ -39,7 +39,7 @@ public interface IFissionFuelStats {
 
     /**
      * @return The average number of neutrons required to trigger a fission event (usually 1, but can be higher for
-     * bred fuels).
+     *         bred fuels).
      */
     double getRequiredNeutrons();
 

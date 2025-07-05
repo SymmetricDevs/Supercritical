@@ -45,7 +45,6 @@ public class SCConfigHolder {
         })
         public int fissionReactorPowerIterations = 10;
 
-
         @Comment({
                 "Nuclear coolant heat exchanger recipe efficiency multiplier for balancing purposes.",
                 "Default: 0.1"
