@@ -69,8 +69,8 @@ local.properties
 *.ipr
 *.iws
 
-.idea/**.xml
-.idea/.gitignore
+.idea/
+!.idea/icon.png
 .idea_modules/
 /classes/
 /out/
