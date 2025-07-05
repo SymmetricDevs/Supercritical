@@ -69,8 +69,6 @@ import supercritical.common.blocks.BlockFissionCasing;
 import supercritical.common.blocks.SCMetaBlocks;
 import supercritical.common.metatileentities.SCMetaTileEntities;
 import supercritical.common.metatileentities.multi.multiblockpart.MetaTileEntityControlRodPort;
-import supercritical.common.metatileentities.multi.multiblockpart.MetaTileEntityCoolantExportHatch;
-import supercritical.common.metatileentities.multi.multiblockpart.MetaTileEntityFuelRodImportBus;
 
 public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                                           implements IDataInfoProvider, IProgressBarMultiblock, ICustomEnergyCover {
@@ -80,14 +78,16 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
     private int heightTop;
     private int heightBottom;
     private int height;
-    private int flowRate = 1;
     // Used for maintenance mechanics
     private boolean isFlowingCorrectly = true;
-    private double controlRodInsertionValue;
     private LockingState lockingState = LockingState.UNLOCKED;
-    private double kEff;
-    private double fuelDepletionPercent;
 
+    private double kEff;
+
+    @Getter
+    private double totalDepletion;
+    @Getter
+    private double controlRodInsertion;
     @Getter
     private double temperature;
     @Getter
@@ -124,10 +124,10 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         } else if (index == 1) {
             return this.pressure / this.maxPressure;
         } else {
-            if (this.maxPower / this.power > Math.exp(12)) {
+            if (this.maxPower / this.power > Math.exp(9)) {
                 return 0;
             }
-            return (Math.log(this.power / this.maxPower) + 12) / 12;
+            return (Math.log(this.power / this.maxPower) + 9) / 9;
         }
     }
 
@@ -154,18 +154,13 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         return SCMetaBlocks.FISSION_CASING.getState(BlockFissionCasing.FissionCasingType.CONTROL_ROD_CHANNEL);
     }
 
-    private void setFlowRate(float flowrate) {
-        this.flowRate = (int) flowrate;
-        if (flowRate < 1) flowRate = 1;
-    }
-
-    public void setControlRodInsertionValue(float value) {
-        this.controlRodInsertionValue = value;
+    public void setControlRodInsertion(float value) {
+        this.controlRodInsertion = value;
         if (fissionReactor != null)
-            fissionReactor.updateControlRodInsertion(controlRodInsertionValue);
+            fissionReactor.updateControlRodInsertion(controlRodInsertion);
     }
 
-    private boolean isLocked() {
+    public boolean isLocked() {
         return lockingState == LockingState.LOCKED;
     }
 
@@ -215,8 +210,6 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                         "supercritical.gui.fission.lock." + lockingState.toString().toLowerCase()),
                         getLockedTextColor()));
         list.add(new TextComponentTranslation("supercritical.gui.fission.k_eff", String.format("%.4f", this.kEff)));
-        list.add(new TextComponentTranslation("supercritical.gui.fission.depletion",
-                String.format("%.2f", this.fuelDepletionPercent * 100)));
     }
 
     protected EnumFacing getUp() {
@@ -290,8 +283,8 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
 
         builder.widget(new UpdatedSliderWidget("supercritical.gui.fission.control_rod_insertion", 10, 60, 220,
                 18, 0.0f, 1.0f,
-                (float) controlRodInsertionValue, this::setControlRodInsertionValue,
-                () -> (float) this.controlRodInsertionValue) {
+                (float) controlRodInsertion, this::setControlRodInsertion,
+                () -> (float) this.controlRodInsertion) {
 
             @Override
             protected String getDisplayString() {
@@ -299,10 +292,6 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                         String.format("%.2f%%", this.getSliderValue() * 100));
             }
         }.setBackground(SCGuiTextures.DARK_SLIDER_BACKGROUND).setSliderIcon(SCGuiTextures.DARK_SLIDER_ICON));
-        builder.widget(
-                new SliderWidget("supercritical.gui.fission.coolant_flow", 10, 80, 220, 18, 0.0f, 16000.f, flowRate,
-                        this::setFlowRate).setBackground(SCGuiTextures.DARK_SLIDER_BACKGROUND)
-                                .setSliderIcon(SCGuiTextures.DARK_SLIDER_ICON));
 
         builder.widget(new AdvancedTextWidget(9, 20, this::addDisplayText, 0xFFFFFF)
                 .setMaxWidthLimit(220)
@@ -399,59 +388,45 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                 }
 
                 // Fuel handling
-                if (this.fissionReactor.isDepleted()) {
-                    boolean canWork = true;
-                    boolean needsReset = false;
-                    for (IFuelRodHandler fuelImport : this.getAbilities(SCMultiblockAbility.IMPORT_FUEL_ROD)) {
-                        if (fuelImport.getStackHandler().extractItem(0, 1, true).isEmpty()) {
-                            canWork = false;
-                            this.lockingState = LockingState.MISSING_FUEL;
-                            break;
-                        } else if (!((MetaTileEntityFuelRodImportBus) fuelImport).getExportHatch(this.height -
-                                1)
-                                .getExportItems().insertItem(0,
-                                        FissionFuelRegistry.getDepletedFuel(fuelImport.getFuel()), true)
+                boolean canWork = true;
+                for (IFuelRodHandler fuelImport : this.getAbilities(SCMultiblockAbility.IMPORT_FUEL_ROD)) {
+                    if (fuelImport.isDepleted(this.fissionReactor.fuelDepletion)) {
+                        // There are a few things that could cause the reactor to stop working when a fuel rod becomes
+                        // depleted:
+                        // The output is blocked
+                        // The input is missing
+                        // We simulate both of these things, and if it fails, we unlock the entire reactor.
+                        if (!fuelImport.getOutputStackHandler(this.height - 1)
+                                .insertItem(0, FissionFuelRegistry.getDepletedFuel(fuelImport.getFuel()), true)
                                 .isEmpty()) {
-                                    // We still need to know if the output is blocked, even if the recipe doesn't start
-                                    // yet
-                                    canWork = false;
-                                    this.lockingState = LockingState.FUEL_CLOGGED;
-                                    break;
-                                }
-
-                    }
-
-                    for (IFuelRodHandler fuelImport : this.getAbilities(SCMultiblockAbility.IMPORT_FUEL_ROD)) {
-                        if (fissionReactor.needsOutput) {
-                            ((MetaTileEntityFuelRodImportBus) fuelImport).getExportHatch(this.height - 1)
-                                    .getExportItems().insertItem(0,
-                                            FissionFuelRegistry.getDepletedFuel(fuelImport.getPartialFuel()),
-                                            false);
-                            this.fissionReactor.fuelMass -= 60;
+                            canWork = false;
+                            this.setLockingState(LockingState.FUEL_CLOGGED);
+                            break;
                         }
-                        if (canWork) {
-                            fuelImport.getStackHandler().extractItem(0, 1, false);
-                            needsReset |= fuelImport.setPartialFuel(fuelImport.getFuel());
-                            this.fissionReactor.fuelMass += 60;
+                        fuelImport.getOutputStackHandler(this.height - 1).insertItem(0,
+                                FissionFuelRegistry.getDepletedFuel(fuelImport.getFuel()), false);
+                        fuelImport.markUndepleted();
+                        if (fuelImport.getInputStackHandler().extractItem(0, 1, true).isEmpty()) {
+                            canWork = false;
+                            fuelImport.setPartialFuel(null); // Clear the partial fuel; it wouldn't have existed
+                            this.setLockingState(LockingState.MISSING_FUEL);
+                            break;
                         }
+                        fuelImport.getInputStackHandler().extractItem(0, 1, false);
                     }
-                    if (canWork) {
-                        fissionReactor.needsOutput = true;
-                        this.fissionReactor.resetFuelDepletion();
+                }
 
-                        if (needsReset) {
-                            fissionReactor.computeGeometry();
-                        }
-                    } else {
-                        this.unlockAll();
-                    }
-
+                if (!canWork) {
+                    this.unlockAll();
                 }
             }
-            this.updateReactorState(isFlowingCorrectly ? flowRate : 0);
+            this.updateReactorState();
 
             this.syncReactorStats();
 
+            if (!SCConfigHolder.nuclear.enableMeltdown) {
+                return;
+            }
             boolean melts = this.fissionReactor.checkForMeltdown();
             boolean explodes = this.fissionReactor.checkForExplosion();
             double hydrogen = this.fissionReactor.accumulatedHydrogen;
@@ -681,7 +656,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
     protected void formStructure(PatternMatchContext context) {
         super.formStructure(context);
         if (fissionReactor == null) {
-            fissionReactor = new FissionReactor(this.diameter - 2, this.height - 2, controlRodInsertionValue);
+            fissionReactor = new FissionReactor(this.diameter - 2, this.height - 2, controlRodInsertion);
         }
     }
 
@@ -690,8 +665,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         data.setInteger("diameter", this.diameter);
         data.setInteger("heightTop", this.heightTop);
         data.setInteger("heightBottom", this.heightBottom);
-        data.setInteger("flowRate", this.flowRate);
-        data.setDouble("controlRodInsertion", this.controlRodInsertionValue);
+        data.setDouble("controlRodInsertion", this.controlRodInsertion);
         data.setBoolean("locked", this.lockingState == LockingState.LOCKED);
         data.setDouble("kEff", this.kEff);
         if (fissionReactor != null) {
@@ -707,8 +681,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         this.diameter = data.getInteger("diameter");
         this.heightTop = data.getInteger("heightTop");
         this.heightBottom = data.getInteger("heightBottom");
-        this.flowRate = data.getInteger("flowRate");
-        this.controlRodInsertionValue = data.getDouble("controlRodInsertion");
+        this.controlRodInsertion = data.getDouble("controlRodInsertion");
         this.height = this.heightTop + this.heightBottom + 1;
         this.kEff = data.getDouble("kEff");
         if (data.getBoolean("locked")) {
@@ -725,11 +698,10 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         buf.writeInt(this.diameter);
         buf.writeInt(this.heightTop);
         buf.writeInt(this.heightBottom);
-        buf.writeInt(this.flowRate);
-        buf.writeDouble(this.controlRodInsertionValue);
+        buf.writeDouble(this.controlRodInsertion);
         if (this.lockingState == LockingState.SHOULD_LOCK) {
             if (fissionReactor == null) {
-                this.fissionReactor = new FissionReactor(this.diameter - 2, this.height - 2, controlRodInsertionValue);
+                this.fissionReactor = new FissionReactor(this.diameter - 2, this.height - 2, controlRodInsertion);
             }
             this.lockAndPrepareReactor();
             this.fissionReactor.deserializeNBT(transientData);
@@ -743,8 +715,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         this.diameter = buf.readInt();
         this.heightTop = buf.readInt();
         this.heightBottom = buf.readInt();
-        this.flowRate = buf.readInt();
-        this.controlRodInsertionValue = buf.readDouble();
+        this.controlRodInsertion = buf.readDouble();
         if (buf.readBoolean()) {
             this.lockingState = LockingState.LOCKED;
         }
@@ -758,9 +729,8 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         this.power = this.fissionReactor.power;
         this.maxPower = this.fissionReactor.maxPower;
         this.kEff = this.fissionReactor.kEff;
-        this.controlRodInsertionValue = this.fissionReactor.controlRodInsertion;
-        this.fuelDepletionPercent = Math.max(0, this.fissionReactor.fuelDepletion) /
-                this.fissionReactor.maxFuelDepletion;
+        this.controlRodInsertion = this.fissionReactor.controlRodInsertion;
+        this.totalDepletion = this.fissionReactor.fuelDepletion;
         writeCustomData(SCValues.SYNC_REACTOR_STATS, (packetBuffer -> {
             packetBuffer.writeDouble(this.temperature);
             packetBuffer.writeDouble(this.maxTemperature);
@@ -769,8 +739,8 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
             packetBuffer.writeDouble(this.power);
             packetBuffer.writeDouble(this.maxPower);
             packetBuffer.writeDouble(this.kEff);
-            packetBuffer.writeDouble(this.controlRodInsertionValue);
-            packetBuffer.writeDouble(this.fuelDepletionPercent);
+            packetBuffer.writeDouble(this.controlRodInsertion);
+            packetBuffer.writeDouble(this.totalDepletion);
         }));
         this.markDirty();
     }
@@ -787,8 +757,8 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
             this.power = buf.readDouble();
             this.maxPower = buf.readDouble();
             this.kEff = buf.readDouble();
-            this.controlRodInsertionValue = buf.readDouble();
-            this.fuelDepletionPercent = buf.readDouble();
+            this.controlRodInsertion = buf.readDouble();
+            this.totalDepletion = buf.readDouble();
         } else if (dataId == SCValues.SYNC_LOCKING_STATE) {
             this.lockingState = buf.readEnumValue(LockingState.class);
             this.scheduleRenderUpdate();
@@ -809,10 +779,12 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
             handler.setLock(false);
         }
         for (IFuelRodHandler handler : this.getAbilities(SCMultiblockAbility.IMPORT_FUEL_ROD)) {
+            handler.resetDepletion(this.fissionReactor.fuelDepletion); // Must come first
             handler.setLock(false);
         }
         if (this.fissionReactor != null) {
             this.fissionReactor.turnOff();
+            this.fissionReactor.resetFuelDepletion();
         }
         if (this.lockingState == LockingState.LOCKED) { // Don't remove warnings
             this.setLockingState(LockingState.UNLOCKED);
@@ -820,12 +792,22 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
     }
 
     private void lockAndPrepareReactor() {
+        if (!verifyCorrectness()) {
+            return;
+        }
         this.lockAll();
-        int radius = this.diameter / 2;     // This is the floor of the radius, the actual radius is 0.5 blocks
-        // larger
+        this.addReactorComponents();
+        fissionReactor.prepareThermalProperties();
+        fissionReactor.computeGeometry();
+        setLockingState(LockingState.LOCKED);
+    }
+
+    private boolean verifyCorrectness() {
+        boolean foundFuel = false;
+        int radius = this.diameter / 2;
         BlockPos.MutableBlockPos reactorOrigin = new BlockPos.MutableBlockPos(this.getPos());
         reactorOrigin.move(this.frontFacing.getOpposite(), radius);
-        boolean foundFuel = false;
+
         for (int i = -radius; i <= radius; i++) {
             for (int j = -radius; j <= radius; j++) {
                 if (Math.pow(i, 2) + Math.pow(j, 2) > Math.pow(radius, 2) + radius)         // (radius + .5)^2 =
@@ -840,54 +822,24 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                         if (lockedFluid != null) {
                             ICoolantStats stats = CoolantRegistry.getCoolant(lockedFluid);
                             if (stats != null) {
-                                coolantIn.setCoolant(stats);
-                                BlockPos exportHatchPos = currentPos.offset(coolantIn.getFrontFacing().getOpposite(),
-                                        height - 1);
-                                if (getWorld().getTileEntity(
-                                        exportHatchPos) instanceof IGregTechTileEntity coolantOutCandidate) {
-                                    MetaTileEntity coolantOutMTE = coolantOutCandidate.getMetaTileEntity();
-                                    if (coolantOutMTE instanceof MetaTileEntityCoolantExportHatch coolantOut) {
-                                        coolantOut.setCoolant(stats);
-                                        CoolantChannel component = new CoolantChannel(100050, 0, stats, 1000, coolantIn,
-                                                coolantOut);
-                                        fissionReactor.addComponent(component, i + radius - 1, j + radius - 1);
-                                        continue;
-                                    }
-                                }
+                                continue;
                             }
                         }
                         this.unlockAll();
                         setLockingState(LockingState.MISSING_COOLANT);
-                        return;
+                        return false;
                     } else if (mte instanceof IFuelRodHandler fuelIn) {
-                        ItemStack lockedFuel = fuelIn.getStackHandler().getStackInSlot(0);
+                        ItemStack lockedFuel = fuelIn.getInputStackHandler().getStackInSlot(0);
                         if (!lockedFuel.isEmpty()) {
                             IFissionFuelStats stats = FissionFuelRegistry.getFissionFuel(lockedFuel);
                             if (stats != null) {
-                                FuelRod component;
-                                fuelIn.setFuel(stats);
                                 foundFuel = true;
-                                if (fissionReactor.fuelDepletion == 0 || fuelIn.getPartialFuel() == null) {
-                                    fuelIn.setPartialFuel(stats);
-                                    component = new FuelRod(stats.getMaxTemperature(), 1, stats, 650);
-                                    fuelIn.setInternalFuelRod(component);
-                                } else {
-                                    // It's guaranteed to have this property (if the implementation is correct).
-                                    IFissionFuelStats partialProp = fuelIn.getPartialFuel();
-                                    component = new FuelRod(partialProp.getMaxTemperature(), 1, partialProp, 650);
-                                    fuelIn.setInternalFuelRod(component);
-                                }
-                                fuelIn.setInternalFuelRod(component);
-                                fissionReactor.addComponent(component, i + radius - 1, j + radius - 1);
                                 continue;
                             }
                         }
                         this.unlockAll();
                         setLockingState(LockingState.MISSING_FUEL);
-                        return;
-                    } else if (mte instanceof MetaTileEntityControlRodPort controlIn) {
-                        ControlRod component = new ControlRod(100000, controlIn.hasModeratorTip(), 1, 800);
-                        fissionReactor.addComponent(component, i + radius - 1, j + radius - 1);
+                        return false;
                     }
                 }
             }
@@ -895,16 +847,62 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         if (!foundFuel) {
             this.unlockAll();
             setLockingState(LockingState.NO_FUEL_CHANNELS);
-            return;
+            return false;
         }
-        fissionReactor.prepareThermalProperties();
-        fissionReactor.computeGeometry();
-        setLockingState(LockingState.LOCKED);
+        return true;
     }
 
-    private void updateReactorState(int flowRate) {
+    private void addReactorComponents() {
+        int radius = this.diameter / 2;     // This is the floor of the radius, the actual radius is 0.5 blocks
+        // larger
+        BlockPos.MutableBlockPos reactorOrigin = new BlockPos.MutableBlockPos(this.getPos());
+        reactorOrigin.move(this.frontFacing.getOpposite(), radius);
+        for (int i = -radius; i <= radius; i++) {
+            for (int j = -radius; j <= radius; j++) {
+                if (Math.pow(i, 2) + Math.pow(j, 2) > Math.pow(radius, 2) + radius)         // (radius + .5)^2 =
+                    // radius^2 + radius + .25
+                    continue;
+                BlockPos currentPos = reactorOrigin.offset(this.getRight(), i)
+                        .offset(this.frontFacing.getOpposite(), j).offset(getUp(), heightTop);
+                if (getWorld().getTileEntity(currentPos) instanceof IGregTechTileEntity gtTe) {
+                    MetaTileEntity mte = gtTe.getMetaTileEntity();
+                    if (mte instanceof ICoolantHandler coolantIn) {
+                        Fluid lockedFluid = coolantIn.getLockedObject();
+                        ICoolantStats stats = CoolantRegistry.getCoolant(lockedFluid);
+                        coolantIn.setCoolant(stats);
+                        coolantIn.getOutputHandler().setCoolant(stats);
+                        CoolantChannel component = new CoolantChannel(100050, 0, stats, 1000, coolantIn,
+                                coolantIn.getOutputHandler());
+                        fissionReactor.addComponent(component, i + radius - 1, j + radius - 1);
+                    } else if (mte instanceof IFuelRodHandler fuelIn) {
+                        ItemStack lockedFuel = fuelIn.getInputStackHandler().getStackInSlot(0);
+                        IFissionFuelStats stats = FissionFuelRegistry.getFissionFuel(lockedFuel);
+                        FuelRod component;
+                        fuelIn.setFuel(stats);
+                        if (fuelIn.getDepletionPoint() == 0 || fuelIn.getPartialFuel() == null) {
+                            fuelIn.setPartialFuel(stats);
+                            component = new FuelRod(stats.getMaxTemperature(), 1, stats, 650);
+                            fuelIn.getInputStackHandler().extractItem(0, 1, false); // Consume the fuel
+                            fuelIn.markUndepleted(); // Set the depletion point
+                        } else {
+                            // It's guaranteed to have this property (if the implementation is correct).
+                            IFissionFuelStats partialProp = fuelIn.getPartialFuel();
+                            component = new FuelRod(partialProp.getMaxTemperature(), 1, partialProp, 650);
+                        }
+                        fuelIn.setInternalFuelRod(component);
+                        fissionReactor.addComponent(component, i + radius - 1, j + radius - 1);
+                    } else if (mte instanceof MetaTileEntityControlRodPort controlIn) {
+                        ControlRod component = new ControlRod(100000, controlIn.hasModeratorTip(), 1, 800);
+                        fissionReactor.addComponent(component, i + radius - 1, j + radius - 1);
+                    }
+                }
+            }
+        }
+    }
+
+    private void updateReactorState() {
         this.fissionReactor.updatePower();
-        this.fissionReactor.updateTemperature(flowRate);
+        this.fissionReactor.updateTemperature();
         this.fissionReactor.updatePressure();
         this.fissionReactor.updateNeutronPoisoning();
         this.fissionReactor.regulateControlRods();
@@ -1077,14 +1075,5 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         tooltip.add(I18n.format("supercritical.machine.fission_reactor.tooltip.1"));
         tooltip.add(I18n.format("supercritical.machine.fission_reactor.tooltip.2"));
         tooltip.add(I18n.format("supercritical.machine.fission_reactor.tooltip.3"));
-    }
-
-    @Override
-    public boolean allowsExtendedFacing() {
-        return SCConfigHolder.misc.allowExtendedFacingForFissionReactor;
-    }
-
-    public double getControlRodInsertion() {
-        return controlRodInsertionValue;
     }
 }

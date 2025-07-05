@@ -144,6 +144,11 @@ public class MetaTileEntityCoolantExportHatch extends MetaTileEntityMultiblockNo
     }
 
     @Override
+    public ICoolantHandler getOutputHandler() {
+        return this;
+    }
+
+    @Override
     public MultiblockAbility<ICoolantHandler> getAbility() {
         return SCMultiblockAbility.EXPORT_COOLANT;
     }

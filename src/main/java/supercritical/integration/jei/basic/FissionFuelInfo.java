@@ -27,7 +27,7 @@ public class FissionFuelInfo implements IRecipeWrapper {
 
         IFissionFuelStats prop = FissionFuelRegistry.getFissionFuel(rod);
 
-        duration = I18n.format("metaitem.nuclear.tooltip.duration", prop.getDuration());
+        duration = I18n.format("metaitem.nuclear.tooltip.duration", prop.getDuration() * prop.getReleasedHeatEnergy());
         maxTemp = I18n.format("metaitem.nuclear.tooltip.temperature", prop.getMaxTemperature());
         crossSectionFast = I18n.format("metaitem.nuclear.tooltip.cross_section_fast",
                 prop.getFastNeutronFissionCrossSection());

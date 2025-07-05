@@ -149,7 +149,7 @@ supercritical.gui.fission.temperature=Temperature: %.3f K
 supercritical.gui.fission.pressure=Pressure: %.3f Pa
 supercritical.gui.fission.power=Power: %.3f MW / %.3f MW
 supercritical.gui.fission.k_eff=Neutron multiplication factor: %f
-supercritical.gui.fission.depletion=Current fuel rod depletion: %f%%
+supercritical.gui.fission.depletion=Current depletion: %f%%
 
 supercritical.gui.fission.lock.locked=Reactor locked and active!
 supercritical.gui.fission.lock.unlocked=Reactor not active
@@ -184,3 +184,5 @@ gregtech.fluid.molten=Molten %s
 
 # Name Overrides (doesn't work)
 gregtech.material.enriched_uranium_hexafluoride=Low Enriched Uranium Hexafluoride
+
+fuelbus.void=Void the current partially depleted fuel!
