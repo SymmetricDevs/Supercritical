@@ -46,7 +46,8 @@ public class MaterialModifications {
                 FissionFuelProperty.builder(Uraninite.getRegistryName(), 1800, 60000, 2.4)
                         .slowNeutronCaptureCrossSection(1)
                         .slowNeutronFissionCrossSection(1)
-                        .requiredNeutrons(3)
+                        .requiredNeutrons(1)
+                        .releasedNeutrons(2.5)
                         .releasedHeatEnergy(0.01)
                         .decayRate(0.001)
                         .build());

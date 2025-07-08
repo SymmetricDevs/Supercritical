@@ -30,7 +30,8 @@ public class SecondDegreeMaterials {
                         .slowNeutronFissionCrossSection(1.5)
                         .slowNeutronCaptureCrossSection(1.5)
                         .slowNeutronFissionCrossSection(1.5)
-                        .requiredNeutrons(3)
+                        .requiredNeutrons(1)
+                        .releasedNeutrons(2.5)
                         .releasedHeatEnergy(0.01)
                         .decayRate(0.025)
                         .build());
@@ -47,7 +48,8 @@ public class SecondDegreeMaterials {
                 FissionFuelProperty.builder(HEU235.getRegistryName(), 1800, 60000, 2.5)
                         .slowNeutronCaptureCrossSection(2)
                         .slowNeutronFissionCrossSection(2)
-                        .requiredNeutrons(3)
+                        .requiredNeutrons(1)
+                        .releasedNeutrons(2.5)
                         .releasedHeatEnergy(0.01)
                         .decayRate(0.05)
                         .build());
@@ -64,7 +66,8 @@ public class SecondDegreeMaterials {
                 FissionFuelProperty.builder(LowGradeMOX.getRegistryName(), 1600, 50000, 1.5)
                         .slowNeutronCaptureCrossSection(2)
                         .slowNeutronFissionCrossSection(2)
-                        .requiredNeutrons(3)
+                        .requiredNeutrons(1)
+                        .releasedNeutrons(2.60)
                         .releasedHeatEnergy(0.02)
                         .decayRate(0.1)
                         .build());
@@ -81,7 +84,8 @@ public class SecondDegreeMaterials {
                 FissionFuelProperty.builder(HighGradeMOX.getRegistryName(), 2000, 80000, 1)
                         .slowNeutronCaptureCrossSection(2.4)
                         .slowNeutronFissionCrossSection(2.4)
-                        .requiredNeutrons(3)
+                        .requiredNeutrons(1)
+                        .releasedNeutrons(2.80)
                         .releasedHeatEnergy(0.02)
                         .decayRate(0.2)
                         .build());

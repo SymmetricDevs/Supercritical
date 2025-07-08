@@ -234,6 +234,9 @@ public class FissionReactor {
 
     public static void normalize(double[] vector) {
         double magnitude = getMagnitude(vector);
+        if (magnitude == 0) {
+            return;
+        }
         for (int i = 0; i < vector.length; i++) {
             vector[i] /= magnitude;
         }
@@ -676,7 +679,7 @@ public class FissionReactor {
 
             this.neutronFlux *= Math.exp(inverseReactorPeriod);
 
-            this.fuelDepletion += this.neutronFlux;
+            this.fuelDepletion += this.neutronFlux * reactorDepth;
             this.decayProductsAmount += Math.max(neutronFlux, 0.) / 1000;
 
             this.power = this.neutronFlux * this.neutronToPowerConversion;
