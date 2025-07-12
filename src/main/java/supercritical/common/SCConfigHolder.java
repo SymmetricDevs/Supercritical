@@ -40,11 +40,23 @@ public class SCConfigHolder {
         public double fissionReactorResolution = 100;
 
         @Comment({
+                "The number of times the neutron multiplication value is calculated. May cause more lag at higher values.",
+                "Default: 10"
+        })
+        public int fissionReactorPowerIterations = 10;
+
+        @Comment({
                 "Nuclear coolant heat exchanger recipe efficiency multiplier for balancing purposes.",
                 "Default: 0.1"
         })
         @RangeDouble(min = 0, max = 1000)
         public double heatExchangerEfficiencyMultiplier = 0.25;
+
+        @Comment({
+                "Whether to enable meltdowns and associated explosions or not.",
+                "Default: true"
+        })
+        public boolean enableMeltdown = true;
     }
 
     public static class MiscOptions {

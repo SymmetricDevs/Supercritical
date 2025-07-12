@@ -21,7 +21,7 @@ public class FissionFuelRegistry {
 
     public static void registerFuel(@NotNull ItemStack item, @NotNull IFissionFuelStats fuel,
                                     @NotNull ItemStack depletedFuel) {
-        IDENTIFIED_FUELS.put(fuel.getID(), fuel);
+        IDENTIFIED_FUELS.put(fuel.getId(), fuel);
         FUELS.put(item, fuel);
         DEPLETED_FUELS.put(fuel, depletedFuel);
     }

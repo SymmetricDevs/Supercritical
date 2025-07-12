@@ -12,6 +12,10 @@ public interface IFissionReactorHatch {
      */
     boolean checkValidity(int depth);
 
+    default boolean canContinue(double depletion) {
+        return true;
+    }
+
     @Nullable
     BlockPos getPos();
 }
