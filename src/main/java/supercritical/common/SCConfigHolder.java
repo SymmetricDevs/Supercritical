@@ -2,6 +2,7 @@ package supercritical.common;
 
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.Config.*;
+
 import supercritical.SCValues;
 
 @Config(modid = SCValues.MODID)
