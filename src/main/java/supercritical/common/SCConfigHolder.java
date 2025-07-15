@@ -2,7 +2,6 @@ package supercritical.common;
 
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.Config.*;
-
 import supercritical.SCValues;
 
 @Config(modid = SCValues.MODID)
@@ -99,5 +98,13 @@ public class SCConfigHolder {
         })
         @RequiresMcRestart
         public boolean allowExtendedFacingForFissionReactor = false;
+
+        @Comment({
+                "The Starting Id for all Scrit MTEs",
+                "Use with CAUTION since this could void Scrit MTEs in existing saves!",
+                "Default: 0"
+        })
+        @RequiresMcRestart
+        public int startIdShift = 0;
     }
 }
