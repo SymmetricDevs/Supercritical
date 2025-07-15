@@ -660,9 +660,7 @@ public class FissionReactor {
     }
 
     public double getTotalDecayNeutrons() {
-        return this.neutronPoisonAmount * 0.05 + this.decayProductsAmount * 0.1 + this.decayNeutrons; // The extra
-                                                                                                      // constant is to
-        // kickstart the reactor.
+        return this.neutronPoisonAmount * 0.05 + this.decayProductsAmount * 0.1 + this.decayNeutrons;
     }
 
     public void updatePower() {
@@ -708,6 +706,7 @@ public class FissionReactor {
         tagCompound.setDouble("PrevTemperature", this.prevTemperature);
         tagCompound.setDouble("Pressure", this.pressure);
         tagCompound.setDouble("Power", this.power);
+        tagCompound.setDouble("NeutronFlux", this.neutronFlux);
         tagCompound.setDouble("FuelDepletion", this.fuelDepletion);
         tagCompound.setDouble("AccumulatedHydrogen", this.accumulatedHydrogen);
         tagCompound.setDouble("NeutronPoisonAmount", this.neutronPoisonAmount);
@@ -724,6 +723,7 @@ public class FissionReactor {
         this.prevTemperature = tagCompound.getDouble("PrevTemperature");
         this.pressure = tagCompound.getDouble("Pressure");
         this.power = tagCompound.getDouble("Power");
+        this.neutronFlux = tagCompound.getDouble("NeutronFlux");
         this.fuelDepletion = tagCompound.getDouble("FuelDepletion");
         this.accumulatedHydrogen = tagCompound.getDouble("AccumulatedHydrogen");
         this.neutronPoisonAmount = tagCompound.getDouble("NeutronPoisonAmount");
