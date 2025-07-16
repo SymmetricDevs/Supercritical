@@ -84,13 +84,6 @@ public class MetaTileEntityModeratorPort extends MetaTileEntityMultiblockNotifia
     }
 
     @Override
-    public void addInformation(ItemStack stack, @Nullable World world, @NotNull List<String> tooltip,
-                               boolean advanced) {
-        super.addInformation(stack, world, tooltip, advanced);
-        tooltip.add(I18n.format(this.getMetaName() + ".tooltip.1"));
-    }
-
-    @Override
     public void renderMetaTileEntity(CCRenderState renderState, Matrix4 translation, IVertexOperation[] pipeline) {
         super.renderMetaTileEntity(renderState, translation, pipeline);
         SCTextures.MODERATOR_PORT.renderSided(getFrontFacing(), renderState, translation, pipeline);

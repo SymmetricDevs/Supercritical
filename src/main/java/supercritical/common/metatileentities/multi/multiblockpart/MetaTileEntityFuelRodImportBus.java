@@ -95,7 +95,7 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
                 .setBackgroundTexture(GuiTextures.MAINTENANCE_ICON));
 
         builder.widget(new ClickButtonWidget(140, 18, 18, 18, "", (d) -> voidPartialFuel())
-                .setTooltipText("fuelbus.void")
+                .setTooltipText("supercritical.gui.void_fuel")
                 .setButtonTexture(GuiTextures.BUTTON_VOID_NONE)
                 .setShouldClientCallback(true));
 

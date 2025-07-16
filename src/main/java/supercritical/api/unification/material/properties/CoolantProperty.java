@@ -40,11 +40,9 @@ public class CoolantProperty implements IMaterialProperty, ICoolantStats {
     private double specificHeatCapacity;
     private boolean accumulatesHydrogen = false;
 
-    @Setter
     @Getter
     private double slowAbsorptionFactor = 0;
 
-    @Setter
     @Getter
     private double fastAbsorptionFactor = 0;
     // To store the specific key

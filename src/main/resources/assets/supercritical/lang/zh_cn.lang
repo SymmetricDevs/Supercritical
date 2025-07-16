@@ -18,6 +18,8 @@ supercritical.machine.control_rod_moderated.tooltip=仅在下方为§f控制棒�
 supercritical.machine.control_rod_moderated.tooltip.1=放置在燃料棒之间时将提升30%%的中子增殖速率！
 supercritical.machine.nuclear.locking.item=将在反应堆启动后锁定，无法更改其中物品种类
 supercritical.machine.nuclear.locking.fluid=将在反应堆启动后锁定，无法更改其中流体种类
+supercritical.machine.moderator_port.name=慢化剂端口
+supercritical.machine.moderator_port.tooltip=仅在下方为§f慢化剂方块§7时才能成型运作
 
 gregtech.multiblock.fission_reactor.description=裂变反应堆利用相近摆放的燃料棒维持可控的链式核反应。反应中所产生的热能被反应堆中的冷却剂吸收，并最终在你旋转涡轮机中被转化为电力。例如，若使用蒸馏水作为冷却剂，每格冷却液通道最大能吸收2 EU/(t * K)的热量。反应堆的结构大小可变，其中截面形状可参考JEI结构预览；而高度上则可以从控制器上下各延伸7格。反应堆的燃料棒及冷却剂交互需要通过其顶层与底层的特的端口来进行，此外，你也可以通过在反应堆顶层放置控制棒端口来进一步控制链式反应的进行。控制棒深入越多，反应堆的等效中子增殖速率（k_eff）越低。反应堆运行时将不断产生中子毒物，且在停堆后也保留较长时间，k_eff的数值也会被中子毒物的浓度影响。在反应堆到达其最大输出功率之前，其功率将不断以k_eff倍率增加，这意味着如果某一时刻k_eff > 1, 其功率将提高；若k_eff < 1，则功率将下降；而k_eff = 1则意味着其功率将稳定不变。事实上，反应堆将主动调节控制棒的插入程度，以求达到一稳定平衡。当然，你也可以手动覆写控制棒的插入程度——尤其是当k_eff > 1.05时——以免反应堆陷入螺旋式失控，并最终熔毁（或爆炸！）。功率以k_eff的倍率倍增的频率则取决于平均中子产生时间（t），这一时间由使用的燃料棒决定（你可以从工具信息中看到）。总的来说，反应堆的功率以t / (1 - k_eff)为时间常数（幅值衰变为1 / e倍时所对应的时间）而指数变化。结构中的控制棒、冷却液和燃料端口都需要与相应的通道相连才能正常运行，检查工具信息以了解所需的通道方块。在输入端口都填有原料后，即可锁定端口（意味着反应堆运行期间其中物品/流体种类将不再可被更改）并启动反应堆。反应堆中燃料棒以及冷却剂通道的摆放位置非常重要：燃料棒中原子衰变产生的中子可以造成其他燃料棒中原子的裂变反应，这意味着反应堆中有复数根燃料棒时，裂变效率将大大提高。当中子被慢化剂减速后，其与另一燃料棒作用的概率将提高。冷却剂通道中的水就是一种慢化剂，所以你可以在两个燃料棒通道间放置冷却剂通道来增大k_eff（控制棒则相反）。燃料棒的枯竭速率与功率成正比，一根产能为600 MJ的燃料棒可以在600秒的时间能提供1 MW的功率，抑或在1秒内提供600 MW的功率。注：如果反应堆产生了维护问题，冷却系统有时候会停止运行。冷却剂通道只有在热冷却液温度比堆温高时才会运行，且输出热冷却剂中的总热量不会超过反应堆最大功率。
 gregtech.multiblock.gas_centrifuge.description=气体离心机可被用于提纯同位素，尤其是铀的。通过将六氟化铀重复通入一系列离心筒中离心，最终可以得到高度浓缩的六氟化铀-235，足以用于核燃料的制造。结构每增长一格，并行数增加1。
@@ -33,6 +35,8 @@ metaitem.nuclear.tooltip.neutron_time.0=平均中子辐照：%ds（§1安全§r�
 metaitem.nuclear.tooltip.neutron_time.1=平均中子辐照：%ds（§2非常安全§r）
 metaitem.nuclear.tooltip.neutron_time.2=平均中子辐照：%ds（§c危险§r）
 metaitem.nuclear.tooltip.neutron_time.3=平均中子辐照：%ds（§4非常危险§r）
+metaitem.nuclear.tooltip.moderation_factor=慢化强度：%d
+metaitem.nuclear.tooltip.absorption_factor=吸收强度：%d
 
 item.material.oreprefix.fuelRod=%s燃料棒
 item.material.oreprefix.fuelRodDepleted=%s乏燃料棒
@@ -93,6 +97,7 @@ recipemap.spent_fuel_pool.name=乏燃料池
 
 fission.coolant.name=冷却剂加热
 fission.fuel.name=裂变燃料
+fission.moderator.name=中子慢化
 
 metaitem.basket.anode.name=阳极筐
 metaitem.cladding.fuel.name=燃料棒包壳
@@ -150,6 +155,7 @@ supercritical.gui.fission.pressure=压力：%.3f Pa
 supercritical.gui.fission.power=功率：%.3f MW / %.3f MW
 supercritical.gui.fission.k_eff=中子增殖因子：%f
 supercritical.gui.fission.depletion=当前燃料棒枯竭度：%f%%
+supercritical.gui.fission.depleted_rod=枯竭燃料棒：%s
 
 supercritical.gui.fission.lock.locked=反应堆已锁定并启动！
 supercritical.gui.fission.lock.unlocked=反应堆未运行
@@ -166,6 +172,7 @@ supercritical.gui.fission.helper.disabled=按钮微微笑，控制棒我来调�
 supercritical.gui.fission.helper.enabled=按钮微微笑，控制棒我来调！—— Smiley，您身边的智能控制棒管家
 
 supercritical.gui.locked=（已锁定）
+supercritical.gui.void_fuel=清空当前部分枯竭的燃料！
 
 supercritical.multiblock.pattern.error.hatch_invalid=§c此仓室未被正确摆放！§r
 

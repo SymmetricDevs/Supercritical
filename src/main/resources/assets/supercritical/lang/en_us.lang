@@ -172,6 +172,7 @@ supercritical.gui.fission.helper.disabled=When I'm smiling, I regulate your cont
 supercritical.gui.fission.helper.enabled=When I'm smiling, I regulate your control rods for you! - Smiley, the Control Rod Specialist
 
 supercritical.gui.locked=(Locked)
+supercritical.gui.void_fuel=Void the current partially depleted fuel!
 
 supercritical.multiblock.pattern.error.hatch_invalid=§cThis hatch is not valid yet!§r
 
@@ -190,5 +191,3 @@ gregtech.fluid.molten=Molten %s
 
 # Name Overrides (doesn't work)
 gregtech.material.enriched_uranium_hexafluoride=Low Enriched Uranium Hexafluoride
-
-fuelbus.void=Void the current partially depleted fuel!
