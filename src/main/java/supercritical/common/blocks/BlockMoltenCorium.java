@@ -13,13 +13,12 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fml.common.Optional;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import git.jbredwards.fluidlogged_api.api.block.IFluidloggableFluid;
 import gregtech.api.fluids.GTFluidBlock;
 import gregtech.api.fluids.GTFluidMaterial;
 import gregtech.api.fluids.GTFluidRegistration;
@@ -27,9 +26,7 @@ import gregtech.api.unification.material.Material;
 import gregtech.api.util.GTUtility;
 import supercritical.SCInternalTags;
 
-@Optional.Interface(modid = "fluidlogged_api",
-                    iface = "git.jbredwards.fluidlogged_api.api.block.IFluidloggableFluid")
-public class BlockMoltenCorium extends GTFluidBlock implements IFluidloggableFluid {
+public class BlockMoltenCorium extends GTFluidBlock {
 
     public BlockMoltenCorium(@NotNull Fluid fluid, @NotNull MaterialLiquid material, @NotNull Material gtMaterial) {
         super(fluid, material, gtMaterial);
@@ -72,16 +69,11 @@ public class BlockMoltenCorium extends GTFluidBlock implements IFluidloggableFlu
         return true;
     }
 
-    @Override
-    @Optional.Method(modid = "fluidlogged_api")
-    public boolean isFluidloggableFluid() {
-        return false;
-    }
-
     // Copied from BlockStaticLiquid.
     @Override
     public void updateTick(@NotNull World worldIn, @NotNull BlockPos pos, @NotNull IBlockState state,
                            @NotNull Random rand) {
+        super.updateTick(worldIn, pos, state, rand);
         if (worldIn.getGameRules().getBoolean("doFireTick")) {
             int i = rand.nextInt(3);
 
@@ -100,8 +92,8 @@ public class BlockMoltenCorium extends GTFluidBlock implements IFluidloggableFlu
 
                     if (block.getBlock().isAir(block, worldIn, blockpos)) {
                         if (this.isSurroundingBlockFlammable(worldIn, blockpos)) {
-                            worldIn.setBlockState(blockpos, net.minecraftforge.event.ForgeEventFactory
-                                    .fireFluidPlaceBlockEvent(worldIn, blockpos, pos, Blocks.FIRE.getDefaultState()));
+                            worldIn.setBlockState(blockpos, ForgeEventFactory.fireFluidPlaceBlockEvent(worldIn,
+                                    blockpos, pos, Blocks.FIRE.getDefaultState()));
                             return;
                         }
                     } else if (block.getMaterial().blocksMovement()) {
@@ -117,8 +109,8 @@ public class BlockMoltenCorium extends GTFluidBlock implements IFluidloggableFlu
                     }
 
                     if (worldIn.isAirBlock(blockpos1.up()) && this.getCanBlockBurn(worldIn, blockpos1)) {
-                        worldIn.setBlockState(blockpos1.up(), net.minecraftforge.event.ForgeEventFactory
-                                .fireFluidPlaceBlockEvent(worldIn, blockpos1.up(), pos, Blocks.FIRE.getDefaultState()));
+                        worldIn.setBlockState(blockpos1.up(), ForgeEventFactory.fireFluidPlaceBlockEvent(worldIn,
+                                blockpos1.up(), pos, Blocks.FIRE.getDefaultState()));
                     }
                 }
             }
@@ -136,7 +128,7 @@ public class BlockMoltenCorium extends GTFluidBlock implements IFluidloggableFlu
     }
 
     private boolean getCanBlockBurn(World worldIn, BlockPos pos) {
-        return pos.getY() >= 0 && pos.getY() < 256 && !worldIn.isBlockLoaded(pos) ? false :
+        return (pos.getY() < 0 || pos.getY() >= 256 || worldIn.isBlockLoaded(pos)) &&
                 worldIn.getBlockState(pos).getMaterial().getCanBurn();
     }
 }
