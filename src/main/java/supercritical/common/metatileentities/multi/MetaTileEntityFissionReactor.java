@@ -2,9 +2,6 @@ package supercritical.common.metatileentities.multi;
 
 import java.util.*;
 
-import it.unimi.dsi.fastutil.Hash;
-import it.unimi.dsi.fastutil.objects.Object2BooleanOpenCustomHashMap;
-import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
@@ -50,6 +47,8 @@ import gregtech.client.renderer.ICubeRenderer;
 import gregtech.common.ConfigHolder;
 import gregtech.common.blocks.MetaBlocks;
 import gregtech.common.metatileentities.MetaTileEntities;
+import it.unimi.dsi.fastutil.Hash;
+import it.unimi.dsi.fastutil.objects.Object2BooleanOpenCustomHashMap;
 import lombok.Getter;
 import supercritical.SCValues;
 import supercritical.api.capability.ICoolantHandler;
@@ -463,6 +462,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         Map<Long, BlockInfo> cache = this.structurePattern.cache;
         Map<BlockPos, Boolean> meltsDown = new Object2BooleanOpenCustomHashMap<>(
                 new Hash.Strategy<>() {
+
                     @Override
                     public int hashCode(BlockPos o) {
                         return o.getX() << 16 + o.getZ();
@@ -475,12 +475,12 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                         }
                         return a.getX() == b.getX() && a.getZ() == b.getZ();
                     }
-                }
-        );
+                });
         cache.keySet().forEach(blockPosCached -> {
             BlockPos pos = BlockPos.fromLong(blockPosCached);
             BlockInfo info = cache.get(blockPosCached);
-            if (meltsDown.containsKey(pos) && meltsDown.get(pos)) { // Already melted; not worrying about if it was above or not
+            if (meltsDown.containsKey(pos) && meltsDown.get(pos)) { // Already melted; not worrying about if it was
+                                                                    // above or not
                 return;
             }
             int chance = 10;
