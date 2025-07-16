@@ -1,9 +1,6 @@
 package supercritical.common.metatileentities.multi;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
@@ -50,6 +47,8 @@ import gregtech.client.renderer.ICubeRenderer;
 import gregtech.common.ConfigHolder;
 import gregtech.common.blocks.MetaBlocks;
 import gregtech.common.metatileentities.MetaTileEntities;
+import it.unimi.dsi.fastutil.Hash;
+import it.unimi.dsi.fastutil.objects.Object2BooleanOpenCustomHashMap;
 import lombok.Getter;
 import supercritical.SCValues;
 import supercritical.api.capability.ICoolantHandler;
@@ -349,7 +348,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(this.getPos());
         pos = pos.move(this.getFrontFacing().getOpposite(), diameter / 2);
         this.getWorld().newExplosion(null, pos.getX(), pos.getY() + heightTop + 3, pos.getZ(),
-                4.f + (float) Math.log(accumulatedHydrogen), true, true);
+                5.f + (float) Math.log(accumulatedHydrogen), true, true);
     }
 
     protected boolean isBlockEdge(@NotNull World world, @NotNull BlockPos.MutableBlockPos pos,
@@ -460,22 +459,49 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
 
     protected void performMeltdownEffects() {
         this.unlockAll();
-        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(this.getPos());
-        pos = pos.move(this.getFrontFacing().getOpposite(), diameter / 2);
-        placeCorium(pos, EnumFacing.UP);
-        for (int i = 0; i <= this.heightBottom; i++) {
-            this.getWorld().setBlockState(pos, SCMaterials.Corium.getFluid().getBlock().getDefaultState());
-            for (EnumFacing facing : EnumFacing.HORIZONTALS) {
-                placeCorium(pos, facing);
-            }
-            pos.move(EnumFacing.DOWN);
-        }
-        this.getWorld().setBlockState(pos.add(0, 1, 0), SCMaterials.Corium.getFluid().getBlock().getDefaultState());
-    }
+        Map<Long, BlockInfo> cache = this.structurePattern.cache;
+        Map<BlockPos, Boolean> meltsDown = new Object2BooleanOpenCustomHashMap<>(
+                new Hash.Strategy<>() {
 
-    private void placeCorium(BlockPos.MutableBlockPos pos, EnumFacing facing) {
-        this.getWorld().setBlockState(pos.move(facing), SCMaterials.Corium.getFluid().getBlock().getDefaultState());
-        pos.move(facing.getOpposite());
+                    @Override
+                    public int hashCode(BlockPos o) {
+                        return o.getX() << 16 + o.getZ();
+                    }
+
+                    @Override
+                    public boolean equals(BlockPos a, BlockPos b) {
+                        if (a == null || b == null) {
+                            return false;
+                        }
+                        return a.getX() == b.getX() && a.getZ() == b.getZ();
+                    }
+                });
+        cache.keySet().forEach(blockPosCached -> {
+            BlockPos pos = BlockPos.fromLong(blockPosCached);
+            BlockInfo info = cache.get(blockPosCached);
+            if (meltsDown.containsKey(pos) && meltsDown.get(pos)) { // Already melted; not worrying about if it was
+                                                                    // above or not
+                return;
+            }
+            int chance = 10;
+            if (pos.getY() == this.getPos().getY() - this.heightBottom) {
+                chance = 1;
+            } else if (info.getTileEntity() instanceof IGregTechTileEntity mteHolder) {
+                if (mteHolder.getMetaTileEntity() instanceof IFuelRodHandler) {
+                    chance = 1;
+                }
+            }
+            if (getWorld().rand.nextInt(chance) == 0) {
+                meltsDown.put(pos, true);
+            }
+        });
+        for (BlockPos immutPos : meltsDown.keySet()) {
+            BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(immutPos);
+            while (pos.getY() >= this.getPos().getY() - this.heightBottom) {
+                this.getWorld().setBlockState(pos, SCMaterials.Corium.getFluid().getBlock().getDefaultState());
+                pos.move(EnumFacing.DOWN);
+            }
+        }
     }
 
     @NotNull
