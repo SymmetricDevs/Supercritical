@@ -65,8 +65,8 @@ public class MaterialModifications {
 
         // Distilled Water
         DistilledWater.setProperty(SCPropertyKey.COOLANT,
-                new CoolantProperty(DistilledWater, HighPressureSteam, FluidStorageKeys.LIQUID, 1., 1000,
+                new CoolantProperty(DistilledWater, HighPressureSteam, FluidStorageKeys.LIQUID, 2., 1000,
                         373, 2260000, 4168.)
-                                .setAccumulatesHydrogen(true));
+                                .setAccumulatesHydrogen(true).setSlowAbsorptionFactor(0.1875).setFastAbsorptionFactor(0.0625));
     }
 }

@@ -300,15 +300,17 @@ public class FissionReactor {
                     if (component == null) {
                         continue;
                     }
-                    if (component.getModerationFactor() > 0) {
-                        mij += component.getModerationFactor();
-                        saij = (faij + saij) / 2; // This is an approximation!
-                    }
 
                     if (!component.samePositionAs(fuelRods.get(i)) &&
                             !component.samePositionAs(fuelRods.get(j))) {
                         saij += component.getAbsorptionFactor(controlRodsInserted, true);
                         faij += component.getAbsorptionFactor(controlRodsInserted, false);
+                    }
+
+                    // Doing this second so that water's absorption is not overbearing compared to its moderation.
+                    if (component.getModerationFactor() > 0) {
+                        mij += component.getModerationFactor();
+                        saij = (faij + saij) / 2; // This is an approximation!
                     }
 
                     if (!addToEffectiveLists || (x == prevX && y == prevY)) {

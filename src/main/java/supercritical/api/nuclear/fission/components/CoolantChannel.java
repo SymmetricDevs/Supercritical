@@ -51,4 +51,9 @@ public class CoolantChannel extends ReactorComponent {
     public void computeWeightFromFuelRodMap() {
         this.weight = relatedFuelRodPairs * 2;
     }
+
+    @Override
+    public double getAbsorptionFactor(boolean controlsInserted, boolean isThermal) {
+        return isThermal ? coolant.getSlowAbsorptionFactor() : coolant.getFastAbsorptionFactor();
+    }
 }

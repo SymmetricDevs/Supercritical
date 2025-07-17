@@ -26,10 +26,8 @@ public class SecondDegreeMaterials {
 
         LEU235.setProperty(SCPropertyKey.FISSION_FUEL,
                 FissionFuelProperty.builder(LEU235.getRegistryName(), 1500, 75000, 3.5)
-                        .slowNeutronCaptureCrossSection(1.5)
-                        .slowNeutronFissionCrossSection(1.5)
-                        .slowNeutronCaptureCrossSection(1.5)
-                        .slowNeutronFissionCrossSection(1.5)
+                        .slowNeutronCaptureCrossSection(1.8)
+                        .slowNeutronFissionCrossSection(1.8)
                         .requiredNeutrons(1)
                         .releasedNeutrons(2.5)
                         .releasedHeatEnergy(0.01)
@@ -64,8 +62,8 @@ public class SecondDegreeMaterials {
 
         LowGradeMOX.setProperty(SCPropertyKey.FISSION_FUEL,
                 FissionFuelProperty.builder(LowGradeMOX.getRegistryName(), 1600, 50000, 1.5)
-                        .slowNeutronCaptureCrossSection(2)
-                        .slowNeutronFissionCrossSection(2)
+                        .slowNeutronCaptureCrossSection(2.2)
+                        .slowNeutronFissionCrossSection(2.2)
                         .requiredNeutrons(1)
                         .releasedNeutrons(2.60)
                         .releasedHeatEnergy(0.02)
