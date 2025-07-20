@@ -45,8 +45,7 @@ public class JustEnoughItemsModule extends IntegrationSubmodule implements IModP
         Collection<ItemStack> fissionFuels = FissionFuelRegistry.getAllFissionableRods();
         List<FissionFuelInfo> fissionFuelInfos = new ArrayList<>();
         for (ItemStack fuel : fissionFuels) {
-            fissionFuelInfos.add(new FissionFuelInfo(fuel,
-                    FissionFuelRegistry.getDepletedFuel(FissionFuelRegistry.getFissionFuel(fuel))));
+            fissionFuelInfos.add(new FissionFuelInfo(fuel));
         }
 
         String fissionFuelID = SCValues.MODID + ":" + "fission_fuel";

@@ -46,7 +46,7 @@ public class FissionFuelCategory extends BasicRecipeCategory<FissionFuelInfo, Fi
         itemStackGroup.init(0, true, 54, 8);
         itemStackGroup.set(0, recipeWrapper.rod);
         itemStackGroup.init(1, true, 104, 8);
-        itemStackGroup.set(1, recipeWrapper.depletedRod);
+        itemStackGroup.set(1, recipeWrapper.depletedRods.get(0));
     }
 
     @Override

@@ -405,14 +405,14 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                         // The input is missing
                         // We simulate both of these things, and if it fails, we unlock the entire reactor.
                         if (!fuelImport.getOutputStackHandler(this.height - 1)
-                                .insertItem(0, FissionFuelRegistry.getDepletedFuel(fuelImport.getFuel()), true)
+                                .insertItem(0, fuelImport.getDepletedFuel(), true)
                                 .isEmpty()) {
                             canWork = false;
                             this.setLockingState(LockingState.FUEL_CLOGGED);
                             break;
                         }
                         fuelImport.getOutputStackHandler(this.height - 1).insertItem(0,
-                                FissionFuelRegistry.getDepletedFuel(fuelImport.getFuel()), false);
+                                fuelImport.getDepletedFuel(), false);
                         fuelImport.markUndepleted();
                         if (fuelImport.getInputStackHandler().extractItem(0, 1, true).isEmpty()) {
                             canWork = false;

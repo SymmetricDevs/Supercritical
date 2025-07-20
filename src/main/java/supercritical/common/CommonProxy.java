@@ -1,5 +1,7 @@
 package supercritical.common;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -9,6 +11,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.ConfigManager;
@@ -120,8 +123,15 @@ public class CommonProxy {
         for (Material material : GregTechAPI.materialManager.getRegisteredMaterials()) {
             if (material.hasProperty(SCPropertyKey.FISSION_FUEL)) {
                 FissionFuelProperty prop = material.getProperty(SCPropertyKey.FISSION_FUEL);
-                FissionFuelRegistry.registerFuel(OreDictUnifier.get(SCOrePrefix.fuelRod, material), prop,
-                        OreDictUnifier.get(SCOrePrefix.fuelRodHotDepleted, material));
+                if (prop.getDepletedFuelSupplier() == null) {
+                    prop.setDepletedFuelSupplier((thermalProportion) -> OreDictUnifier.get(SCOrePrefix.fuelRodHotDepleted, material));
+                    prop.setAllDepletedFuels(() -> {
+                        List<ItemStack> depletedFuels = new ArrayList<>();
+                        depletedFuels.add(OreDictUnifier.get(SCOrePrefix.fuelRodHotDepleted, material));
+                        return depletedFuels;
+                    });
+                }
+                FissionFuelRegistry.registerFuel(OreDictUnifier.get(SCOrePrefix.fuelRod, material), prop);
             }
             if (material.hasProperty(SCPropertyKey.COOLANT)) {
                 CoolantProperty prop = material.getProperty(SCPropertyKey.COOLANT);

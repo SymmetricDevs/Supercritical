@@ -45,6 +45,7 @@ public class MaterialModifications {
         // Uraninite // TODO: How???
         Uraninite.setProperty(SCPropertyKey.FISSION_FUEL,
                 FissionFuelProperty.builder(Uraninite.getRegistryName(), 1800, 60000, 2.4)
+                        .fastNeutronCaptureCrossSection(0.5)
                         .slowNeutronCaptureCrossSection(1)
                         .slowNeutronFissionCrossSection(1)
                         .requiredNeutrons(1)

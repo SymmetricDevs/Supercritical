@@ -86,7 +86,7 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
     }
 
     private ModularUI.Builder createUITemplate(EntityPlayer player) {
-        ModularUI.Builder builder = ModularUI.builder(GuiTextures.BACKGROUND, 176, 143).label(10, 5, getMetaFullName());
+        ModularUI.Builder builder = ModularUI.builder(GuiTextures.BACKGROUND, 176, 163).label(10, 5, getMetaFullName());
 
         builder.widget(new BlockableSlotWidget(importItems, 0, 40, 18, true, true)
                 .setIsBlocked(this::isLocked).setBackgroundTexture(GuiTextures.SLOT));
@@ -103,8 +103,13 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
             list.add(new TextComponentTranslation("supercritical.gui.fission.depletion",
                     String.format("%.2f", getCurrentDepletionRatio() * 100)));
         }, 0));
+        builder.widget(new AdvancedTextWidget(10, 60, (list) -> {
+            ItemStack depleted = getDepletedFuel();
+            String translation = depleted.getItem().getItemStackDisplayName(depleted);
+            list.add(new TextComponentTranslation("supercritical.gui.fission.depleted_rod",translation));
+        }, 0));
 
-        return builder.bindPlayerInventory(player.inventory, GuiTextures.SLOT, 7, 60);
+        return builder.bindPlayerInventory(player.inventory, GuiTextures.SLOT, 7, 80);
     }
 
     public double getCurrentDepletionRatio() {
@@ -303,6 +308,14 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
             return;
         }
         this.depletionPoint -= fuelDepletion * this.internalFuelRod.getWeight();
+    }
+
+    @Override
+    public ItemStack getDepletedFuel() {
+        if (this.internalFuelRod == null) {
+            return ItemStack.EMPTY;
+        }
+        return this.internalFuelRod.getDepletedFuel();
     }
 
     @Override
