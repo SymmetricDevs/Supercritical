@@ -1,30 +1,5 @@
 package supercritical.common.metatileentities.multi;
 
-import java.util.*;
-
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.World;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import codechicken.lib.render.CCRenderState;
 import codechicken.lib.render.pipeline.IVertexOperation;
 import codechicken.lib.vec.Matrix4;
@@ -50,6 +25,27 @@ import gregtech.common.metatileentities.MetaTileEntities;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenCustomHashMap;
 import lombok.Getter;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.world.World;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
+import org.apache.commons.lang3.ArrayUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import supercritical.SCValues;
 import supercritical.api.capability.ICoolantHandler;
 import supercritical.api.capability.IFuelRodHandler;
@@ -62,6 +58,7 @@ import supercritical.api.nuclear.fission.*;
 import supercritical.api.nuclear.fission.components.ControlRod;
 import supercritical.api.nuclear.fission.components.CoolantChannel;
 import supercritical.api.nuclear.fission.components.FuelRod;
+import supercritical.api.nuclear.fission.components.Moderator;
 import supercritical.api.pattern.DirectionalShapeInfoBuilder;
 import supercritical.api.unification.material.SCMaterials;
 import supercritical.api.util.SCUtility;
@@ -71,9 +68,12 @@ import supercritical.common.blocks.BlockFissionCasing;
 import supercritical.common.blocks.SCMetaBlocks;
 import supercritical.common.metatileentities.SCMetaTileEntities;
 import supercritical.common.metatileentities.multi.multiblockpart.MetaTileEntityControlRodPort;
+import supercritical.common.metatileentities.multi.multiblockpart.MetaTileEntityModeratorPort;
+
+import java.util.*;
 
 public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
-                                          implements IDataInfoProvider, IProgressBarMultiblock, ICustomEnergyCover {
+        implements IDataInfoProvider, IProgressBarMultiblock, ICustomEnergyCover {
 
     private FissionReactor fissionReactor;
     private int diameter;
@@ -136,6 +136,12 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
     @NotNull
     protected static IBlockState getFuelChannelState() {
         return SCMetaBlocks.FISSION_CASING.getState(BlockFissionCasing.FissionCasingType.FUEL_CHANNEL);
+    }
+
+    protected static TraceabilityPredicate moderatorPredicate() {
+        return new TraceabilityPredicate(
+                (state) -> ModeratorRegistry.getModerator(state.getBlockState()) != null
+        );
     }
 
     /**
@@ -209,7 +215,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         super.addDisplayText(list);
         list.add(
                 TextComponentUtil.setColor(new TextComponentTranslation(
-                        "supercritical.gui.fission.lock." + lockingState.toString().toLowerCase()),
+                                "supercritical.gui.fission.lock." + lockingState.toString().toLowerCase()),
                         getLockedTextColor()));
         list.add(new TextComponentTranslation("supercritical.gui.fission.k_eff", String.format("%.4f", this.kEff)));
     }
@@ -264,21 +270,21 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                 () -> this.getFillPercentage(0),
                 4, 115, 76, 7,
                 SCGuiTextures.PROGRESS_BAR_FISSION_HEAT, ProgressWidget.MoveType.HORIZONTAL)
-                        .setHoverTextConsumer(list -> this.addBarHoverText(list, 0));
+                .setHoverTextConsumer(list -> this.addBarHoverText(list, 0));
         builder.widget(progressBar);
 
         progressBar = new ProgressWidget(
                 () -> this.getFillPercentage(1),
                 82, 115, 76, 7,
                 SCGuiTextures.PROGRESS_BAR_FISSION_PRESSURE, ProgressWidget.MoveType.HORIZONTAL)
-                        .setHoverTextConsumer(list -> this.addBarHoverText(list, 1));
+                .setHoverTextConsumer(list -> this.addBarHoverText(list, 1));
         builder.widget(progressBar);
 
         progressBar = new ProgressWidget(
                 () -> this.getFillPercentage(2),
                 160, 115, 76, 7,
                 SCGuiTextures.PROGRESS_BAR_FISSION_ENERGY, ProgressWidget.MoveType.HORIZONTAL)
-                        .setHoverTextConsumer(list -> this.addBarHoverText(list, 2));
+                .setHoverTextConsumer(list -> this.addBarHoverText(list, 2));
         builder.widget(progressBar);
 
         builder.label(9, 9, getMetaFullName(), 0xFFFFFF);
@@ -303,7 +309,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
 
         builder.widget(new ToggleButtonWidget(215, 183, 18, 18, GuiTextures.BUTTON_LOCK,
                 this::isLocked, this::tryLocking).shouldUseBaseBackground()
-                        .setTooltipText("supercritical.gui.fission.lock"));
+                .setTooltipText("supercritical.gui.fission.lock"));
         builder.widget(new ImageWidget(215, 201, 18, 6, GuiTextures.BUTTON_POWER_DETAIL));
 
         // Voiding Mode Button
@@ -324,7 +330,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
     protected @NotNull Widget getFlexButton(int x, int y, int width, int height) {
         return new ToggleButtonWidget(x, y, width, height, this::areControlRodsRegulated,
                 this::toggleControlRodRegulation).setButtonTexture(SCGuiTextures.BUTTON_CONTROL_ROD_HELPER)
-                        .setTooltipText("supercritical.gui.fission.helper");
+                .setTooltipText("supercritical.gui.fission.helper");
     }
 
     private TextFormatting getLockedTextColor() {
@@ -480,7 +486,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
             BlockPos pos = BlockPos.fromLong(blockPosCached);
             BlockInfo info = cache.get(blockPosCached);
             if (meltsDown.containsKey(pos) && meltsDown.get(pos)) { // Already melted; not worrying about if it was
-                                                                    // above or not
+                // above or not
                 return;
             }
             int chance = 10;
@@ -587,7 +593,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                 .where('S', selfPredicate())
                 // A for interior components
                 .where('A',
-                        states(getFuelChannelState(), getControlRodChannelState(), getCoolantChannelState()).or(air()))
+                        states(getFuelChannelState(), getControlRodChannelState(), getCoolantChannelState()).or(air()).or(moderatorPredicate()))
                 // I for the inputs on the top
                 .where('I',
                         states(getVesselState()).or(getImportPredicate()))
@@ -606,23 +612,24 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
     }
 
     public TraceabilityPredicate getImportPredicate() {
-        MultiblockAbility<?>[] allowedAbilities = { SCMultiblockAbility.IMPORT_COOLANT,
+        MultiblockAbility<?>[] allowedAbilities = {SCMultiblockAbility.IMPORT_COOLANT,
                 SCMultiblockAbility.IMPORT_FUEL_ROD,
-                SCMultiblockAbility.CONTROL_ROD_PORT };
+                SCMultiblockAbility.CONTROL_ROD_PORT,
+                SCMultiblockAbility.MODERATOR_PORT};
         return tilePredicate((state, tile) -> {
-            if (!(tile instanceof IMultiblockAbilityPart<?> &&
-                    ArrayUtils.contains(allowedAbilities, ((IMultiblockAbilityPart<?>) tile).getAbility()))) {
-                return false;
-            }
-            if (tile instanceof IFissionReactorHatch hatchPart) {
-                if (!hatchPart.checkValidity(height - 1)) {
-                    state.setError(new PatternStringError("supercritical.multiblock.pattern.error.hatch_invalid"));
+                    if (!(tile instanceof IMultiblockAbilityPart<?> &&
+                            ArrayUtils.contains(allowedAbilities, ((IMultiblockAbilityPart<?>) tile).getAbility()))) {
+                        return false;
+                    }
+                    if (tile instanceof IFissionReactorHatch hatchPart) {
+                        if (!hatchPart.checkValidity(height - 1)) {
+                            state.setError(new PatternStringError("supercritical.multiblock.pattern.error.hatch_invalid"));
+                            return false;
+                        }
+                        return true;
+                    }
                     return false;
-                }
-                return true;
-            }
-            return false;
-        },
+                },
                 () -> Arrays.stream(allowedAbilities)
                         .flatMap(ability -> MultiblockAbility.REGISTRY.get(ability).stream())
                         .filter(Objects::nonNull).map(tile -> {
@@ -922,6 +929,10 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                         fissionReactor.addComponent(component, i + radius - 1, j + radius - 1);
                     } else if (mte instanceof MetaTileEntityControlRodPort controlIn) {
                         ControlRod component = new ControlRod(100000, controlIn.hasModeratorTip(), 1, 800);
+                        fissionReactor.addComponent(component, i + radius - 1, j + radius - 1);
+                    } else if (mte instanceof MetaTileEntityModeratorPort moderatorIn) {
+                        IModeratorStats moderator = moderatorIn.getModerator();
+                        Moderator component = new Moderator(moderator, 0.5, 800);
                         fissionReactor.addComponent(component, i + radius - 1, j + radius - 1);
                     }
                 }

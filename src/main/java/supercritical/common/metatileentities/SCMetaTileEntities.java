@@ -26,6 +26,7 @@ public class SCMetaTileEntities {
     public static MetaTileEntityControlRodPort CONTROL_ROD_MODERATED;
     public static MetaTileEntitySpentFuelPool SPENT_FUEL_POOL;
     public static MetaTileEntityGasCentrifuge GAS_CENTRIFUGE;
+    public static MetaTileEntityModeratorPort MODERATOR_PORT;
 
     public static void init() {
         /*
@@ -40,6 +41,7 @@ public class SCMetaTileEntities {
         CONTROL_ROD = registerMetaTileEntity(id(14004), new MetaTileEntityControlRodPort(scId("control_rod"), false));
         CONTROL_ROD_MODERATED = registerMetaTileEntity(id(14005),
                 new MetaTileEntityControlRodPort(scId("control_rod_moderated"), true));
+        MODERATOR_PORT = registerMetaTileEntity(id(14006), new MetaTileEntityModeratorPort(scId("moderator_port")));
 
         /*
          * Multiblocks: 14400-14499

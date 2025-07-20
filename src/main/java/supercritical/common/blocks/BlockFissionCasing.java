@@ -28,7 +28,6 @@ public class BlockFissionCasing extends VariantBlock<BlockFissionCasing.FissionC
         FUEL_CHANNEL("fuel_channel", 2),
         CONTROL_ROD_CHANNEL("control_rod_channel", 2),
         COOLANT_CHANNEL("coolant_channel", 2);
-
         private final String name;
         private final int harvestLevel;
 

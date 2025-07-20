@@ -3,7 +3,10 @@ package supercritical.common;
 import java.util.Objects;
 import java.util.function.Function;
 
+import gregtech.common.blocks.BlockCompressed;
+import gregtech.common.blocks.MetaBlocks;
 import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.crafting.IRecipe;
@@ -30,8 +33,11 @@ import gregtech.modules.ModuleManager;
 import supercritical.SCValues;
 import supercritical.api.nuclear.fission.CoolantRegistry;
 import supercritical.api.nuclear.fission.FissionFuelRegistry;
+import supercritical.api.nuclear.fission.ModeratorRegistry;
+import supercritical.api.nuclear.fission.components.Moderator;
 import supercritical.api.unification.material.properties.CoolantProperty;
 import supercritical.api.unification.material.properties.FissionFuelProperty;
+import supercritical.api.unification.material.properties.ModeratorProperty;
 import supercritical.api.unification.material.properties.SCPropertyKey;
 import supercritical.api.unification.ore.SCOrePrefix;
 import supercritical.api.util.SCLog;
@@ -120,6 +126,11 @@ public class CommonProxy {
             if (material.hasProperty(SCPropertyKey.COOLANT)) {
                 CoolantProperty prop = material.getProperty(SCPropertyKey.COOLANT);
                 CoolantRegistry.registerCoolant(material.getFluid(prop.getCoolantKey()), prop);
+            }
+            if (material.hasProperty(SCPropertyKey.MODERATOR)) {
+                ModeratorProperty prop = material.getProperty(SCPropertyKey.MODERATOR);
+                IBlockState state = MetaBlocks.COMPRESSED.get(material).getBlock(material);
+                ModeratorRegistry.registerModerator(state, prop);
             }
         }
     }
