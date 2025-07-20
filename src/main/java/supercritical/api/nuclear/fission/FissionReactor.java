@@ -397,6 +397,9 @@ public class FissionReactor {
             multiply(geometricMatrixFastNeutrons, fastVector);
             multiply(geometricMatrixSlowNeutrons, slowVector);
             for (int i = 0; i < fuelRods.size(); i++) {
+                if (slowVector[i] + fastVector[i] == 0) {
+                    fuelRods.get(i).setThermalProportion(0);
+                }
                 fuelRods.get(i).setThermalProportion(slowVector[i] / (slowVector[i] + fastVector[i]));
             }
         }
