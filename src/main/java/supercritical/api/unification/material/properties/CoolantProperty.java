@@ -39,6 +39,12 @@ public class CoolantProperty implements IMaterialProperty, ICoolantStats {
     @Getter
     private double specificHeatCapacity;
     private boolean accumulatesHydrogen = false;
+
+    @Getter
+    private double slowAbsorptionFactor = 0;
+
+    @Getter
+    private double fastAbsorptionFactor = 0;
     // To store the specific key
     private final FluidStorageKey key;
 
@@ -75,6 +81,16 @@ public class CoolantProperty implements IMaterialProperty, ICoolantStats {
 
     public Fluid getHotCoolant() {
         return hotHPCoolant.getFluid();
+    }
+
+    public CoolantProperty setFastAbsorptionFactor(double fastAbsorptionFactor) {
+        this.fastAbsorptionFactor = fastAbsorptionFactor;
+        return this;
+    }
+
+    public CoolantProperty setSlowAbsorptionFactor(double slowAbsorptionFactor) {
+        this.slowAbsorptionFactor = slowAbsorptionFactor;
+        return this;
     }
 
     public FluidStorageKey getCoolantKey() {

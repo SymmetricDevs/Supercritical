@@ -36,4 +36,6 @@ public interface IFuelRodHandler extends ILockableHandler<ItemStack> {
     IItemHandlerModifiable getOutputStackHandler(int depth);
 
     void resetDepletion(double fuelDepletion);
+
+    ItemStack getDepletedFuel();
 }

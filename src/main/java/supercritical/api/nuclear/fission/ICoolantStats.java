@@ -15,10 +15,22 @@ public interface ICoolantStats {
     double getSpecificHeatCapacity();
 
     /**
-     * @return A factor relating to the neutron moderation properties; the higher the factor, the fewer neutrons pass
-     *         through.
+     * @return A factor relating to the neutron moderation properties; the higher the factor, the more fast neutrons
+     *         are converted to slow neutrons.
      */
     double getModeratorFactor();
+
+    /**
+     * @return A factor relating to the neutron absorption properties; the higher the factor, the more slow neutrons are
+     *         absorbed.
+     */
+    double getSlowAbsorptionFactor();
+
+    /**
+     * @return A factor relating to the neutron absorption properties; the higher the factor, the more fast neutrons are
+     *         absorbed.
+     */
+    double getFastAbsorptionFactor();
 
     /**
      * @return A rough heat transfer coefficient for the fluid.

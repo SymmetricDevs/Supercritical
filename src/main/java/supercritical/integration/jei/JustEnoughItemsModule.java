@@ -19,11 +19,9 @@ import mezz.jei.api.recipe.IRecipeCategoryRegistration;
 import supercritical.SCValues;
 import supercritical.api.nuclear.fission.CoolantRegistry;
 import supercritical.api.nuclear.fission.FissionFuelRegistry;
+import supercritical.api.nuclear.fission.ModeratorRegistry;
 import supercritical.common.metatileentities.SCMetaTileEntities;
-import supercritical.integration.jei.basic.CoolantCategory;
-import supercritical.integration.jei.basic.CoolantInfo;
-import supercritical.integration.jei.basic.FissionFuelCategory;
-import supercritical.integration.jei.basic.FissionFuelInfo;
+import supercritical.integration.jei.basic.*;
 import supercritical.modules.SCModules;
 
 @JEIPlugin
@@ -38,6 +36,7 @@ public class JustEnoughItemsModule extends IntegrationSubmodule implements IModP
     public void registerCategories(@NotNull IRecipeCategoryRegistration registry) {
         registry.addRecipeCategories(new CoolantCategory(registry.getJeiHelpers().getGuiHelper()));
         registry.addRecipeCategories(new FissionFuelCategory(registry.getJeiHelpers().getGuiHelper()));
+        registry.addRecipeCategories(new ModeratorCategory(registry.getJeiHelpers().getGuiHelper()));
     }
 
     @Override
@@ -46,8 +45,7 @@ public class JustEnoughItemsModule extends IntegrationSubmodule implements IModP
         Collection<ItemStack> fissionFuels = FissionFuelRegistry.getAllFissionableRods();
         List<FissionFuelInfo> fissionFuelInfos = new ArrayList<>();
         for (ItemStack fuel : fissionFuels) {
-            fissionFuelInfos.add(new FissionFuelInfo(fuel,
-                    FissionFuelRegistry.getDepletedFuel(FissionFuelRegistry.getFissionFuel(fuel))));
+            fissionFuelInfos.add(new FissionFuelInfo(fuel));
         }
 
         String fissionFuelID = SCValues.MODID + ":" + "fission_fuel";
@@ -64,6 +62,17 @@ public class JustEnoughItemsModule extends IntegrationSubmodule implements IModP
         String coolantID = SCValues.MODID + ":" + "coolant";
         registry.addRecipes(coolantInfos, coolantID);
         registry.addRecipeCatalyst(SCMetaTileEntities.FISSION_REACTOR.getStackForm(), coolantID);
+
+        Collection<ModeratorRegistry.ModeratorInfo> moderators = ModeratorRegistry.getAllModerators();
+        List<ModeratorInfo> moderatorInfos = new ArrayList<>();
+        for (ModeratorRegistry.ModeratorInfo moderator : moderators) {
+            moderatorInfos.add(new ModeratorInfo(moderator.getRegistryName(), moderator.getMeta()));
+        }
+
+        String moderatorID = SCValues.MODID + ":" + "moderator";
+        registry.addRecipes(moderatorInfos, moderatorID);
+        registry.addRecipeCatalyst(SCMetaTileEntities.FISSION_REACTOR.getStackForm(), moderatorID);
+        registry.addRecipeCatalyst(SCMetaTileEntities.MODERATOR_PORT.getStackForm(), moderatorID);
         // Nuclear End
     }
 }

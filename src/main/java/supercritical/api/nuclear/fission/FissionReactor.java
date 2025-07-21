@@ -264,7 +264,8 @@ public class FissionReactor {
 
     public double computeK(boolean addToEffectiveLists, boolean controlRodsInserted) {
         double[][] geometricMatrixNeutrons = new double[fuelRods.size()][fuelRods.size()];
-
+        double[][] geometricMatrixFastNeutrons = new double[fuelRods.size()][fuelRods.size()];
+        double[][] geometricMatrixSlowNeutrons = new double[fuelRods.size()][fuelRods.size()];
         /*
          * We calculate geometric factor matrices to determine how many neutrons go from the i-th to the j-th fuel rod
          * This factor is different for slow and fast neutrons because they interact differently with the materials and
@@ -274,9 +275,9 @@ public class FissionReactor {
             for (int j = 0; j < i; j++) {
                 double mij = 0; // Integrates over the moderation factor; read "moderation from I to J"
                 double saij = 0; // Integrates over slow neutron fission, scattering and capture; read "slow absorption
-                                 // from I to J"
+                // from I to J"
                 double faij = 0; // Integrates over fast neutron fission, scattering and capture; read "fast absorption
-                                 // from I to J"
+                // from I to J"
                 FuelRod rodOne = fuelRods.get(i);
                 FuelRod rodTwo = fuelRods.get(j);
 
@@ -300,15 +301,17 @@ public class FissionReactor {
                     if (component == null) {
                         continue;
                     }
-                    if (component.getModerationFactor() > 0) {
-                        mij += component.getModerationFactor();
-                        saij = (faij + saij) / 2; // This is an approximation!
-                    }
 
                     if (!component.samePositionAs(fuelRods.get(i)) &&
                             !component.samePositionAs(fuelRods.get(j))) {
                         saij += component.getAbsorptionFactor(controlRodsInserted, true);
                         faij += component.getAbsorptionFactor(controlRodsInserted, false);
+                    }
+
+                    // Doing this second so that water's absorption is not overbearing compared to its moderation.
+                    if (component.getModerationFactor() > 0) {
+                        mij += component.getModerationFactor();
+                        saij = (faij + saij) / 2; // This is an approximation!
                     }
 
                     if (!addToEffectiveLists || (x == prevX && y == prevY)) {
@@ -357,6 +360,14 @@ public class FissionReactor {
                 fastNeutronFissionMultiplier = rodOne.getFuel().getFastFissionMultiplier();
                 geometricMatrixNeutrons[j][i] = slow * slowNeutronFissionMultiplier +
                         fast * fastNeutronFissionMultiplier;
+
+                if (addToEffectiveLists) {
+                    geometricMatrixFastNeutrons[i][j] = fast * rodTwo.getFuel().getFastNeutronCaptureCrossSection();
+                    geometricMatrixSlowNeutrons[i][j] = slow * rodTwo.getFuel().getSlowNeutronCaptureCrossSection();
+
+                    geometricMatrixFastNeutrons[j][i] = fast * rodOne.getFuel().getFastNeutronCaptureCrossSection();
+                    geometricMatrixSlowNeutrons[j][i] = slow * rodOne.getFuel().getSlowNeutronCaptureCrossSection();
+                }
             }
         }
 
@@ -381,6 +392,16 @@ public class FissionReactor {
             linearNormalize(vector);
             for (int i = 0; i < fuelRods.size(); i++) {
                 fuelRods.get(i).setWeight(vector[i]);
+            }
+            double[] fastVector = Arrays.copyOf(vector, vector.length);
+            double[] slowVector = Arrays.copyOf(vector, vector.length);
+            multiply(geometricMatrixFastNeutrons, fastVector);
+            multiply(geometricMatrixSlowNeutrons, slowVector);
+            for (int i = 0; i < fuelRods.size(); i++) {
+                if (slowVector[i] + fastVector[i] == 0) {
+                    fuelRods.get(i).setThermalProportion(0);
+                }
+                fuelRods.get(i).setThermalProportion(slowVector[i] / (slowVector[i] + fastVector[i]));
             }
         }
 
