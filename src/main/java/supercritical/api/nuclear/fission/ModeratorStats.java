@@ -5,6 +5,7 @@ import lombok.Getter;
 
 @Builder
 public class ModeratorStats implements IModeratorStats {
+
     @Getter
     private int maxTemperature;
     @Getter

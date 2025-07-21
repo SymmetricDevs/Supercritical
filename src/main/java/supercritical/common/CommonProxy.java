@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
-import gregtech.common.blocks.BlockCompressed;
-import gregtech.common.blocks.MetaBlocks;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.Item;
@@ -31,13 +29,13 @@ import gregtech.api.unification.OreDictUnifier;
 import gregtech.api.unification.material.Material;
 import gregtech.api.unification.material.event.MaterialRegistryEvent;
 import gregtech.api.unification.material.event.PostMaterialEvent;
+import gregtech.common.blocks.MetaBlocks;
 import gregtech.common.items.MetaItems;
 import gregtech.modules.ModuleManager;
 import supercritical.SCValues;
 import supercritical.api.nuclear.fission.CoolantRegistry;
 import supercritical.api.nuclear.fission.FissionFuelRegistry;
 import supercritical.api.nuclear.fission.ModeratorRegistry;
-import supercritical.api.nuclear.fission.components.Moderator;
 import supercritical.api.unification.material.properties.CoolantProperty;
 import supercritical.api.unification.material.properties.FissionFuelProperty;
 import supercritical.api.unification.material.properties.ModeratorProperty;
@@ -124,7 +122,8 @@ public class CommonProxy {
             if (material.hasProperty(SCPropertyKey.FISSION_FUEL)) {
                 FissionFuelProperty prop = material.getProperty(SCPropertyKey.FISSION_FUEL);
                 if (prop.getDepletedFuelSupplier() == null) {
-                    prop.setDepletedFuelSupplier((thermalProportion) -> OreDictUnifier.get(SCOrePrefix.fuelRodHotDepleted, material));
+                    prop.setDepletedFuelSupplier(
+                            (thermalProportion) -> OreDictUnifier.get(SCOrePrefix.fuelRodHotDepleted, material));
                     prop.setAllDepletedFuels(() -> {
                         List<ItemStack> depletedFuels = new ArrayList<>();
                         depletedFuels.add(OreDictUnifier.get(SCOrePrefix.fuelRodHotDepleted, material));

@@ -1,5 +1,12 @@
 package supercritical.common.metatileentities.multi.multiblockpart;
 
+import java.util.List;
+
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
+
 import codechicken.lib.render.CCRenderState;
 import codechicken.lib.render.pipeline.IVertexOperation;
 import codechicken.lib.vec.Matrix4;
@@ -10,15 +17,6 @@ import gregtech.api.metatileentity.multiblock.IMultiblockAbilityPart;
 import gregtech.api.metatileentity.multiblock.MultiblockAbility;
 import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityMultiblockNotifiablePart;
 import lombok.Getter;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import supercritical.api.metatileentity.multiblock.IFissionReactorHatch;
 import supercritical.api.metatileentity.multiblock.SCMultiblockAbility;
 import supercritical.api.nuclear.fission.IModeratorStats;
@@ -27,11 +25,9 @@ import supercritical.client.renderer.textures.SCTextures;
 import supercritical.common.blocks.BlockFissionCasing;
 import supercritical.common.blocks.SCMetaBlocks;
 
-import java.util.List;
-
 public class MetaTileEntityModeratorPort extends MetaTileEntityMultiblockNotifiablePart
-        implements IFissionReactorHatch,
-        IMultiblockAbilityPart<MetaTileEntityModeratorPort> {
+                                         implements IFissionReactorHatch,
+                                         IMultiblockAbilityPart<MetaTileEntityModeratorPort> {
 
     @Getter
     private IModeratorStats moderator;

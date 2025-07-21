@@ -1,9 +1,8 @@
 package supercritical.api.nuclear.fission;
 
-import net.minecraft.item.ItemStack;
-
-import java.util.Collection;
 import java.util.List;
+
+import net.minecraft.item.ItemStack;
 
 public interface IFissionFuelStats {
 

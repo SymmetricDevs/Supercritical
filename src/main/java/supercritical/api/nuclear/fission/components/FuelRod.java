@@ -1,8 +1,9 @@
 package supercritical.api.nuclear.fission.components;
 
+import net.minecraft.item.ItemStack;
+
 import lombok.Getter;
 import lombok.Setter;
-import net.minecraft.item.ItemStack;
 import supercritical.api.nuclear.fission.IFissionFuelStats;
 
 public class FuelRod extends ReactorComponent {
@@ -37,5 +38,4 @@ public class FuelRod extends ReactorComponent {
     public ItemStack getDepletedFuel() {
         return fuel.getDepletedFuel(thermalProportion);
     }
-
 }

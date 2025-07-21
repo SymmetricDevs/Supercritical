@@ -1,17 +1,19 @@
 package supercritical.api.nuclear.fission;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import lombok.Getter;
+import java.util.Collection;
+import java.util.Map;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Map;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import lombok.Getter;
 
 public class ModeratorRegistry {
 
@@ -42,6 +44,7 @@ public class ModeratorRegistry {
     }
 
     public static class ModeratorInfo {
+
         @Getter
         private final ResourceLocation registryName;
         @Getter
@@ -59,7 +62,8 @@ public class ModeratorRegistry {
 
         @Override
         public boolean equals(Object obj) {
-            return obj instanceof ModeratorInfo && ((ModeratorInfo) obj).registryName.equals(registryName) && ((ModeratorInfo) obj).meta == meta;
+            return obj instanceof ModeratorInfo && ((ModeratorInfo) obj).registryName.equals(registryName) &&
+                    ((ModeratorInfo) obj).meta == meta;
         }
     }
 }

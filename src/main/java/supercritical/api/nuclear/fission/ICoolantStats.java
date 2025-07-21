@@ -16,7 +16,7 @@ public interface ICoolantStats {
 
     /**
      * @return A factor relating to the neutron moderation properties; the higher the factor, the more fast neutrons
-     * are converted to slow neutrons.
+     *         are converted to slow neutrons.
      */
     double getModeratorFactor();
 

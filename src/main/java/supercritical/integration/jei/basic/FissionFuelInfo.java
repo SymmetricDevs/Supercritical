@@ -1,5 +1,8 @@
 package supercritical.integration.jei.basic;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
@@ -9,9 +12,6 @@ import mezz.jei.api.ingredients.VanillaTypes;
 import mezz.jei.api.recipe.IRecipeWrapper;
 import supercritical.api.nuclear.fission.FissionFuelRegistry;
 import supercritical.api.nuclear.fission.IFissionFuelStats;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class FissionFuelInfo implements IRecipeWrapper {
 

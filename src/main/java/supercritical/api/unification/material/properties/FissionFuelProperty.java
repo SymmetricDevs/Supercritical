@@ -1,19 +1,18 @@
 package supercritical.api.unification.material.properties;
 
-import gregtech.api.unification.material.properties.IMaterialProperty;
-import gregtech.api.unification.material.properties.MaterialProperties;
-import gregtech.api.unification.material.properties.PropertyKey;
-import it.unimi.dsi.fastutil.doubles.Double2ObjectFunction;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import net.minecraft.item.ItemStack;
-import supercritical.api.nuclear.fission.IFissionFuelStats;
-
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import net.minecraft.item.ItemStack;
+
+import gregtech.api.unification.material.properties.IMaterialProperty;
+import gregtech.api.unification.material.properties.MaterialProperties;
+import gregtech.api.unification.material.properties.PropertyKey;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import supercritical.api.nuclear.fission.IFissionFuelStats;
 
 @Builder
 public class FissionFuelProperty implements IMaterialProperty, IFissionFuelStats {

@@ -1,17 +1,18 @@
 package supercritical.api.nuclear.fission;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
+
 import supercritical.api.nuclear.fission.components.ControlRod;
 import supercritical.api.nuclear.fission.components.CoolantChannel;
 import supercritical.api.nuclear.fission.components.FuelRod;
 import supercritical.api.nuclear.fission.components.ReactorComponent;
 import supercritical.common.SCConfigHolder;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class FissionReactor {
 

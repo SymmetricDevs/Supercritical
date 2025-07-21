@@ -1,6 +1,5 @@
 package supercritical.client.renderer.textures;
 
-import gregtech.client.renderer.ICubeRenderer;
 import gregtech.client.renderer.texture.cube.OrientedOverlayRenderer;
 import gregtech.client.renderer.texture.cube.SimpleOverlayRenderer;
 

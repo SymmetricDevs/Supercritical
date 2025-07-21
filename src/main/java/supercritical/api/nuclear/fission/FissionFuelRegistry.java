@@ -37,5 +37,4 @@ public class FissionFuelRegistry {
     public static IFissionFuelStats getFissionFuel(String name) {
         return IDENTIFIED_FUELS.get(name);
     }
-
 }

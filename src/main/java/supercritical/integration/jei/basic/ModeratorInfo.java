@@ -1,14 +1,15 @@
 package supercritical.integration.jei.basic;
 
-import mezz.jei.api.ingredients.IIngredients;
-import mezz.jei.api.ingredients.VanillaTypes;
-import mezz.jei.api.recipe.IRecipeWrapper;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+
+import mezz.jei.api.ingredients.IIngredients;
+import mezz.jei.api.ingredients.VanillaTypes;
+import mezz.jei.api.recipe.IRecipeWrapper;
 import supercritical.api.nuclear.fission.IModeratorStats;
 import supercritical.api.nuclear.fission.ModeratorRegistry;
 
