@@ -624,7 +624,7 @@ public class FissionReactor {
             // https://physics.stackexchange.com/questions/153434/heat-transfer-between-the-bulk-of-the-fluid-inside-the-pipe-and-the-pipe-externa
             double heatFluxPerAreaAndTemp = 1 /
                     (1 / prop.getCoolingFactor() + coolantWallThickness / thermalConductivity);
-            double idealHeatFlux = heatFluxPerAreaAndTemp * 4 * reactorDepth *
+            double idealHeatFlux = heatFluxPerAreaAndTemp * channel.getWeight() * reactorDepth *
                     (hypotheticalTemperature - cooledTemperature);
 
             double idealFluidUsed = idealHeatFlux / heatRemovedPerLiter;
