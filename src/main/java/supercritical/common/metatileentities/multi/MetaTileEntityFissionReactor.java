@@ -859,6 +859,9 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                         Fluid lockedFluid = coolantIn.getLockedObject();
                         if (lockedFluid != null) {
                             ICoolantStats stats = CoolantRegistry.getCoolant(lockedFluid);
+                            if (coolantIn.getOutputHandler() == null && coolantIn.checkValidity(this.height - 1)) {
+                                return false;
+                            }
                             if (stats != null) {
                                 continue;
                             }
