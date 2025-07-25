@@ -108,7 +108,9 @@ public class FissionReactor {
     private final double surfaceArea;
     public static double thermalConductivity = 45; // 45 W/(m K), for steel
     public static double wallThickness = 0.1;
-    public static double coolantWallThickness = 0.06; // Ideal for a 1-m diameter steel pipe with the given maximum
+    // 0.06m is ideal for a 1-m diameter steel pipe with the given maximum, and was the original value
+    // This was then / 3 for balance
+    public static double coolantWallThickness = 0.02;
     // pressure
     public static double specificHeatCapacity = 420; // 420 J/(kg K), for steel
     public static double convectiveHeatTransferCoefficient = 10; // 10 W/(m^2 K), for slow-moving air
@@ -432,6 +434,7 @@ public class FissionReactor {
             neutronToPowerConversion += i.getFuel().getReleasedHeatEnergy() / i.getFuel().getReleasedNeutrons();
             decayNeutrons += i.getFuel().getDecayRate();
         }
+        computeCoolantWeights();
 
         if (fuelRods.size() > 1) {
             neutronToPowerConversion /= fuelRods.size();
@@ -444,8 +447,6 @@ public class FissionReactor {
         /*
          * We give each control rod a weight depending on how many fuel rods they affect
          */
-
-        computeCoolantWeights();
 
         controlRodFactor = ControlRod.controlRodFactor(effectiveControlRods, this.controlRodInsertion);
 
