@@ -1,7 +1,5 @@
 package supercritical.api.nuclear.fission.components;
 
-import java.util.List;
-
 import lombok.Getter;
 import lombok.Setter;
 import supercritical.api.capability.ICoolantHandler;

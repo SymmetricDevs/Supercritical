@@ -453,12 +453,12 @@ public class FissionReactor {
         this.prepareInitialConditions();
     }
 
-
     /**
      * Loops over all the coolant channels and determine which ones are adjacent to fuel rods
      */
-    private final int[] dx = {0, 1, 0, -1};
-    private final int[] dy = {1, 0, -1, 0};
+    private final int[] dx = { 0, 1, 0, -1 };
+    private final int[] dy = { 1, 0, -1, 0 };
+
     protected void computeCoolantWeights() {
         for (FuelRod rod : fuelRods) {
             // Loop over all four directions
