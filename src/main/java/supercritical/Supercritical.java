@@ -21,7 +21,7 @@ import supercritical.common.metatileentities.SCMetaTileEntities;
 public class Supercritical {
 
     @SidedProxy(modId = SCValues.MODID,
-                clientSide = "supercritical.common.ClientProxy",
+                clientSide = "supercritical.client.ClientProxy",
                 serverSide = "supercritical.common.CommonProxy")
     public static CommonProxy proxy;
 
