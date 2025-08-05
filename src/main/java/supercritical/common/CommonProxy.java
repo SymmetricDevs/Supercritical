@@ -117,7 +117,7 @@ public class CommonProxy {
 
     public void preLoad() {}
 
-    public void onPostLoad() {
+    public void postLoad() {
         for (Material material : GregTechAPI.materialManager.getRegisteredMaterials()) {
             if (material.hasProperty(SCPropertyKey.FISSION_FUEL)) {
                 FissionFuelProperty prop = material.getProperty(SCPropertyKey.FISSION_FUEL);

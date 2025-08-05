@@ -39,6 +39,6 @@ public class Supercritical {
 
     @Mod.EventHandler
     public void onPostInit(FMLPostInitializationEvent event) {
-        proxy.onPostLoad();
+        proxy.postLoad();
     }
 }

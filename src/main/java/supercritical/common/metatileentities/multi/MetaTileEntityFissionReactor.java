@@ -645,7 +645,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
 
     @Override
     public ICubeRenderer getBaseTexture(IMultiblockPart sourcePart) {
-        return SCTextures.FISSION_REACTOR_TEXTURE;
+        return SCTextures.REACTOR_VESSEL;
     }
 
     @SideOnly(Side.CLIENT)

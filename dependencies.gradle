@@ -46,6 +46,9 @@ dependencies {
     compileOnly rfg.deobf("curse.maven:gregtech-food-option-477021:5994740")
     compileOnly rfg.deobf("curse.maven:susycore-846224:6101213")
 
+    // SussyPatches 0.3.3
+    api rfg.deobf("curse.maven:sussypatches-1319894:6849902")
+
     // SuSy Core needs you
     compileOnly rfg.deobf('curse.maven:geckolib-388172:4020277')
     compileOnly rfg.deobf("curse.maven:universal-mod-core-371784:4975229") // Universal-Mod-Care v1.2.1
