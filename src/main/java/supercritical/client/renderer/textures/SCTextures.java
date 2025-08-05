@@ -16,6 +16,7 @@ public class SCTextures {
     public static SimpleOverlayRenderer MODERATOR_PORT;
 
     public static SimpleCubeRenderer REACTOR_VESSEL;
+    public static SimpleCubeRenderer PTFE_PIPE;
 
     public static void preInit() {
         FISSION_REACTOR_OVERLAY = new OrientedOverlayRenderer("multiblock/fission_reactor");
@@ -28,5 +29,7 @@ public class SCTextures {
         MODERATOR_PORT = new SimpleOverlayRenderer("overlay/machine/overlay_moderator_port");
 
         REACTOR_VESSEL = new SimpleCubeRenderer("gregtech:blocks/casings/fission/reactor_vessel");
+        PTFE_PIPE = new SimpleCubeRenderer(
+                "gregtech:blocks/casings/pipe/machine_casing_pipe_polytetrafluoroethylene.png");
     }
 }

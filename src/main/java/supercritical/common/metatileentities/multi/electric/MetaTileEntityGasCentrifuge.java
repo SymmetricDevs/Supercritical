@@ -22,7 +22,6 @@ import gregtech.api.pattern.BlockPattern;
 import gregtech.api.pattern.FactoryBlockPattern;
 import gregtech.api.pattern.PatternMatchContext;
 import gregtech.client.renderer.ICubeRenderer;
-import gregtech.client.renderer.texture.Textures;
 import gregtech.common.blocks.BlockBoilerCasing;
 import gregtech.common.blocks.MetaBlocks;
 import supercritical.api.recipes.SCRecipeMaps;
@@ -71,7 +70,7 @@ public class MetaTileEntityGasCentrifuge extends RecipeMapMultiblockController {
 
     @Override
     public ICubeRenderer getBaseTexture(IMultiblockPart sourcePart) {
-        return Textures.INERT_PTFE_CASING;
+        return SCTextures.PTFE_PIPE;
     }
 
     @Override
