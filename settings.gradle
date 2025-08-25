@@ -20,6 +20,8 @@ plugins {
     id 'com.diffplug.blowdryerSetup' version '1.7.0'
     // Automatic toolchain provisioning
     id 'org.gradle.toolchains.foojay-resolver-convention' version '0.7.0'
+
+    id 'io.freefair.lombok' version '8.14.2' apply false
 }
 
 blowdryerSetup {
