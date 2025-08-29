@@ -701,7 +701,8 @@ public class FissionReactor {
             this.neutronFlux *= Math.exp(inverseReactorPeriod);
 
             this.fuelDepletion += this.neutronFlux * reactorDepth;
-            this.decayProductsAmount += Math.max(neutronFlux, 0.) / 1000;
+            // Should be about 0.001x of the value of the variable "power".
+            this.decayProductsAmount += Math.max(neutronFlux, 0.) / 250000;
 
             this.power = this.neutronFlux * this.neutronToPowerConversion;
         } else {
