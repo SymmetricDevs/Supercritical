@@ -184,11 +184,12 @@ public class FissionReactor {
         effectiveCoolantChannels = new ArrayList<>();
         // 2pi * r^2 + 2pi * r * l
         surfaceArea = (reactorRadius * reactorRadius) * Math.PI * 2 + reactorDepth * reactorRadius * Math.PI * 2;
-        structuralMass = reactorDepth * reactorRadius * reactorRadius * Math.PI *
-                300; // Assuming 300 kg/m^3 when it's basically empty, does not have to be precise
     }
 
     public void prepareThermalProperties() {
+        structuralMass = reactorDepth * reactorRadius * reactorRadius * Math.PI *
+                300; // Assuming 300 kg/m^3 when it's basically empty, does not have to be precise
+
         int idRod = 0, idControl = 0, idChannel = 0;
 
         for (int i = 0; i < reactorLayout.length; i++) {
@@ -676,6 +677,7 @@ public class FissionReactor {
     }
 
     public void updateNeutronPoisoning() {
+        this.decayProductsAmount *= decayProductRate;
         this.neutronPoisonAmount += this.decayProductsAmount * (1 - decayProductRate) * poisonFraction;
         this.neutronPoisonAmount *= decayProductRate * Math.exp(-crossSectionRatio * power / surfaceArea);
     }
@@ -706,7 +708,6 @@ public class FissionReactor {
             this.neutronFlux *= 0.5;
             this.power *= 0.5;
         }
-        this.decayProductsAmount *= decayProductRate;
     }
 
     public boolean checkForMeltdown() {
