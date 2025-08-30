@@ -155,7 +155,7 @@ supercritical.gui.fission.pressure=Pressure: %.3f Pa
 supercritical.gui.fission.power=Power: %.3f MW / %.3f MW
 supercritical.gui.fission.k_eff=Neutron multiplication factor: %f
 supercritical.gui.fission.depletion=Current depletion: %f%%
-supercritical.gui.fission.depleted_rod=Depleted rod: %s
+supercritical.gui.fission.depleted_rod=Making %s
 
 supercritical.gui.fission.lock.locked=Reactor locked and active!
 supercritical.gui.fission.lock.unlocked=Reactor not active

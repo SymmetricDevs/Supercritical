@@ -184,14 +184,18 @@ public class FissionReactor {
         effectiveControlRods = new ArrayList<>();
         // 2pi * r^2 + 2pi * r * l
         surfaceArea = (reactorRadius * reactorRadius) * Math.PI * 2 + reactorDepth * reactorRadius * Math.PI * 2;
-        structuralMass = reactorDepth * reactorRadius * reactorRadius * Math.PI *
-                300; // Assuming 300 kg/m^3 when it's basically empty, does not have to be precise
+
+        // Apparently we do need to initialize it here as well.
+        structuralMass = reactorDepth * reactorRadius * reactorRadius * Math.PI * 300;
     }
 
     /**
      * Should be called before computeGeometry()
      */
     public void prepareThermalProperties() {
+        structuralMass = reactorDepth * reactorRadius * reactorRadius * Math.PI *
+                300; // Assuming 300 kg/m^3 when it's basically empty, does not have to be precise
+
         int idRod = 0, idControl = 0, idChannel = 0;
 
         for (int i = 0; i < reactorLayout.length; i++) {
@@ -684,6 +688,7 @@ public class FissionReactor {
     }
 
     public void updateNeutronPoisoning() {
+        this.decayProductsAmount *= decayProductRate;
         this.neutronPoisonAmount += this.decayProductsAmount * (1 - decayProductRate) * poisonFraction;
         this.neutronPoisonAmount *= decayProductRate * Math.exp(-crossSectionRatio * power / surfaceArea);
     }
@@ -707,14 +712,14 @@ public class FissionReactor {
             this.neutronFlux *= Math.exp(inverseReactorPeriod);
 
             this.fuelDepletion += this.neutronFlux * reactorDepth;
-            this.decayProductsAmount += Math.max(neutronFlux, 0.) / 1000;
+            // Should be about 0.001x of the value of the variable "power".
+            this.decayProductsAmount += Math.max(neutronFlux, 0.) / 250000;
 
             this.power = this.neutronFlux * this.neutronToPowerConversion;
         } else {
             this.neutronFlux *= 0.5;
             this.power *= 0.5;
         }
-        this.decayProductsAmount *= decayProductRate;
     }
 
     public boolean checkForMeltdown() {
