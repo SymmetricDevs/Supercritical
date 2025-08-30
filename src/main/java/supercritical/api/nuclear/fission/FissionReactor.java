@@ -184,6 +184,9 @@ public class FissionReactor {
         effectiveCoolantChannels = new ArrayList<>();
         // 2pi * r^2 + 2pi * r * l
         surfaceArea = (reactorRadius * reactorRadius) * Math.PI * 2 + reactorDepth * reactorRadius * Math.PI * 2;
+
+        // Apparently we do need to initialize it here as well.
+        structuralMass = reactorDepth * reactorRadius * reactorRadius * Math.PI * 300;
     }
 
     public void prepareThermalProperties() {
