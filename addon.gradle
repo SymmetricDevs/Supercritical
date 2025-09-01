@@ -2,3 +2,9 @@
 minecraft.extraRunJvmArguments.add('-Dterminal.jline=true')
 
 apply plugin: 'io.freefair.lombok'
+
+tasks.withType(JavaCompile).configureEach {
+    if (it.name in ['compileMcLauncherJava', 'compilePatchedMcJava']) {
+        options.compilerArgs << '-proc:none'
+    }
+}
