@@ -58,4 +58,12 @@ dependencies {
     compileOnly rfg.deobf("curse.maven:pyrotech-306676:5351359")
     compileOnly rfg.deobf("curse.maven:athenaeum-284350:4633750")
     compileOnly rfg.deobf("curse.maven:dropt-284973:5405050")
+
+    // Lombok
+    def lombok = 'org.projectlombok:lombok:1.18.38'
+    compileOnly lombok
+    annotationProcessor lombok
+
+    testCompileOnly lombok
+    testAnnotationProcessor lombok
 }
