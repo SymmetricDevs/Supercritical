@@ -435,7 +435,7 @@ public class FissionReactor {
 
         for (int iIdx = 0; iIdx < fuelRods.size(); iIdx++) {
             FuelRod i = fuelRods.get(iIdx);
-            neutronToPowerConversion += i.getFuel().getReleasedHeatEnergy() / i.getFuel().getReleasedNeutrons();
+            neutronToPowerConversion += i.getFuel().getReleasedHeatEnergy() / i.getFuel().getRequiredNeutrons();
             decayNeutrons += i.getFuel().getDecayRate();
         }
         computeCoolantWeights();
