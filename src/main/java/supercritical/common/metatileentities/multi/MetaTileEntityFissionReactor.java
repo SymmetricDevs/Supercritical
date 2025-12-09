@@ -877,6 +877,9 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
                                 foundFuel = true;
                                 continue;
                             }
+                        } else if (fuelIn.getPartialFuel() != null) {
+                            foundFuel = true;
+                            continue;
                         }
                         this.unlockAll();
                         setLockingState(LockingState.MISSING_FUEL);
