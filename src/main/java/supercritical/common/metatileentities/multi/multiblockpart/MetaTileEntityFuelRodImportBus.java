@@ -106,7 +106,8 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
         builder.widget(new AdvancedTextWidget(10, 60, (list) -> {
             ItemStack depleted = getDepletedFuel();
             String translation = depleted.getItem().getItemStackDisplayName(depleted);
-            list.add(new TextComponentTranslation("supercritical.gui.fission.depleted_rod", translation.substring(0, Math.min(translation.length(), 18)) + "..."));
+            list.add(new TextComponentTranslation("supercritical.gui.fission.depleted_rod",
+                    translation.substring(0, Math.min(translation.length(), 18)) + "..."));
         }, 0));
 
         return builder.bindPlayerInventory(player.inventory, GuiTextures.SLOT, 7, 80);
