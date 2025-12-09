@@ -30,6 +30,6 @@ public class SCTextures {
 
         REACTOR_VESSEL = new SimpleCubeRenderer("gregtech:blocks/casings/fission/reactor_vessel");
         PTFE_PIPE = new SimpleCubeRenderer(
-                "gregtech:blocks/casings/pipe/machine_casing_pipe_polytetrafluoroethylene.png");
+                "gregtech:blocks/casings/pipe/machine_casing_pipe_polytetrafluoroethylene");
     }
 }
