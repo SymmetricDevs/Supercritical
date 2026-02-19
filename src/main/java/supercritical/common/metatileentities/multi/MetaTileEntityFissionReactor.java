@@ -230,17 +230,18 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
     }
 
     /**
-     * Uses the upper layer to determine the diameter of the structure
+     * Uses the center layer to determine the diameter of the structure
      */
-    protected int findDiameter(int heightTop) {
+    protected int findDiameter() {
         int i = 1;
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(this.getPos());
-        pos.move(getUp(), heightTop);
-        while (i <= 15) {
-            if (this.isBlockEdge(this.getWorld(), pos,
-                    this.getFrontFacing().getOpposite(),
-                    i))
+        while (this.getWorld().getBlockState(pos) !=
+            SCMetaBlocks.FISSION_CASING.getState(BlockFissionCasing.FissionCasingType.REACTOR_VESSEL)) {
+            pos.move(this.getFrontFacing().getOpposite());
+            MetaTileEntity potentialTile = GTUtility.getMetaTileEntity(this.getWorld(), pos);
+            if (potentialTile instanceof IFissionReactorHatch || potentialTile instanceof IMaintenanceHatch) {
                 break;
+            }
             i++;
         }
         return i;
@@ -519,7 +520,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
 
         this.height = heightTop + heightBottom + 1;
 
-        this.diameter = this.getWorld() != null ? Math.max(Math.min(this.findDiameter(heightTop), 15), 5) : 5;
+        this.diameter = this.getWorld() != null ? Math.max(Math.min(this.findDiameter(), 15), 5) : 5;
 
         int radius = this.diameter % 2 == 0 ? (int) Math.floor(this.diameter / 2.f) :
                 Math.round((this.diameter - 1) / 2.f);
