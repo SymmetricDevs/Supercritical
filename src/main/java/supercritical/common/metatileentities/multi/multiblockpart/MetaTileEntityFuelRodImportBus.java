@@ -185,7 +185,12 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
     @Override
     public void readFromNBT(NBTTagCompound data) {
         super.readFromNBT(data);
-        getLockedImport().setLock(data.getBoolean("locked"));
+        if (data.hasKey("locked")) {
+            getLockedImport().setLock(data.getBoolean("locked"));
+        } else if (data.hasKey("locked_import")){
+            getLockedImport().deserializeNBT(data.getCompoundTag("locked_import"));
+        }
+
         if (data.hasKey("partialFuel")) {
             this.partialFuel = FissionFuelRegistry.getFissionFuel(data.getString("partialFuel"));
         }
@@ -194,7 +199,8 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound data) {
-        data.setBoolean("locked", getLockedImport().isLocked());
+        data.setTag("locked_import", getLockedImport().serializeNBT());
+
         if (partialFuel != null) data.setString("partialFuel", this.partialFuel.getId());
         data.setDouble("depletionPoint", depletionPoint);
         return super.writeToNBT(data);

@@ -2,6 +2,7 @@ package supercritical.api.items.itemhandlers;
 
 import net.minecraft.item.ItemStack;
 
+import net.minecraft.nbt.NBTTagCompound;
 import org.jetbrains.annotations.NotNull;
 
 import gregtech.api.capability.impl.NotifiableItemStackHandler;
@@ -42,5 +43,20 @@ public class LockableItemStackHandler extends NotifiableItemStackHandler impleme
     @Override
     public ItemStack getLockedObject() {
         return lockedItemStack;
+    }
+
+    @Override
+    public NBTTagCompound serializeNBT() {
+        NBTTagCompound comp =  super.serializeNBT();
+        comp.setBoolean("locked", locked);
+        comp.setTag("locked_stack", this.lockedItemStack.serializeNBT());
+        return comp;
+    }
+
+    @Override
+    public void deserializeNBT(NBTTagCompound nbt) {
+        super.deserializeNBT(nbt);
+        this.locked = nbt.getBoolean("locked");
+        this.lockedItemStack = new ItemStack(nbt.getCompoundTag("locked_stack"));
     }
 }
