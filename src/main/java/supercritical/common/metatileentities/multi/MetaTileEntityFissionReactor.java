@@ -236,7 +236,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         int i = 1;
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(this.getPos());
         while (this.getWorld().getBlockState(pos) !=
-            SCMetaBlocks.FISSION_CASING.getState(BlockFissionCasing.FissionCasingType.REACTOR_VESSEL)) {
+            SCMetaBlocks.FISSION_CASING.getState(BlockFissionCasing.FissionCasingType.REACTOR_VESSEL) && i <= 15) {
             pos.move(this.getFrontFacing().getOpposite());
             MetaTileEntity potentialTile = GTUtility.getMetaTileEntity(this.getWorld(), pos);
             if (potentialTile instanceof IFissionReactorHatch || potentialTile instanceof IMaintenanceHatch) {
