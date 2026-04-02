@@ -187,7 +187,7 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
         super.readFromNBT(data);
         if (data.hasKey("locked")) {
             getLockedImport().setLock(data.getBoolean("locked"));
-        } else if (data.hasKey("locked_import")){
+        } else if (data.hasKey("locked_import")) {
             getLockedImport().deserializeNBT(data.getCompoundTag("locked_import"));
         }
 

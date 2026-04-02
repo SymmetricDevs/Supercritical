@@ -236,7 +236,7 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         int i = 1;
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(this.getPos());
         while (this.getWorld().getBlockState(pos) !=
-            SCMetaBlocks.FISSION_CASING.getState(BlockFissionCasing.FissionCasingType.REACTOR_VESSEL) && i <= 15) {
+                SCMetaBlocks.FISSION_CASING.getState(BlockFissionCasing.FissionCasingType.REACTOR_VESSEL) && i <= 15) {
             pos.move(this.getFrontFacing().getOpposite());
             MetaTileEntity potentialTile = GTUtility.getMetaTileEntity(this.getWorld(), pos);
             if (potentialTile instanceof IFissionReactorHatch || potentialTile instanceof IMaintenanceHatch) {
@@ -385,7 +385,6 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         this.lockAndPrepareReactor();
         this.fissionReactor.deserializeNBT(transientData);
     }
-
 
     @Override
     public void updateFormedValid() {
@@ -718,7 +717,8 @@ public class MetaTileEntityFissionReactor extends MultiblockWithDisplayBase
         data.setInteger("heightTop", this.heightTop);
         data.setInteger("heightBottom", this.heightBottom);
         data.setDouble("controlRodInsertion", this.controlRodInsertion);
-        data.setBoolean("locked", this.lockingState == LockingState.LOCKED || this.lockingState == LockingState.SHOULD_LOCK);
+        data.setBoolean("locked",
+                this.lockingState == LockingState.LOCKED || this.lockingState == LockingState.SHOULD_LOCK);
         data.setDouble("kEff", this.kEff);
         if (fissionReactor != null) {
             data.setTag("transientData", this.fissionReactor.serializeNBT());
