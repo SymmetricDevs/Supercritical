@@ -9,12 +9,10 @@ import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern;
 import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
-import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.common.data.models.GTMachineModels;
-import com.gregtechceu.gtceu.data.recipe.CustomTags;
-import net.minecraft.core.Direction;
 import supercritical.api.metatileentity.multiblock.SCMultiblockAbility;
 import supercritical.api.recipes.SCRecipeMaps;
+import supercritical.api.registries.SCRegistries;
 import supercritical.common.metatileentities.multi.MetaTileEntityFissionReactor;
 import supercritical.common.metatileentities.multi.MetaTileEntityHeatExchanger;
 import supercritical.common.metatileentities.multi.MetaTileEntitySpentFuelPool;
@@ -30,7 +28,7 @@ import static supercritical.api.util.SCUtility.scId;
 
 public final class SCMachines {
 
-    public static final MachineDefinition FUEL_ROD_INPUT = SCRegistrate.REGISTRATE
+    public static final MachineDefinition FUEL_ROD_INPUT = SCRegistries.REGISTRATE
             .machine("fuel_rod_input", holder -> new MetaTileEntityFuelRodImportBus(holder, 4))
             .rotationState(RotationState.ALL)
             .tier(GTValues.LV)
@@ -39,7 +37,7 @@ public final class SCMachines {
                     scId("block/overlay/machine/fuel_rod_input")))
             .register();
 
-    public static final MachineDefinition FUEL_ROD_OUTPUT = SCRegistrate.REGISTRATE
+    public static final MachineDefinition FUEL_ROD_OUTPUT = SCRegistries.REGISTRATE
             .machine("fuel_rod_output", holder -> new MetaTileEntityFuelRodExportBus(holder, 4))
             .rotationState(RotationState.ALL)
             .tier(GTValues.LV)
@@ -48,7 +46,7 @@ public final class SCMachines {
                     scId("block/overlay/machine/fuel_rod_output")))
             .register();
 
-    public static final MachineDefinition COOLANT_INPUT = SCRegistrate.REGISTRATE
+    public static final MachineDefinition COOLANT_INPUT = SCRegistries.REGISTRATE
             .machine("coolant_input", holder -> new MetaTileEntityCoolantImportHatch(holder, 4))
             .rotationState(RotationState.ALL)
             .tier(GTValues.LV)
@@ -57,7 +55,7 @@ public final class SCMachines {
                     scId("block/overlay/machine/coolant_input")))
             .register();
 
-    public static final MachineDefinition COOLANT_OUTPUT = SCRegistrate.REGISTRATE
+    public static final MachineDefinition COOLANT_OUTPUT = SCRegistries.REGISTRATE
             .machine("coolant_output", holder -> new MetaTileEntityCoolantExportHatch(holder, 4))
             .rotationState(RotationState.ALL)
             .tier(GTValues.LV)
@@ -66,7 +64,7 @@ public final class SCMachines {
                     scId("block/overlay/machine/coolant_output")))
             .register();
 
-    public static final MachineDefinition CONTROL_ROD = SCRegistrate.REGISTRATE
+    public static final MachineDefinition CONTROL_ROD = SCRegistries.REGISTRATE
             .machine("control_rod", holder -> new MetaTileEntityControlRodPort(holder, 4, false))
             .rotationState(RotationState.ALL)
             .tier(GTValues.LV)
@@ -75,7 +73,7 @@ public final class SCMachines {
                     scId("block/overlay/machine/control_rod")))
             .register();
 
-    public static final MachineDefinition CONTROL_ROD_MODERATED = SCRegistrate.REGISTRATE
+    public static final MachineDefinition CONTROL_ROD_MODERATED = SCRegistries.REGISTRATE
             .machine("control_rod_moderated", holder -> new MetaTileEntityControlRodPort(holder, 4, true))
             .rotationState(RotationState.ALL)
             .tier(GTValues.LV)
@@ -84,7 +82,7 @@ public final class SCMachines {
                     scId("block/overlay/machine/control_rod_moderated")))
             .register();
 
-    public static final MachineDefinition MODERATOR_PORT = SCRegistrate.REGISTRATE
+    public static final MachineDefinition MODERATOR_PORT = SCRegistries.REGISTRATE
             .machine("moderator_port", holder -> new MetaTileEntityModeratorPort(holder, 4))
             .rotationState(RotationState.ALL)
             .tier(GTValues.LV)
@@ -93,7 +91,7 @@ public final class SCMachines {
                     scId("block/overlay/machine/moderator_port")))
             .register();
 
-    public static final MultiblockMachineDefinition FISSION_REACTOR = SCRegistrate.REGISTRATE
+    public static final MultiblockMachineDefinition FISSION_REACTOR = SCRegistries.REGISTRATE
             .multiblock("fission_reactor", MetaTileEntityFissionReactor::new)
             .rotationState(RotationState.NON_Y_AXIS)
             .allowExtendedFacing(true)
@@ -105,7 +103,7 @@ public final class SCMachines {
 
     public static final MultiblockMachineDefinition SPENT_FUEL_POOL = MetaTileEntitySpentFuelPool.register();
 
-    public static final MultiblockMachineDefinition GAS_CENTRIFUGE = SCRegistrate.REGISTRATE
+    public static final MultiblockMachineDefinition GAS_CENTRIFUGE = SCRegistries.REGISTRATE
             .multiblock("gas_centrifuge", MetaTileEntityGasCentrifuge::new)
             .rotationState(RotationState.NON_Y_AXIS)
             .recipeType(SCRecipeMaps.GAS_CENTRIFUGE_RECIPES)

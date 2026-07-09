@@ -14,16 +14,15 @@ import com.gregtechceu.gtceu.api.data.chemical.material.registry.MaterialRegistr
 import com.gregtechceu.gtceu.api.fluids.FluidBuilder;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import supercritical.SCGTAddon;
 import supercritical.api.nuclear.fission.CoolantRegistry;
 import supercritical.api.nuclear.fission.FissionFuelRegistry;
 import supercritical.api.unification.material.properties.CoolantProperty;
 import supercritical.api.unification.material.properties.FissionFuelProperty;
 import supercritical.api.unification.material.properties.ModeratorProperty;
 import supercritical.api.unification.material.properties.SCPropertyKey;
-import supercritical.common.SCConfigHolder;
 import supercritical.common.registry.SCItems;
 
 import java.util.ArrayList;

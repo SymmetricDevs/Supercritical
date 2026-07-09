@@ -1,4 +1,4 @@
-package supercritical.mixins.gregtech;
+package supercritical.core.mixin.gregtech;
 
 import com.gregtechceu.gtceu.api.capability.IEnergyInfoProvider;
 import com.gregtechceu.gtceu.api.capability.ICoverable;

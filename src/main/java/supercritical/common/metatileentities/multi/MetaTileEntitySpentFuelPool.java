@@ -24,14 +24,13 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.Fluids;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import supercritical.api.pattern.SCPredicates;
 import supercritical.api.recipes.SCRecipeMaps;
+import supercritical.api.registries.SCRegistries;
 import supercritical.common.registry.SCBlocks;
-import supercritical.common.registry.SCRegistrate;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -173,7 +172,7 @@ public class MetaTileEntitySpentFuelPool extends WorkableMultiblockMachine imple
     }
 
     public static MultiblockMachineDefinition register() {
-        return SCRegistrate.REGISTRATE
+        return SCRegistries.REGISTRATE
                 .multiblock("spent_fuel_pool", MetaTileEntitySpentFuelPool::new)
                 .rotationState(RotationState.NON_Y_AXIS)
                 .allowExtendedFacing(false)

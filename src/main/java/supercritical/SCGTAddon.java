@@ -1,4 +1,4 @@
-package supercritical.api.unification.material;
+package supercritical;
 
 import com.gregtechceu.gtceu.api.addon.GTAddon;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
@@ -6,8 +6,7 @@ import com.gregtechceu.gtceu.api.data.chemical.Element;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 
-import supercritical.SCValues;
-import supercritical.common.registry.SCRegistrate;
+import supercritical.api.registries.SCRegistries;
 
 @GTAddon
 public class SCGTAddon implements IGTAddon {
@@ -24,7 +23,7 @@ public class SCGTAddon implements IGTAddon {
 
     @Override
     public GTRegistrate getRegistrate() {
-        return SCRegistrate.REGISTRATE;
+        return SCRegistries.REGISTRATE;
     }
 
     @Override
@@ -32,7 +31,12 @@ public class SCGTAddon implements IGTAddon {
 
     @Override
     public String addonModId() {
-        return SCValues.MODID;
+        return BuildConfig.MOD_ID;
+    }
+
+    @Override
+    public void registerTagPrefixes() {
+
     }
 
     @Override

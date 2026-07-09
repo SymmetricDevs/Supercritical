@@ -19,7 +19,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import supercritical.SCValues;
+import supercritical.BuildConfig;
 import supercritical.api.nuclear.fission.FissionFuelRegistry;
 import supercritical.common.registry.SCMachines;
 
@@ -29,7 +29,7 @@ import java.util.List;
 public final class FissionFuelCategory implements IRecipeCategory<FissionFuelInfo> {
 
     public static final RecipeType<FissionFuelInfo> RECIPE_TYPE =
-            new RecipeType<>(new ResourceLocation(SCValues.MODID, "fission_fuel"), FissionFuelInfo.class);
+            new RecipeType<>(new ResourceLocation(BuildConfig.MOD_ID, "fission_fuel"), FissionFuelInfo.class);
 
     private final IDrawable icon;
     private final IDrawable slot;

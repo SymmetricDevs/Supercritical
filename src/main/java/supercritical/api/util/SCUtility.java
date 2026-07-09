@@ -1,14 +1,14 @@
 package supercritical.api.util;
 
 import net.minecraft.resources.ResourceLocation;
-import supercritical.SCValues;
+import supercritical.BuildConfig;
 
 public final class SCUtility {
 
     private SCUtility() {}
 
     public static ResourceLocation scId(String path) {
-        return new ResourceLocation(SCValues.MODID, path);
+        return BuildConfig.TEMPLATE_RL.withPath(path);
     }
 
     public static String replace(String s, int index, char c) {

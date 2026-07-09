@@ -1,7 +1,7 @@
 package supercritical.data;
 
 import com.tterrag.registrate.providers.ProviderType;
-import supercritical.api.registry.SCRegistries;
+import supercritical.api.registries.SCRegistries;
 import supercritical.data.lang.SCLangHandler;
 import supercritical.data.tags.SCBlockTagLoader;
 import supercritical.data.tags.SCFluidTagLoader;

@@ -1,4 +1,4 @@
-package supercritical.mixins.gregtech;
+package supercritical.core.mixin.gregtech;
 
 import com.gregtechceu.gtceu.api.data.chemical.Element;
 import org.spongepowered.asm.mixin.Mixin;

@@ -97,8 +97,7 @@ if (generateTags) {
         useJavaOutput()
         buildConfigField("MOD_ID", modId)
         buildConfigField("MOD_NAME", modName)
-        buildConfigField("MOD_VERSION", effectiveModVersion)
-        buildConfigField("MC_VERSION", "[$mcVersion]")
+        buildConfigField("net.minecraft.resources.ResourceLocation", "TEMPLATE_RL", "new ResourceLocation(MOD_ID, \"\")")
     }
 }
 

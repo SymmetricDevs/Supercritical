@@ -19,7 +19,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.material.Fluid;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import supercritical.SCValues;
+import supercritical.BuildConfig;
 import supercritical.api.nuclear.fission.CoolantRegistry;
 import supercritical.api.nuclear.fission.ICoolantStats;
 import supercritical.common.registry.SCMachines;
@@ -30,7 +30,7 @@ import java.util.List;
 public final class CoolantCategory implements IRecipeCategory<CoolantInfo> {
 
     public static final RecipeType<CoolantInfo> RECIPE_TYPE =
-            new RecipeType<>(new ResourceLocation(SCValues.MODID, "coolant"), CoolantInfo.class);
+            new RecipeType<>(new ResourceLocation(BuildConfig.MOD_ID, "coolant"), CoolantInfo.class);
 
     private final IDrawable icon;
     private final IDrawable slot;

@@ -19,7 +19,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import supercritical.SCValues;
+import supercritical.BuildConfig;
 import supercritical.api.nuclear.fission.ModeratorRegistry;
 import supercritical.common.registry.SCMachines;
 
@@ -29,7 +29,7 @@ import java.util.List;
 public final class ModeratorCategory implements IRecipeCategory<ModeratorInfo> {
 
     public static final RecipeType<ModeratorInfo> RECIPE_TYPE =
-            new RecipeType<>(new ResourceLocation(SCValues.MODID, "moderator"), ModeratorInfo.class);
+            new RecipeType<>(new ResourceLocation(BuildConfig.MOD_ID, "moderator"), ModeratorInfo.class);
 
     private final IDrawable icon;
     private final IDrawable slot;

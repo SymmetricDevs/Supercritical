@@ -19,7 +19,7 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import supercritical.api.recipes.SCRecipeMaps;
-import supercritical.common.registry.SCRegistrate;
+import supercritical.api.registries.SCRegistries;
 
 import static supercritical.api.util.SCUtility.scId;
 
@@ -57,7 +57,7 @@ public class MetaTileEntityHeatExchanger extends WorkableMultiblockMachine imple
     }
 
     public static MultiblockMachineDefinition register() {
-        return SCRegistrate.REGISTRATE
+        return SCRegistries.REGISTRATE
                 .multiblock("heat_exchanger", MetaTileEntityHeatExchanger::new)
                 .rotationState(RotationState.NON_Y_AXIS)
                 .recipeType(SCRecipeMaps.HEAT_EXCHANGER_RECIPES)

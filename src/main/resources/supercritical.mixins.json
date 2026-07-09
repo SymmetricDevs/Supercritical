@@ -1,16 +1,17 @@
 {
-  "package": "supercritical.mixins.gregtech",
+  "package": "supercritical.core.mixin",
   "refmap": "mixins.supercritical.refmap.json",
   "target": "@env(DEFAULT)",
   "minVersion": "0.8",
   "compatibilityLevel": "JAVA_17",
+  "plugin": "supercritical.core.mixin.SCMixinPlugin",
   "mixins": [
-    "MixinElement",
-    "MixinEnergyDetectorCover",
-    "MixinGTRecipeType",
-    "MixinIArmorLogic",
-    "MixinMaterial",
-    "MixinTagPrefix",
-    "MixinTagPrefixItem"
+    "gregtech.MixinElement",
+    "gregtech.MixinEnergyDetectorCover",
+    "gregtech.MixinGTRecipeType",
+    "gregtech.MixinIArmorLogic",
+    "gregtech.MixinMaterial",
+    "gregtech.MixinTagPrefix",
+    "gregtech.MixinTagPrefixItem"
   ]
 }

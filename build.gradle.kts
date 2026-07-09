@@ -12,8 +12,10 @@ dependencies {
     compileOnlyApi(deps.annotations)
     testImplementation(deps.assertj.core)
 
-    // GregTechCEu Modern core dependency for the porting baseline.
     modImplementation(deps.gtceu)
+    // JEI for dev testing
+    compileOnlyApi(deps.bundles.jei)
+    modRuntimeOnly(deps.bundles.jei)
 
     val gtceuJar = configurations.detachedConfiguration(deps.gtceu.get()).singleFile
     val jarJarDir = layout.buildDirectory.dir("gtceu-jarjar")
@@ -37,9 +39,6 @@ dependencies {
         annotationProcessor(variantOf(libs.mixin) { classifier("processor") })
     }
 
-    // JEI for dev testing
-    compileOnlyApi(deps.bundles.jei)
-    modRuntimeOnly(deps.bundles.jei)
 }
 
 configurations {
@@ -53,11 +52,4 @@ configurations {
         exclude(group = "org.scala-lang.modules")
         exclude(group = "org.scala-lang.plugins")
     }
-}
-
-// The 1.12.2 CTM artifact is pulled in transitively with a broken/misconfigured
-// coordinate and cannot be resolved from the GTCEu maven mirror. It is not used
-// by the 1.20.1 baseline, so exclude it from all dependency graphs.
-configurations.all {
-    exclude(group = "team.chisel.ctm")
 }

@@ -10,7 +10,7 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
-import supercritical.SCValues;
+import supercritical.BuildConfig;
 import supercritical.api.unification.material.SCMaterials;
 import supercritical.api.unification.ore.SCOrePrefix;
 
@@ -21,7 +21,7 @@ import java.util.function.Supplier;
 
 public final class SCItems {
 
-    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, SCValues.MODID);
+    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, BuildConfig.MOD_ID);
 
     public static final RegistryObject<Item> ANODE_BASKET = ITEMS.register("anode_basket",
             () -> new Item(new Item.Properties()));

@@ -8,7 +8,7 @@ import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
-import supercritical.SCValues;
+import supercritical.BuildConfig;
 import supercritical.integration.jei.basic.CoolantCategory;
 import supercritical.integration.jei.basic.FissionFuelCategory;
 import supercritical.integration.jei.basic.ModeratorCategory;
@@ -18,7 +18,7 @@ public class SCJEIPlugin implements IModPlugin {
 
     @Override
     public ResourceLocation getPluginUid() {
-        return new ResourceLocation(SCValues.MODID, "jei_plugin");
+        return new ResourceLocation(BuildConfig.MOD_ID, "jei_plugin");
     }
 
     @Override

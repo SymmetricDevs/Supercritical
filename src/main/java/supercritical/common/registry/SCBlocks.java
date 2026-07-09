@@ -12,14 +12,14 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
-import supercritical.SCValues;
+import supercritical.BuildConfig;
 
 import java.util.EnumMap;
 import java.util.Map;
 
 public final class SCBlocks {
 
-    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, SCValues.MODID);
+    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, BuildConfig.MOD_ID);
 
     public static final RegistryObject<Block> REACTOR_VESSEL = registerFissionCasing("reactor_vessel");
     public static final RegistryObject<Block> FUEL_CHANNEL = registerFissionCasing("fuel_channel");

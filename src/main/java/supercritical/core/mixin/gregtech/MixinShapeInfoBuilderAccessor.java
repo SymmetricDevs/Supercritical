@@ -1,4 +1,4 @@
-package supercritical.mixins.gregtech;
+package supercritical.core.mixin.gregtech;
 
 /**
  * Obsolete GTCEu 1.12-era accessor placeholder.
