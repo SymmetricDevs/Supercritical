@@ -7,9 +7,14 @@ import supercritical.api.nuclear.fission.IFissionFuelStats
 import supercritical.api.nuclear.fission.components.FuelRod
 
 interface IFuelRodHandler : ILockableHandler<ItemStack?> {
+
     var fuel: IFissionFuelStats?
 
     val partialFuel: IFissionFuelStats?
+
+    val depletionPoint: Double
+
+    val depletedFuel: ItemStack
 
     /**
      * @return true if the partial fuel changed.
@@ -18,7 +23,6 @@ interface IFuelRodHandler : ILockableHandler<ItemStack?> {
 
     fun setInternalFuelRod(rod: FuelRod?)
 
-    val depletionPoint: Double
 
     fun isDepleted(totalDepletion: Double): Boolean
 
@@ -30,5 +34,4 @@ interface IFuelRodHandler : ILockableHandler<ItemStack?> {
 
     fun resetDepletion(fuelDepletion: Double)
 
-    val depletedFuel: ItemStack?
 }

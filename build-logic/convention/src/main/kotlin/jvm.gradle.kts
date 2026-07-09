@@ -1,5 +1,7 @@
 plugins {
     java
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 val utf8: String = Charsets.UTF_8.name()
@@ -23,4 +25,8 @@ java {
         languageVersion.set(JavaLanguageVersion.of(21))
         vendor.set(JvmVendorSpec.AZUL)
     }
+}
+
+dependencies {
+    implementation(libs.kotlinForForge)
 }

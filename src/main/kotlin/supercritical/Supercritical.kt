@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeType
 import net.minecraft.resources.ResourceLocation
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.jspecify.annotations.NullMarked
@@ -21,6 +20,7 @@ import supercritical.common.registry.SCMachines
 import supercritical.data.SCDatagen
 import supercritical.loaders.recipe.SCRecipeManager
 import java.util.function.Consumer
+import thedarkcolour.kotlinforforge.forge.MOD_BUS
 
 @NullMarked
 @Mod(BuildConfig.MOD_ID)
@@ -28,17 +28,17 @@ class Supercritical {
     init {
         init()
 
-        val modBus = FMLJavaModLoadingContext.get().getModEventBus()
+        val modBus = MOD_BUS
         SCRegistries.REGISTRATE.registerEventListeners(modBus)
         SCItems.register(modBus)
         SCBlocks.register(modBus)
-        modBus.addGenericListener<GTCEuAPI.RegisterEvent<ResourceLocation, GTRecipeType>, GTRecipeType>(
-            GTRecipeType::class.java,
-            Consumer { event: GTCEuAPI.RegisterEvent<ResourceLocation, GTRecipeType> -> this.registerRecipeTypes(event) })
-        modBus.addGenericListener<GTCEuAPI.RegisterEvent<ResourceLocation, MachineDefinition>, MachineDefinition>(
-            MachineDefinition::class.java,
-            Consumer { event: GTCEuAPI.RegisterEvent<ResourceLocation, MachineDefinition> -> this.registerMachines(event) })
-        modBus.addListener<FMLCommonSetupEvent>(Consumer { event: FMLCommonSetupEvent -> this.commonSetup(event) })
+        modBus.addGenericListener(
+            GTRecipeType::class.java
+        ) { event: GTCEuAPI.RegisterEvent<ResourceLocation, GTRecipeType> -> this.registerRecipeTypes(event) }
+        modBus.addGenericListener(
+            MachineDefinition::class.java
+        ) { event: GTCEuAPI.RegisterEvent<ResourceLocation, MachineDefinition> -> this.registerMachines(event) }
+        modBus.addListener { event: FMLCommonSetupEvent -> this.commonSetup(event) }
 
         modBus.register(SCMaterials::class.java)
     }
@@ -52,12 +52,12 @@ class Supercritical {
     }
 
     private fun commonSetup(event: FMLCommonSetupEvent) {
-        event.enqueueWork(Runnable { obj: SCRecipeManager? -> SCRecipeManager.load() })
-        event.enqueueWork(Runnable { obj: SCMaterials? -> SCMaterials.registerFuelItems() })
-        event.enqueueWork(Runnable {
+        event.enqueueWork { SCRecipeManager.load() }
+        event.enqueueWork { SCMaterials.registerFuelItems() }
+        event.enqueueWork {
             SCMaterials.registerCoolants()
             SCRecipeManager.loadLatest()
-        })
+        }
         LOGGER.info("{} common setup.", BuildConfig.MOD_NAME)
     }
 

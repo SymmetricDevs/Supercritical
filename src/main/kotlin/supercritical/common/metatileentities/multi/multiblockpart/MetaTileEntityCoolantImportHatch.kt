@@ -58,7 +58,7 @@ class MetaTileEntityCoolantImportHatch(holder: IMachineBlockEntity, tier: Int) :
         return null
     }
 
-    override fun setLock(isLocked: Boolean) {
+    override fun setLocked(isLocked: Boolean) {
         fluidTank.setLock(isLocked)
     }
 

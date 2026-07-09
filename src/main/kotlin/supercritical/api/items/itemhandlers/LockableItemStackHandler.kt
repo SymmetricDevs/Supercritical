@@ -9,54 +9,46 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder
 import net.minecraft.world.item.ItemStack
 import supercritical.api.capability.ILockableHandler
 
-class LockableItemStackHandler(machine: MetaMachine, io: IO) : NotifiableItemStackHandler(
+open class LockableItemStackHandler(machine: MetaMachine, io: IO) : NotifiableItemStackHandler(
     machine, 1, io, if (io.support(
             IO.IN
         )
     ) IO.BOTH else io
 ), ILockableHandler<ItemStack?> {
-    @Persisted
-    @DescSynced
-    protected var locked: Boolean = false
 
     @Persisted
     @DescSynced
-    protected var lockedItemStack: ItemStack = ItemStack.EMPTY
+    override var locked: Boolean = false
+        set(locked) {
+            field = locked
+            if (locked && !this.getStackInSlot(0).isEmpty) {
+                lockedObject = this.getStackInSlot(0).copy()
+                lockedObject.setCount(1)
+            } else {
+                lockedObject = ItemStack.EMPTY
+            }
+        }
+
+    @Persisted
+    @DescSynced
+    override var lockedObject: ItemStack = ItemStack.EMPTY
 
     override fun getFieldHolder(): ManagedFieldHolder {
         return MANAGED_FIELD_HOLDER
     }
 
-    override fun isLocked(): Boolean {
-        return locked
-    }
-
-    override fun setLock(isLocked: Boolean) {
-        this.locked = isLocked
-        if (isLocked && !this.getStackInSlot(0).isEmpty()) {
-            lockedItemStack = this.getStackInSlot(0).copy()
-            lockedItemStack.setCount(1)
-        } else {
-            lockedItemStack = ItemStack.EMPTY
-        }
-    }
-
     override fun insertItem(slot: Int, stack: ItemStack, simulate: Boolean): ItemStack {
-        if (this.locked && !this.lockedItemStack.isEmpty() && !ItemStack.isSameItem(this.lockedItemStack, stack)) {
+        if (locked && !lockedObject.isEmpty && !ItemStack.isSameItem(this.lockedObject, stack)) {
             return stack
         }
         return super.insertItem(slot, stack, simulate)
     }
 
     override fun isItemValid(slot: Int, stack: ItemStack): Boolean {
-        if (this.locked && !this.lockedItemStack.isEmpty() && !ItemStack.isSameItem(this.lockedItemStack, stack)) {
+        if (this.locked && !this.lockedObject.isEmpty && !ItemStack.isSameItem(this.lockedObject, stack)) {
             return false
         }
         return super.isItemValid(slot, stack)
-    }
-
-    override fun getLockedObject(): ItemStack {
-        return lockedItemStack
     }
 
     companion object {

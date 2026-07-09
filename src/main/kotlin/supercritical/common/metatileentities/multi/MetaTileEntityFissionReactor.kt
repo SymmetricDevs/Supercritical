@@ -319,7 +319,7 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
 
     private fun lockAll() {
         for (handler in this.coolantHandlers) {
-            handler.setLock(true)
+            handler.setLocked(true)
         }
         for (handler in this.fuelRodHandlers) {
             handler.setLock(true)
@@ -339,7 +339,7 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
             }
         }
         for (handler in this.coolantHandlers) {
-            handler.setLock(false)
+            handler.setLocked(false)
         }
         if (reactor != null) {
             reactor!!.setOn(false)
