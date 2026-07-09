@@ -1,0 +1,20 @@
+[versions]
+annotations = "26.1.0"
+jspecify = "1.0.0"
+assertj = "3.27.7"
+
+gtceu = "7.5.3"
+jei = "15.20.0.133"
+
+[libraries]
+annotations = { module = "org.jetbrains:annotations", version.ref = "annotations" }
+jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
+assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+
+gtceu = { module = "com.gregtechceu.gtceu:gtceu-1.20.1", version.ref = "gtceu" }
+jei-common-api = { module = "mezz.jei:jei-1.20.1-common-api", version.ref = "jei" }
+jei-forge-api = { module = "mezz.jei:jei-1.20.1-forge-api", version.ref = "jei" }
+jei-forge-impl = { module = "mezz.jei:jei-1.20.1-forge", version.ref = "jei" }
+
+[bundles]
+jei = ["jei-common-api", "jei-forge-api", "jei-forge-impl"]

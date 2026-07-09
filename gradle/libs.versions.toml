@@ -1,0 +1,37 @@
+[versions]
+modDevGradle = "2.0.141"
+ideaExt = "1.4.1"
+shadow = "9.4.2"
+minotaur = "2.8.10"
+curseforgeGradle = "1.1.28"
+buildconfig = "6.0.10"
+
+# Test platform
+junit = "6.1.1"
+
+lwjgl = "3.3.2"
+forge = "47.3.0"
+minecraft = "1.20.1"
+parchment = "2023.09.03"
+renderNurse = "0.0.12"
+mixin = "0.8.7"
+mixinExtras = "0.5.4"
+
+[plugins]
+modDevGradle = { id = "net.neoforged.moddev.legacyforge", version.ref = "modDevGradle" }
+ideaExt = { id = "org.jetbrains.gradle.plugin.idea-ext", version.ref = "ideaExt" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+minotaur = { id = "com.modrinth.minotaur", version.ref = "minotaur" }
+curseforgeGradle = { id = "net.darkhax.curseforgegradle", version.ref = "curseforgeGradle" }
+buildconfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildconfig" }
+
+[libraries]
+minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
+forge = { module = "net.minecraftforge:forge", version.ref = "forge" }
+renderNurse = { module = "net.neoforged:render-nurse", version.ref = "renderNurse" }
+mixin = { module = "org.spongepowered:mixin", version.ref = "mixin" }
+mixinExtras = { module = "io.github.llamalad7:mixinextras-forge", version.ref = "mixinExtras" }
+
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
