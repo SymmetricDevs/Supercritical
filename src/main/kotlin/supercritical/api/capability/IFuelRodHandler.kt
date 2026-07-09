@@ -1,38 +1,34 @@
-package supercritical.api.capability;
+package supercritical.api.capability
 
-import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandlerModifiable;
+import net.minecraft.world.item.ItemStack
+import net.minecraftforge.items.IItemHandlerModifiable
+import supercritical.api.items.itemhandlers.LockableItemStackHandler
+import supercritical.api.nuclear.fission.IFissionFuelStats
+import supercritical.api.nuclear.fission.components.FuelRod
 
-import supercritical.api.items.itemhandlers.LockableItemStackHandler;
-import supercritical.api.nuclear.fission.IFissionFuelStats;
-import supercritical.api.nuclear.fission.components.FuelRod;
+interface IFuelRodHandler : ILockableHandler<ItemStack?> {
+    var fuel: IFissionFuelStats?
 
-public interface IFuelRodHandler extends ILockableHandler<ItemStack> {
-
-    IFissionFuelStats getFuel();
-
-    void setFuel(IFissionFuelStats prop);
-
-    IFissionFuelStats getPartialFuel();
+    val partialFuel: IFissionFuelStats?
 
     /**
      * @return true if the partial fuel changed.
      */
-    boolean setPartialFuel(IFissionFuelStats prop);
+    fun setPartialFuel(prop: IFissionFuelStats?): Boolean
 
-    void setInternalFuelRod(FuelRod rod);
+    fun setInternalFuelRod(rod: FuelRod?)
 
-    double getDepletionPoint();
+    val depletionPoint: Double
 
-    boolean isDepleted(double totalDepletion);
+    fun isDepleted(totalDepletion: Double): Boolean
 
-    void markUndepleted();
+    fun markUndepleted()
 
-    LockableItemStackHandler getInputStackHandler();
+    val inputStackHandler: LockableItemStackHandler?
 
-    IItemHandlerModifiable getOutputStackHandler(int depth);
+    fun getOutputStackHandler(depth: Int): IItemHandlerModifiable?
 
-    void resetDepletion(double fuelDepletion);
+    fun resetDepletion(fuelDepletion: Double)
 
-    ItemStack getDepletedFuel();
+    val depletedFuel: ItemStack?
 }

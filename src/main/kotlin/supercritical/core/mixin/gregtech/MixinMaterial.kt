@@ -1,58 +1,53 @@
-package supercritical.core.mixin.gregtech;
+package supercritical.core.mixin.gregtech
 
-import com.gregtechceu.gtceu.api.data.chemical.Element;
-import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
-import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
-import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.Nullable;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import supercritical.api.unification.ElementExtension;
-import supercritical.api.unification.material.MaterialExtension;
-import supercritical.api.unification.material.properties.SCPropertyKey;
+import com.gregtechceu.gtceu.api.data.chemical.Element
+import com.gregtechceu.gtceu.api.data.chemical.material.Material
+import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack
+import org.spongepowered.asm.mixin.Mixin
+import org.spongepowered.asm.mixin.Shadow
+import org.spongepowered.asm.mixin.injection.At
+import org.spongepowered.asm.mixin.injection.Inject
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
+import supercritical.api.unification.ElementExtension
+import supercritical.api.unification.material.MaterialExtension
+import kotlin.math.exp
+import kotlin.math.ln
 
-@Mixin(value = Material.class, remap = false)
-public abstract class MixinMaterial implements MaterialExtension {
+@Mixin(value = [Material::class], remap = false)
+abstract class MixinMaterial : MaterialExtension {
+    @get:Shadow
+    abstract val element: Element?
 
-    @Shadow
-    @Nullable
-    public abstract Element getElement();
+    @get:Shadow
+    abstract val isRadioactive: Boolean
 
-    @Shadow
-    public abstract boolean isRadioactive();
+    @get:Shadow
+    abstract val materialComponents: ImmutableList<MaterialStack>?
 
-    @Shadow
-    public abstract ImmutableList<MaterialStack> getMaterialComponents();
-
-    @Override
-    public double getDecaysPerSecond() {
-        if (!isRadioactive()) {
-            return 0;
+    override fun getDecaysPerSecond(): Double {
+        if (!this.isRadioactive) {
+            return 0.0
         }
-        Element element = getElement();
+        val element = this.element
         if (element != null) {
-            double halfLife = ((ElementExtension) element).getHalfLifeSeconds();
+            val halfLife = (element as ElementExtension).getHalfLifeSeconds()
             if (halfLife > 0) {
-                return 6e23 * (Math.log(2) * Math.exp(-Math.log(2) / halfLife));
+                return 6e23 * (ln(2.0) * exp(-ln(2.0) / halfLife))
             }
-            return 0;
+            return 0.0
         }
-        double decaysPerSecond = 0;
-        for (MaterialStack stack : getMaterialComponents()) {
-            decaysPerSecond += stack.amount() * MaterialExtension.getDecaysPerSecond(stack.material());
+        var decaysPerSecond = 0.0
+        for (stack in this.materialComponents) {
+            decaysPerSecond += stack.amount() * MaterialExtension.Companion.getDecaysPerSecond(stack.material())
         }
-        return decaysPerSecond;
+        return decaysPerSecond
     }
 
-    @Inject(method = "isRadioactive", at = @At(value = "RETURN", ordinal = 0), cancellable = true)
-    public void isActuallyRadioactive(CallbackInfoReturnable<Boolean> cir) {
-        Element element = getElement();
+    @Inject(method = ["isRadioactive"], at = [At(value = "RETURN", ordinal = 0)], cancellable = true)
+    fun isActuallyRadioactive(cir: CallbackInfoReturnable<Boolean?>) {
+        val element = this.element
         if (element != null) {
-            cir.setReturnValue(((ElementExtension) element).getHalfLifeSeconds() >= 0);
+            cir.setReturnValue((element as ElementExtension).getHalfLifeSeconds() >= 0)
         }
     }
 }

@@ -1,31 +1,22 @@
-package supercritical.api.nuclear.fission;
+package supercritical.api.nuclear.fission
 
-import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Block
+import java.util.*
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+object ModeratorRegistry {
+    private val MODERATORS: MutableMap<Block?, IModeratorStats?> = LinkedHashMap<Block?, IModeratorStats?>()
 
-public final class ModeratorRegistry {
-
-    private static final Map<Block, IModeratorStats> MODERATORS = new LinkedHashMap<>();
-
-    private ModeratorRegistry() {}
-
-    public static void registerModerator(Block block, IModeratorStats stats) {
-        MODERATORS.put(block, stats);
+    fun registerModerator(block: Block?, stats: IModeratorStats?) {
+        MODERATORS.put(block, stats)
     }
 
-    public static IModeratorStats getModerator(Block block) {
-        return MODERATORS.get(block);
+    fun getModerator(block: Block?): IModeratorStats? {
+        return MODERATORS.get(block)
     }
 
-    public static Collection<Block> getAllModerators() {
-        return Collections.unmodifiableSet(MODERATORS.keySet());
-    }
+    val allModerators: MutableCollection<Block?>
+        get() = Collections.unmodifiableSet<Block?>(MODERATORS.keys)
 
-    public static Collection<IModeratorStats> getAllModeratorStats() {
-        return Collections.unmodifiableCollection(MODERATORS.values());
-    }
+    val allModeratorStats: MutableCollection<IModeratorStats?>
+        get() = Collections.unmodifiableCollection<IModeratorStats?>(MODERATORS.values)
 }

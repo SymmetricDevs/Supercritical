@@ -1,34 +1,20 @@
-package supercritical.api.capability;
+package supercritical.api.capability
 
-import net.minecraft.core.Direction;
-import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluid
+import supercritical.api.capability.impl.LockableFluidTank
+import supercritical.api.metatileentity.multiblock.IFissionReactorHatch
+import supercritical.api.nuclear.fission.ICoolantStats
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+interface ICoolantHandler : ILockableHandler<Fluid?>, IFissionReactorHatch {
+    override fun isLocked(): Boolean
 
-import supercritical.api.capability.impl.LockableFluidTank;
-import supercritical.api.metatileentity.multiblock.IFissionReactorHatch;
-import supercritical.api.nuclear.fission.ICoolantStats;
+    override fun setLock(isLocked: Boolean)
 
-public interface ICoolantHandler extends ILockableHandler<Fluid>, IFissionReactorHatch {
+    var coolant: ICoolantStats?
 
-    @Override
-    boolean isLocked();
+    val fluidTank: LockableFluidTank
 
-    @Override
-    void setLock(boolean isLocked);
+    val frontFacing: Direction
 
-    @Nullable
-    ICoolantStats getCoolant();
-
-    void setCoolant(@Nullable ICoolantStats prop);
-
-    @NotNull
-    LockableFluidTank getFluidTank();
-
-    @NotNull
-    Direction getFrontFacing();
-
-    @Nullable
-    ICoolantHandler getOutputHandler();
+    val outputHandler: ICoolantHandler?
 }

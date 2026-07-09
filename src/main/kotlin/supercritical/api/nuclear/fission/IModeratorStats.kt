@@ -1,10 +1,9 @@
-package supercritical.api.nuclear.fission;
+package supercritical.api.nuclear.fission
 
-public interface IModeratorStats {
+interface IModeratorStats {
+    val maxTemperature: Int
 
-    int getMaxTemperature();
+    val moderationFactor: Double
 
-    double getModerationFactor();
-
-    double getAbsorptionFactor();
+    val absorptionFactor: Double
 }

@@ -1,18 +1,20 @@
-package supercritical.api.items.armor;
+package supercritical.api.items.armor
+
+import com.gregtechceu.gtceu.api.item.armor.IArmorLogic
 
 /**
- * Extends {@link com.gregtechceu.gtceu.api.item.armor.IArmorLogic} with radiation resistance.
+ * Extends [IArmorLogic] with radiation resistance.
  */
-public interface ArmorLogicExtension {
+interface ArmorLogicExtension {
+    val radiationResistance: Float
+        /**
+         * @return the value to multiply radiation damage by
+         */
+        get() = 1.0f
 
-    /**
-     * @return the value to multiply radiation damage by
-     */
-    default float getRadiationResistance() {
-        return 1.0f;
-    }
-
-    static float getRadiationResistance(com.gregtechceu.gtceu.api.item.armor.IArmorLogic armorLogic) {
-        return ((ArmorLogicExtension) armorLogic).getRadiationResistance();
+    companion object {
+        fun getRadiationResistance(armorLogic: IArmorLogic): Float {
+            return (armorLogic as ArmorLogicExtension).radiationResistance
+        }
     }
 }

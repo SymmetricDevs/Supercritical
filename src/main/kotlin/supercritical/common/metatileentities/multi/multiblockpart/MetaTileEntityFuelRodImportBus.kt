@@ -1,232 +1,199 @@
-package supercritical.common.metatileentities.multi.multiblockpart;
+package supercritical.common.metatileentities.multi.multiblockpart
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.world.item.ItemStack;
+import com.gregtechceu.gtceu.api.capability.IControllable
+import com.gregtechceu.gtceu.api.capability.recipe.IO
+import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
+import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler
+import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced
+import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted
+import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.world.item.ItemStack
+import supercritical.api.capability.IFuelRodHandler
+import supercritical.api.items.itemhandlers.LockableItemStackHandler
+import supercritical.api.metatileentity.multiblock.IFissionReactorHatch
+import supercritical.api.nuclear.fission.FissionFuelRegistry
+import supercritical.api.nuclear.fission.IFissionFuelStats
+import supercritical.api.nuclear.fission.components.FuelRod
+import supercritical.common.metatileentities.multi.MetaTileEntityFissionReactor
+import supercritical.common.registry.SCBlocks
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import com.gregtechceu.gtceu.api.capability.IControllable;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
-
-import supercritical.api.capability.IFuelRodHandler;
-import supercritical.api.items.itemhandlers.LockableItemStackHandler;
-import supercritical.api.metatileentity.multiblock.IFissionReactorHatch;
-import supercritical.api.nuclear.fission.FissionFuelRegistry;
-import supercritical.api.nuclear.fission.IFissionFuelStats;
-import supercritical.api.nuclear.fission.components.FuelRod;
-import supercritical.common.registry.SCBlocks;
-import supercritical.common.metatileentities.multi.MetaTileEntityFissionReactor;
-
-public class MetaTileEntityFuelRodImportBus extends TieredIOPartMachine
-        implements IFuelRodHandler, IControllable, IFissionReactorHatch {
-
+class MetaTileEntityFuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMachine(holder, tier, IO.IN),
+    IFuelRodHandler, IControllable, IFissionReactorHatch {
     @Persisted
     @DescSynced
     @RequireRerender
-    private boolean workingEnabled;
-    @Nullable
-    private MetaTileEntityFissionReactor controller;
-    private IFissionFuelStats fuelProperty;
-    private MetaTileEntityFuelRodExportBus pairedHatch;
-    private IFissionFuelStats partialFuel;
-    private FuelRod internalFuelRod;
-    private double depletionPoint;
+    private var workingEnabled = true
+    private val controller: MetaTileEntityFissionReactor? = null
+    private var fuelProperty: IFissionFuelStats? = null
+    private var pairedHatch: MetaTileEntityFuelRodExportBus? = null
+    private var partialFuel: IFissionFuelStats? = null
+    private var internalFuelRod: FuelRod? = null
+    private var depletionPoint = 0.0
 
-    private final LockableItemStackHandler lockableInventory;
+    private val lockableInventory: LockableItemStackHandler
 
-    public MetaTileEntityFuelRodImportBus(IMachineBlockEntity holder, int tier) {
-        super(holder, tier, IO.IN);
-        this.workingEnabled = true;
-        this.lockableInventory = new LockableItemStackHandler(this, IO.IN);
+    init {
+        this.lockableInventory = LockableItemStackHandler(this, IO.IN)
     }
 
-    public NotifiableItemStackHandler getInventory() {
-        return lockableInventory;
+    val inventory: NotifiableItemStackHandler
+        get() = lockableInventory
+
+    override fun isWorkingEnabled(): Boolean {
+        return workingEnabled
     }
 
-    @Override
-    public boolean isWorkingEnabled() {
-        return workingEnabled;
+    override fun setWorkingEnabled(workingEnabled: Boolean) {
+        this.workingEnabled = workingEnabled
     }
 
-    @Override
-    public void setWorkingEnabled(boolean workingEnabled) {
-        this.workingEnabled = workingEnabled;
+    override fun checkValidity(depth: Int): Boolean {
+        this.pairedHatch = getExportHatch(depth)
+        return pairedHatch != null
     }
 
-    @Override
-    public boolean checkValidity(int depth) {
-        this.pairedHatch = getExportHatch(depth);
-        return pairedHatch != null;
-    }
-
-    public MetaTileEntityFuelRodExportBus getExportHatch(int depth) {
-        BlockPos.MutableBlockPos pos = getPos().mutable();
-        Direction back = getFrontFacing().getOpposite();
-        for (int i = 1; i < depth; i++) {
-            pos.move(back);
-            if (getLevel().getBlockState(pos).getBlock() != SCBlocks.FUEL_CHANNEL.get()) {
-                return null;
+    fun getExportHatch(depth: Int): MetaTileEntityFuelRodExportBus? {
+        val pos = getPos()!!.mutable()
+        val back = getFrontFacing().getOpposite()
+        for (i in 1..<depth) {
+            pos.move(back)
+            if (getLevel()!!.getBlockState(pos).getBlock() !== SCBlocks.FUEL_CHANNEL.get()) {
+                return null
             }
         }
-        pos.move(back);
-        if (MetaMachine.getMachine(getLevel(), pos) instanceof MetaTileEntityFuelRodExportBus export) {
-            return export;
+        pos.move(back)
+        if (getMachine(getLevel(), pos) is MetaTileEntityFuelRodExportBus) {
+            return export
         }
-        return null;
+        return null
     }
 
-    @Override
-    public void setLock(boolean isLocked) {
-        if (depletionPoint == 0) {
-            lockableInventory.setLock(isLocked);
+    override fun setLock(isLocked: Boolean) {
+        if (depletionPoint == 0.0) {
+            lockableInventory.setLock(isLocked)
         }
     }
 
-    @Override
-    public boolean isLocked() {
-        return lockableInventory.isLocked();
+    override fun isLocked(): Boolean {
+        return lockableInventory.isLocked()
     }
 
-    @Override
-    public ItemStack getLockedObject() {
-        return lockableInventory.getLockedObject();
+    override fun getLockedObject(): ItemStack? {
+        return lockableInventory.getLockedObject()
     }
 
-    @Override
-    public IFissionFuelStats getFuel() {
-        return this.fuelProperty;
+    override fun getFuel(): IFissionFuelStats? {
+        return this.fuelProperty
     }
 
-    @Override
-    public void setFuel(IFissionFuelStats prop) {
-        this.fuelProperty = prop;
+    override fun setFuel(prop: IFissionFuelStats?) {
+        this.fuelProperty = prop
     }
 
-    @Override
-    public IFissionFuelStats getPartialFuel() {
-        return this.partialFuel;
+    override fun getPartialFuel(): IFissionFuelStats? {
+        return this.partialFuel
     }
 
-    @Override
-    public boolean setPartialFuel(IFissionFuelStats prop) {
-        if (prop == this.partialFuel) return false;
-        this.partialFuel = prop;
+    override fun setPartialFuel(prop: IFissionFuelStats?): Boolean {
+        if (prop === this.partialFuel) return false
+        this.partialFuel = prop
         if (prop == null) {
-            this.internalFuelRod = null;
+            this.internalFuelRod = null
         } else if (this.internalFuelRod != null) {
-            this.internalFuelRod.setFuel(prop);
+            this.internalFuelRod!!.setFuel(prop)
         }
-        return true;
+        return true
     }
 
-    @Override
-    public void setInternalFuelRod(FuelRod rod) {
-        this.internalFuelRod = rod;
+    override fun setInternalFuelRod(rod: FuelRod?) {
+        this.internalFuelRod = rod
     }
 
-    @Override
-    public boolean isDepleted(double totalDepletion) {
-        return this.depletionPoint <= totalDepletion * this.internalFuelRod.getWeight();
+    override fun isDepleted(totalDepletion: Double): Boolean {
+        return this.depletionPoint <= totalDepletion * this.internalFuelRod!!.getWeight()
     }
 
-    @Override
-    public void markUndepleted() {
+    override fun markUndepleted() {
         if (this.partialFuel != null) {
-            this.depletionPoint += this.partialFuel.getDuration();
+            this.depletionPoint += this.partialFuel!!.getDuration().toDouble()
         }
     }
 
-    @Override
-    public LockableItemStackHandler getInputStackHandler() {
-        return this.lockableInventory;
+    override fun getInputStackHandler(): LockableItemStackHandler {
+        return this.lockableInventory
     }
 
-    @Override
-    public NotifiableItemStackHandler getOutputStackHandler(int depth) {
-        MetaTileEntityFuelRodExportBus export = getExportHatch(depth);
-        return export == null ? null : export.getInventory();
+    override fun getOutputStackHandler(depth: Int): NotifiableItemStackHandler? {
+        val export = getExportHatch(depth)
+        return if (export == null) null else export.getInventory()
     }
 
-    @Override
-    public void resetDepletion(double fuelDepletion) {
-        if (this.internalFuelRod == null) return;
-        this.depletionPoint -= fuelDepletion * this.internalFuelRod.getWeight();
+    override fun resetDepletion(fuelDepletion: Double) {
+        if (this.internalFuelRod == null) return
+        this.depletionPoint -= fuelDepletion * this.internalFuelRod!!.getWeight()
     }
 
-    @Override
-    public ItemStack getDepletedFuel() {
-        if (this.internalFuelRod == null) return ItemStack.EMPTY;
-        return this.internalFuelRod.getDepletedFuel();
+    override fun getDepletedFuel(): ItemStack? {
+        if (this.internalFuelRod == null) return ItemStack.EMPTY
+        return this.internalFuelRod!!.getDepletedFuel()
     }
 
-    @Override
-    public double getDepletionPoint() {
-        return this.depletionPoint;
+    override fun getDepletionPoint(): Double {
+        return this.depletionPoint
     }
 
-    public double getCurrentDepletionRatio() {
-        if (this.partialFuel == null) return 0;
-        MetaTileEntityFissionReactor controller = getController();
-        if (controller == null || !controller.isLocked() || controller.getReactor() == null) {
-            return 1 - (depletionPoint / partialFuel.getDuration());
-        }
-        return 1 - ((depletionPoint - (controller.getReactor().fuelDepletion * internalFuelRod.getWeight()))
-                / partialFuel.getDuration());
-    }
-
-    public void voidPartialFuel() {
-        MetaTileEntityFissionReactor controller = getController();
-        if (controller != null && controller.isLocked()) return;
-        setPartialFuel(null);
-        depletionPoint = 0;
-        setLock(false);
-    }
-
-    @Override
-    public MetaTileEntityFissionReactor getController() {
-        var controllers = getControllers();
-        if (controllers.isEmpty()) return null;
-        if (controllers.first() instanceof MetaTileEntityFissionReactor reactor) {
-            return reactor;
-        }
-        return null;
-    }
-
-    @Override
-    public void onLoad() {
-        super.onLoad();
-        subscribeServerTick(() -> {
-            if (getOffsetTimer() % 5 == 0 && isWorkingEnabled()) {
-                lockableInventory.importFromNearby(getFrontFacing());
+    val currentDepletionRatio: Double
+        get() {
+            if (this.partialFuel == null) return 0.0
+            val controller = getController()
+            if (controller == null || !controller.isLocked() || controller.getReactor() == null) {
+                return 1 - (depletionPoint / partialFuel!!.getDuration())
             }
-        });
-    }
-
-    @Override
-    public void saveCustomPersistedData(net.minecraft.nbt.CompoundTag tag, boolean forDrop) {
-        super.saveCustomPersistedData(tag, forDrop);
-        tag.putBoolean("Locked", lockableInventory.isLocked());
-        if (partialFuel != null) tag.putString("PartialFuel", partialFuel.getId());
-        tag.putDouble("DepletionPoint", depletionPoint);
-    }
-
-    @Override
-    public void loadCustomPersistedData(net.minecraft.nbt.CompoundTag tag) {
-        super.loadCustomPersistedData(tag);
-        lockableInventory.setLock(tag.getBoolean("Locked"));
-        if (tag.contains("PartialFuel")) {
-            this.partialFuel = FissionFuelRegistry.getFissionFuel(tag.getString("PartialFuel"));
+            return 1 - ((depletionPoint - (controller.getReactor().fuelDepletion * internalFuelRod!!.getWeight()))
+                    / partialFuel!!.getDuration())
         }
-        this.depletionPoint = tag.getDouble("DepletionPoint");
+
+    fun voidPartialFuel() {
+        val controller = getController()
+        if (controller != null && controller.isLocked()) return
+        setPartialFuel(null)
+        depletionPoint = 0.0
+        setLock(false)
+    }
+
+    override fun getController(): MetaTileEntityFissionReactor? {
+        val controllers = getControllers()
+        if (controllers.isEmpty()) return null
+        if (controllers.first() is MetaTileEntityFissionReactor) {
+            return reactor
+        }
+        return null
+    }
+
+    override fun onLoad() {
+        super.onLoad()
+        subscribeServerTick(Runnable {
+            if (getOffsetTimer() % 5 == 0L && isWorkingEnabled()) {
+                lockableInventory.importFromNearby(getFrontFacing())
+            }
+        })
+    }
+
+    override fun saveCustomPersistedData(tag: CompoundTag, forDrop: Boolean) {
+        super.saveCustomPersistedData(tag, forDrop)
+        tag.putBoolean("Locked", lockableInventory.isLocked())
+        if (partialFuel != null) tag.putString("PartialFuel", partialFuel!!.getId())
+        tag.putDouble("DepletionPoint", depletionPoint)
+    }
+
+    override fun loadCustomPersistedData(tag: CompoundTag) {
+        super.loadCustomPersistedData(tag)
+        lockableInventory.setLock(tag.getBoolean("Locked"))
+        if (tag.contains("PartialFuel")) {
+            this.partialFuel = FissionFuelRegistry.getFissionFuel(tag.getString("PartialFuel"))
+        }
+        this.depletionPoint = tag.getDouble("DepletionPoint")
     }
 }

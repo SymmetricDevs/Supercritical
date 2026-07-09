@@ -1,46 +1,40 @@
-package supercritical.api.metatileentity.multiblock;
+package supercritical.api.metatileentity.multiblock
 
-import net.minecraft.core.BlockPos;
+import net.minecraft.core.BlockPos
+import supercritical.common.metatileentities.multi.MetaTileEntityFissionReactor
 
-import org.jetbrains.annotations.Nullable;
-
-import supercritical.common.metatileentities.multi.MetaTileEntityFissionReactor;
-
-public interface IFissionReactorHatch {
-
+interface IFissionReactorHatch {
     /**
      * @param depth The depth of the reactor that needs checking
      * @return If the channel directly below the hatch is valid or not
      */
-    boolean checkValidity(int depth);
+    fun checkValidity(depth: Int): Boolean
 
-    default boolean canContinue(double depletion) {
-        return true;
+    fun canContinue(depletion: Double): Boolean {
+        return true
     }
 
-    @Nullable
-    BlockPos getPos();
+    val pos: BlockPos?
 
     /**
      * Called by the controller when it forms so the hatch can store a weak reference.
      */
-    default void setController(MetaTileEntityFissionReactor controller) {}
+    fun setController(controller: MetaTileEntityFissionReactor?) {}
 
-    @Nullable
-    default MetaTileEntityFissionReactor getController() {
-        return null;
+    fun getController(): MetaTileEntityFissionReactor? {
+        return null
     }
 
     /**
      * @return the stored controller reference, or null if none is stored.
      */
-    default boolean hasController() {
-        return getController() != null;
+    fun hasController(): Boolean {
+        return getController() != null
     }
 
-    default boolean isLocked() {
-        return false;
+    fun isLocked(): Boolean {
+        return false
     }
 
-    default void setLocked(boolean locked) {}
+    fun setLocked(locked: Boolean) {}
 }

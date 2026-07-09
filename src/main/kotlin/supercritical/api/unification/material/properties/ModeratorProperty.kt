@@ -1,51 +1,66 @@
-package supercritical.api.unification.material.properties;
+package supercritical.api.unification.material.properties
 
-import com.gregtechceu.gtceu.api.data.chemical.material.properties.IMaterialProperty;
-import com.gregtechceu.gtceu.api.data.chemical.material.properties.MaterialProperties;
-import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
-import supercritical.api.nuclear.fission.IModeratorStats;
+import com.gregtechceu.gtceu.api.data.chemical.material.properties.DustProperty
+import com.gregtechceu.gtceu.api.data.chemical.material.properties.IMaterialProperty
+import com.gregtechceu.gtceu.api.data.chemical.material.properties.MaterialProperties
+import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey
+import supercritical.api.nuclear.fission.IModeratorStats
 
-public final class ModeratorProperty implements IMaterialProperty, IModeratorStats {
+class ModeratorProperty private constructor(builder: Builder) : IMaterialProperty, IModeratorStats {
+    private val maxTemperature: Int
+    private val moderationFactor: Double
+    private val absorptionFactor: Double
 
-    private final int maxTemperature;
-    private final double moderationFactor;
-    private final double absorptionFactor;
-
-    private ModeratorProperty(Builder builder) {
-        this.maxTemperature = builder.maxTemperature;
-        this.moderationFactor = builder.moderationFactor;
-        this.absorptionFactor = builder.absorptionFactor;
+    init {
+        this.maxTemperature = builder.maxTemperature
+        this.moderationFactor = builder.moderationFactor
+        this.absorptionFactor = builder.absorptionFactor
     }
 
-    @Override
-    public void verifyProperty(MaterialProperties properties) {
-        properties.ensureSet(PropertyKey.DUST, true);
+    override fun verifyProperty(properties: MaterialProperties) {
+        properties.ensureSet<DustProperty?>(PropertyKey.DUST, true)
     }
 
-    public int getMaxTemperature() {
-        return maxTemperature;
+    override fun getMaxTemperature(): Int {
+        return maxTemperature
     }
 
-    public double getModerationFactor() {
-        return moderationFactor;
+    override fun getModerationFactor(): Double {
+        return moderationFactor
     }
 
-    public double getAbsorptionFactor() {
-        return absorptionFactor;
+    override fun getAbsorptionFactor(): Double {
+        return absorptionFactor
     }
 
-    public static Builder builder() {
-        return new Builder();
+    class Builder {
+        private var maxTemperature = 0
+        private var moderationFactor = 0.0
+        private var absorptionFactor = 0.0
+
+        fun maxTemperature(maxTemperature: Int): Builder {
+            this.maxTemperature = maxTemperature
+            return this
+        }
+
+        fun moderationFactor(moderationFactor: Double): Builder {
+            this.moderationFactor = moderationFactor
+            return this
+        }
+
+        fun absorptionFactor(absorptionFactor: Double): Builder {
+            this.absorptionFactor = absorptionFactor
+            return this
+        }
+
+        fun build(): ModeratorProperty {
+            return ModeratorProperty(this)
+        }
     }
 
-    public static final class Builder {
-        private int maxTemperature;
-        private double moderationFactor;
-        private double absorptionFactor;
-
-        public Builder maxTemperature(int maxTemperature) { this.maxTemperature = maxTemperature; return this; }
-        public Builder moderationFactor(double moderationFactor) { this.moderationFactor = moderationFactor; return this; }
-        public Builder absorptionFactor(double absorptionFactor) { this.absorptionFactor = absorptionFactor; return this; }
-        public ModeratorProperty build() { return new ModeratorProperty(this); }
+    companion object {
+        fun builder(): Builder {
+            return Builder()
+        }
     }
 }

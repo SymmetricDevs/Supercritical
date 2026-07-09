@@ -1,55 +1,51 @@
-package supercritical.api.nuclear.fission;
+package supercritical.api.nuclear.fission
 
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStack
 
-import java.util.List;
+interface IFissionFuelStats {
+    val maxTemperature: Int
 
-public interface IFissionFuelStats {
+    val duration: Int
 
-    int getMaxTemperature();
+    val slowNeutronCaptureCrossSection: Double
 
-    int getDuration();
+    val fastNeutronCaptureCrossSection: Double
 
-    double getSlowNeutronCaptureCrossSection();
+    val slowNeutronFissionCrossSection: Double
 
-    double getFastNeutronCaptureCrossSection();
+    val fastNeutronFissionCrossSection: Double
 
-    double getSlowNeutronFissionCrossSection();
+    val releasedNeutrons: Double
 
-    double getFastNeutronFissionCrossSection();
+    val requiredNeutrons: Double
 
-    double getReleasedNeutrons();
+    val releasedHeatEnergy: Double
 
-    double getRequiredNeutrons();
+    val decayRate: Double
 
-    double getReleasedHeatEnergy();
+    val neutronGenerationTime: Double
 
-    double getDecayRate();
-
-    double getNeutronGenerationTime();
-
-    default int getNeutronGenerationTimeCategory() {
-        if (getNeutronGenerationTime() > 2) {
-            return 0;
-        } else if (getNeutronGenerationTime() > 1.25) {
-            return 1;
-        } else if (getNeutronGenerationTime() > 0.9) {
-            return 2;
+    val neutronGenerationTimeCategory: Int
+        get() {
+            if (this.neutronGenerationTime > 2) {
+                return 0
+            } else if (this.neutronGenerationTime > 1.25) {
+                return 1
+            } else if (this.neutronGenerationTime > 0.9) {
+                return 2
+            }
+            return 3
         }
-        return 3;
-    }
 
-    default double getFastFissionMultiplier() {
-        return getFastNeutronFissionCrossSection() * getReleasedNeutrons() / getRequiredNeutrons();
-    }
+    val fastFissionMultiplier: Double
+        get() = this.fastNeutronFissionCrossSection * this.releasedNeutrons / this.requiredNeutrons
 
-    default double getSlowFissionMultiplier() {
-        return getSlowNeutronFissionCrossSection() * getReleasedNeutrons() / getRequiredNeutrons();
-    }
+    val slowFissionMultiplier: Double
+        get() = this.slowNeutronFissionCrossSection * this.releasedNeutrons / this.requiredNeutrons
 
-    String getId();
+    val id: String?
 
-    List<ItemStack> getDepletedFuels();
+    val depletedFuels: MutableList<ItemStack?>?
 
-    ItemStack getDepletedFuel(double thermalRatio);
+    fun getDepletedFuel(thermalRatio: Double): ItemStack?
 }

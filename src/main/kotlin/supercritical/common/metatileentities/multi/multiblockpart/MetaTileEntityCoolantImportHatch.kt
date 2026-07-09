@@ -1,131 +1,107 @@
-package supercritical.common.metatileentities.multi.multiblockpart;
+package supercritical.common.metatileentities.multi.multiblockpart
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.world.level.material.Fluid;
+import com.gregtechceu.gtceu.api.capability.IControllable
+import com.gregtechceu.gtceu.api.capability.recipe.IO
+import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
+import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine
+import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced
+import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted
+import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.world.level.material.Fluid
+import supercritical.api.capability.ICoolantHandler
+import supercritical.api.capability.impl.LockableFluidTank
+import supercritical.api.metatileentity.multiblock.IFissionReactorHatch
+import supercritical.api.nuclear.fission.ICoolantStats
+import supercritical.common.registry.SCBlocks
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import com.gregtechceu.gtceu.api.capability.IControllable;
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
-
-import supercritical.api.capability.ICoolantHandler;
-import supercritical.api.capability.impl.LockableFluidTank;
-import supercritical.api.metatileentity.multiblock.IFissionReactorHatch;
-import supercritical.api.nuclear.fission.CoolantRegistry;
-import supercritical.api.nuclear.fission.ICoolantStats;
-import supercritical.common.registry.SCBlocks;
-
-public class MetaTileEntityCoolantImportHatch extends TieredIOPartMachine
-        implements ICoolantHandler, IControllable, IFissionReactorHatch {
-
+class MetaTileEntityCoolantImportHatch(holder: IMachineBlockEntity, tier: Int) :
+    TieredIOPartMachine(holder, tier, IO.IN), ICoolantHandler, IControllable, IFissionReactorHatch {
     @Persisted
     @DescSynced
     @RequireRerender
-    private boolean workingEnabled;
-    private final LockableFluidTank fluidTank;
-    private ICoolantStats coolant;
-    private MetaTileEntityCoolantExportHatch pairedHatch;
+    private var workingEnabled = true
+    private val fluidTank: LockableFluidTank
+    private var coolant: ICoolantStats? = null
+    private var pairedHatch: MetaTileEntityCoolantExportHatch? = null
 
-    public MetaTileEntityCoolantImportHatch(IMachineBlockEntity holder, int tier) {
-        super(holder, tier, IO.IN);
-        this.workingEnabled = true;
-        this.fluidTank = new LockableFluidTank(this, 16000, IO.IN);
+    init {
+        this.fluidTank = LockableFluidTank(this, 16000, IO.IN)
     }
 
-    @Override
-    public boolean isWorkingEnabled() {
-        return workingEnabled;
+    override fun isWorkingEnabled(): Boolean {
+        return workingEnabled
     }
 
-    @Override
-    public void setWorkingEnabled(boolean workingEnabled) {
-        this.workingEnabled = workingEnabled;
+    override fun setWorkingEnabled(workingEnabled: Boolean) {
+        this.workingEnabled = workingEnabled
     }
 
-    @Override
-    public boolean checkValidity(int depth) {
-        this.pairedHatch = getExportHatch(depth);
-        return pairedHatch != null;
+    override fun checkValidity(depth: Int): Boolean {
+        this.pairedHatch = getExportHatch(depth)
+        return pairedHatch != null
     }
 
-    public MetaTileEntityCoolantExportHatch getExportHatch(int depth) {
-        BlockPos.MutableBlockPos pos = getPos().mutable();
-        Direction back = getFrontFacing().getOpposite();
-        for (int i = 1; i < depth; i++) {
-            pos.move(back);
-            if (getLevel().getBlockState(pos).getBlock() != SCBlocks.COOLANT_CHANNEL.get()) {
-                return null;
+    fun getExportHatch(depth: Int): MetaTileEntityCoolantExportHatch? {
+        val pos = getPos()!!.mutable()
+        val back = getFrontFacing().getOpposite()
+        for (i in 1..<depth) {
+            pos.move(back)
+            if (getLevel()!!.getBlockState(pos).getBlock() !== SCBlocks.COOLANT_CHANNEL.get()) {
+                return null
             }
         }
-        pos.move(back);
-        if (MetaMachine.getMachine(getLevel(), pos) instanceof MetaTileEntityCoolantExportHatch export) {
-            return export;
+        pos.move(back)
+        if (getMachine(getLevel(), pos) is MetaTileEntityCoolantExportHatch) {
+            return export
         }
-        return null;
+        return null
     }
 
-    @Override
-    public void setLock(boolean isLocked) {
-        fluidTank.setLock(isLocked);
+    override fun setLock(isLocked: Boolean) {
+        fluidTank.setLock(isLocked)
     }
 
-    @Override
-    public boolean isLocked() {
-        return fluidTank.isLocked();
+    override fun isLocked(): Boolean {
+        return fluidTank.isLocked()
     }
 
-    @Override
-    public Fluid getLockedObject() {
-        return fluidTank.getLockedObject();
+    override fun getLockedObject(): Fluid? {
+        return fluidTank.getLockedObject()
     }
 
-    @Override
-    public @Nullable ICoolantStats getCoolant() {
-        return this.coolant;
+    override fun getCoolant(): ICoolantStats? {
+        return this.coolant
     }
 
-    @Override
-    public void setCoolant(@Nullable ICoolantStats prop) {
-        this.coolant = prop;
+    override fun setCoolant(prop: ICoolantStats?) {
+        this.coolant = prop
     }
 
-    @Override
-    public @NotNull LockableFluidTank getFluidTank() {
-        return this.fluidTank;
+    override fun getFluidTank(): LockableFluidTank {
+        return this.fluidTank
     }
 
-    @Override
-    public @Nullable ICoolantHandler getOutputHandler() {
-        return pairedHatch;
+    override fun getOutputHandler(): ICoolantHandler? {
+        return pairedHatch
     }
 
-    @Override
-    public void onLoad() {
-        super.onLoad();
-        subscribeServerTick(() -> {
-            if (getOffsetTimer() % 5 == 0 && isWorkingEnabled()) {
-                fluidTank.importFromNearby(getFrontFacing());
+    override fun onLoad() {
+        super.onLoad()
+        subscribeServerTick(Runnable {
+            if (getOffsetTimer() % 5 == 0L && isWorkingEnabled()) {
+                fluidTank.importFromNearby(getFrontFacing())
             }
-        });
+        })
     }
 
-    @Override
-    public void saveCustomPersistedData(net.minecraft.nbt.CompoundTag tag, boolean forDrop) {
-        super.saveCustomPersistedData(tag, forDrop);
-        tag.putBoolean("Locked", fluidTank.isLocked());
+    override fun saveCustomPersistedData(tag: CompoundTag, forDrop: Boolean) {
+        super.saveCustomPersistedData(tag, forDrop)
+        tag.putBoolean("Locked", fluidTank.isLocked())
     }
 
-    @Override
-    public void loadCustomPersistedData(net.minecraft.nbt.CompoundTag tag) {
-        super.loadCustomPersistedData(tag);
-        fluidTank.setLock(tag.getBoolean("Locked"));
+    override fun loadCustomPersistedData(tag: CompoundTag) {
+        super.loadCustomPersistedData(tag)
+        fluidTank.setLock(tag.getBoolean("Locked"))
     }
 }

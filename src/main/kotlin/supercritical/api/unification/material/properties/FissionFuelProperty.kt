@@ -1,127 +1,176 @@
-package supercritical.api.unification.material.properties;
+package supercritical.api.unification.material.properties
 
-import com.gregtechceu.gtceu.api.data.chemical.material.properties.IMaterialProperty;
-import com.gregtechceu.gtceu.api.data.chemical.material.properties.MaterialProperties;
-import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
-import supercritical.api.nuclear.fission.IFissionFuelStats;
+import com.gregtechceu.gtceu.api.data.chemical.material.properties.DustProperty
+import com.gregtechceu.gtceu.api.data.chemical.material.properties.IMaterialProperty
+import com.gregtechceu.gtceu.api.data.chemical.material.properties.MaterialProperties
+import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.item.ItemStack
+import supercritical.api.nuclear.fission.IFissionFuelStats
+import java.util.function.Function
+import java.util.function.Supplier
 
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.Supplier;
+class FissionFuelProperty : IMaterialProperty, IFissionFuelStats {
+    private var maxTemperature = 0
+    private var duration = 0
+    private var slowNeutronCaptureCrossSection = 0.0
+    private var fastNeutronCaptureCrossSection = 0.0
+    private var slowNeutronFissionCrossSection = 0.0
+    private var fastNeutronFissionCrossSection = 0.0
+    private var neutronGenerationTime = 0.0
+    private var releasedNeutrons = 0.0
+    private var requiredNeutrons = 1.0
+    private var releasedHeatEnergy = 0.0
+    private var decayRate = 0.0
+    private var id: ResourceLocation? = null
+    private var depletedFuelSupplier = Function { thermalRatio: Double? -> ItemStack.EMPTY }
+    private var allDepletedFuels: Supplier<MutableList<ItemStack?>?> = Supplier { mutableListOf() }
 
-public final class FissionFuelProperty implements IMaterialProperty, IFissionFuelStats {
-
-    private int maxTemperature;
-    private int duration;
-    private double slowNeutronCaptureCrossSection;
-    private double fastNeutronCaptureCrossSection;
-    private double slowNeutronFissionCrossSection;
-    private double fastNeutronFissionCrossSection;
-    private double neutronGenerationTime;
-    private double releasedNeutrons;
-    private double requiredNeutrons = 1;
-    private double releasedHeatEnergy;
-    private double decayRate;
-    private ResourceLocation id;
-    private Function<Double, ItemStack> depletedFuelSupplier = thermalRatio -> ItemStack.EMPTY;
-    private Supplier<List<ItemStack>> allDepletedFuels = List::of;
-
-    @Override
-    public void verifyProperty(MaterialProperties properties) {
-        properties.ensureSet(PropertyKey.DUST, true);
+    override fun verifyProperty(properties: MaterialProperties) {
+        properties.ensureSet<DustProperty?>(PropertyKey.DUST, true)
     }
 
-    public static Builder builder(ResourceLocation id, int maxTemperature, int duration, double neutronGenerationTime) {
-        return new Builder().id(id).maxTemperature(maxTemperature).duration(duration).neutronGenerationTime(neutronGenerationTime);
+    override fun getMaxTemperature(): Int {
+        return maxTemperature
     }
 
-    public int getMaxTemperature() {
-        return maxTemperature;
+    override fun getDuration(): Int {
+        return duration
     }
 
-    public int getDuration() {
-        return duration;
+    override fun getSlowNeutronCaptureCrossSection(): Double {
+        return slowNeutronCaptureCrossSection
     }
 
-    public double getSlowNeutronCaptureCrossSection() {
-        return slowNeutronCaptureCrossSection;
+    override fun getFastNeutronCaptureCrossSection(): Double {
+        return fastNeutronCaptureCrossSection
     }
 
-    public double getFastNeutronCaptureCrossSection() {
-        return fastNeutronCaptureCrossSection;
+    override fun getSlowNeutronFissionCrossSection(): Double {
+        return slowNeutronFissionCrossSection
     }
 
-    public double getSlowNeutronFissionCrossSection() {
-        return slowNeutronFissionCrossSection;
+    override fun getFastNeutronFissionCrossSection(): Double {
+        return fastNeutronFissionCrossSection
     }
 
-    public double getFastNeutronFissionCrossSection() {
-        return fastNeutronFissionCrossSection;
+    override fun getNeutronGenerationTime(): Double {
+        return neutronGenerationTime
     }
 
-    public double getNeutronGenerationTime() {
-        return neutronGenerationTime;
+    override fun getReleasedNeutrons(): Double {
+        return releasedNeutrons
     }
 
-    public double getReleasedNeutrons() {
-        return releasedNeutrons;
+    override fun getRequiredNeutrons(): Double {
+        return requiredNeutrons
     }
 
-    public double getRequiredNeutrons() {
-        return requiredNeutrons;
+    override fun getReleasedHeatEnergy(): Double {
+        return releasedHeatEnergy
     }
 
-    public double getReleasedHeatEnergy() {
-        return releasedHeatEnergy;
+    override fun getDecayRate(): Double {
+        return decayRate
     }
 
-    public double getDecayRate() {
-        return decayRate;
+    override fun getId(): String {
+        return id.toString()
     }
 
-    public String getId() {
-        return id.toString();
+    val resourceLocation: ResourceLocation
+        get() = id
+
+    override fun getDepletedFuels(): MutableList<ItemStack?>? {
+        return allDepletedFuels.get()
     }
 
-    public ResourceLocation getResourceLocation() {
-        return id;
+    override fun getDepletedFuel(thermalRatio: Double): ItemStack? {
+        return depletedFuelSupplier.apply(thermalRatio)
     }
 
-    public List<ItemStack> getDepletedFuels() {
-        return allDepletedFuels.get();
+    fun setDepletedFuelSupplier(depletedFuelSupplier: Function<Double?, ItemStack?>): FissionFuelProperty {
+        this.depletedFuelSupplier = depletedFuelSupplier
+        return this
     }
 
-    public ItemStack getDepletedFuel(double thermalRatio) {
-        return depletedFuelSupplier.apply(thermalRatio);
+    fun setAllDepletedFuels(allDepletedFuels: Supplier<MutableList<ItemStack?>?>): FissionFuelProperty {
+        this.allDepletedFuels = allDepletedFuels
+        return this
     }
 
-    public FissionFuelProperty setDepletedFuelSupplier(Function<Double, ItemStack> depletedFuelSupplier) {
-        this.depletedFuelSupplier = depletedFuelSupplier;
-        return this;
+    class Builder {
+        private val property = FissionFuelProperty()
+
+        fun id(id: ResourceLocation): Builder {
+            property.id = id
+            return this
+        }
+
+        fun maxTemperature(maxTemperature: Int): Builder {
+            property.maxTemperature = maxTemperature
+            return this
+        }
+
+        fun duration(duration: Int): Builder {
+            property.duration = duration
+            return this
+        }
+
+        fun slowNeutronCaptureCrossSection(value: Double): Builder {
+            property.slowNeutronCaptureCrossSection = value
+            return this
+        }
+
+        fun fastNeutronCaptureCrossSection(value: Double): Builder {
+            property.fastNeutronCaptureCrossSection = value
+            return this
+        }
+
+        fun slowNeutronFissionCrossSection(value: Double): Builder {
+            property.slowNeutronFissionCrossSection = value
+            return this
+        }
+
+        fun fastNeutronFissionCrossSection(value: Double): Builder {
+            property.fastNeutronFissionCrossSection = value
+            return this
+        }
+
+        fun neutronGenerationTime(value: Double): Builder {
+            property.neutronGenerationTime = value
+            return this
+        }
+
+        fun releasedNeutrons(value: Double): Builder {
+            property.releasedNeutrons = value
+            return this
+        }
+
+        fun requiredNeutrons(value: Double): Builder {
+            property.requiredNeutrons = value
+            return this
+        }
+
+        fun releasedHeatEnergy(value: Double): Builder {
+            property.releasedHeatEnergy = value
+            return this
+        }
+
+        fun decayRate(value: Double): Builder {
+            property.decayRate = value
+            return this
+        }
+
+        fun build(): FissionFuelProperty {
+            return property
+        }
     }
 
-    public FissionFuelProperty setAllDepletedFuels(Supplier<List<ItemStack>> allDepletedFuels) {
-        this.allDepletedFuels = allDepletedFuels;
-        return this;
-    }
-
-    public static final class Builder {
-        private final FissionFuelProperty property = new FissionFuelProperty();
-
-        public Builder id(ResourceLocation id) { property.id = id; return this; }
-        public Builder maxTemperature(int maxTemperature) { property.maxTemperature = maxTemperature; return this; }
-        public Builder duration(int duration) { property.duration = duration; return this; }
-        public Builder slowNeutronCaptureCrossSection(double value) { property.slowNeutronCaptureCrossSection = value; return this; }
-        public Builder fastNeutronCaptureCrossSection(double value) { property.fastNeutronCaptureCrossSection = value; return this; }
-        public Builder slowNeutronFissionCrossSection(double value) { property.slowNeutronFissionCrossSection = value; return this; }
-        public Builder fastNeutronFissionCrossSection(double value) { property.fastNeutronFissionCrossSection = value; return this; }
-        public Builder neutronGenerationTime(double value) { property.neutronGenerationTime = value; return this; }
-        public Builder releasedNeutrons(double value) { property.releasedNeutrons = value; return this; }
-        public Builder requiredNeutrons(double value) { property.requiredNeutrons = value; return this; }
-        public Builder releasedHeatEnergy(double value) { property.releasedHeatEnergy = value; return this; }
-        public Builder decayRate(double value) { property.decayRate = value; return this; }
-        public FissionFuelProperty build() { return property; }
+    companion object {
+        fun builder(id: ResourceLocation, maxTemperature: Int, duration: Int, neutronGenerationTime: Double): Builder {
+            return Builder().id(id).maxTemperature(maxTemperature).duration(duration)
+                .neutronGenerationTime(neutronGenerationTime)
+        }
     }
 }

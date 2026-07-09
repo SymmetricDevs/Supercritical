@@ -1,12 +1,11 @@
-package supercritical.api.unification.material.properties;
+package supercritical.api.unification.material.properties
 
-import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
+import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey
 
-public final class SCPropertyKey {
-
-    public static final PropertyKey<CoolantProperty> COOLANT = new PropertyKey<>("coolant", CoolantProperty.class);
-    public static final PropertyKey<FissionFuelProperty> FISSION_FUEL = new PropertyKey<>("fission_fuel", FissionFuelProperty.class);
-    public static final PropertyKey<ModeratorProperty> MODERATOR = new PropertyKey<>("moderator", ModeratorProperty.class);
-
-    private SCPropertyKey() {}
+object SCPropertyKey {
+    val COOLANT: PropertyKey<CoolantProperty?> = PropertyKey<CoolantProperty?>("coolant", CoolantProperty::class.java)
+    val FISSION_FUEL: PropertyKey<FissionFuelProperty?> =
+        PropertyKey<FissionFuelProperty?>("fission_fuel", FissionFuelProperty::class.java)
+    val MODERATOR: PropertyKey<ModeratorProperty?> =
+        PropertyKey<ModeratorProperty?>("moderator", ModeratorProperty::class.java)
 }

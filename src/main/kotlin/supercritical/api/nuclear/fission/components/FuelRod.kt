@@ -1,39 +1,28 @@
-package supercritical.api.nuclear.fission.components;
+package supercritical.api.nuclear.fission.components
 
-import net.minecraft.world.item.ItemStack;
-import supercritical.api.nuclear.fission.IFissionFuelStats;
+import net.minecraft.world.item.ItemStack
+import supercritical.api.nuclear.fission.IFissionFuelStats
 
-public class FuelRod extends ReactorComponent {
+class FuelRod(maxTemperature: Double, thermalConductivity: Double, private var fuel: IFissionFuelStats, mass: Double) :
+    ReactorComponent(0.0, maxTemperature, thermalConductivity, mass, true) {
+    var weight: Double = 1.0
+    var thermalProportion: Double = 0.0
 
-    private IFissionFuelStats fuel;
-    private double weight = 1;
-    private double thermalProportion;
+    val duration: Double
+        get() = fuel.getDuration().toDouble()
 
-    public FuelRod(double maxTemperature, double thermalConductivity, IFissionFuelStats fuel, double mass) {
-        super(0, maxTemperature, thermalConductivity, mass, true);
-        this.fuel = fuel;
+    val neutronGenerationTime: Double
+        get() = fuel.getNeutronGenerationTime()
+
+    fun setFuel(fuel: IFissionFuelStats) {
+        this.fuel = fuel
+        this.maxTemperature = fuel.getMaxTemperature().toDouble()
     }
 
-    public double getDuration() {
-        return fuel.getDuration();
-    }
+    val depletedFuel: ItemStack?
+        get() = fuel.getDepletedFuel(thermalProportion)
 
-    public double getNeutronGenerationTime() {
-        return fuel.getNeutronGenerationTime();
+    fun getFuel(): IFissionFuelStats {
+        return fuel
     }
-
-    public void setFuel(IFissionFuelStats fuel) {
-        this.fuel = fuel;
-        this.maxTemperature = fuel.getMaxTemperature();
-    }
-
-    public ItemStack getDepletedFuel() {
-        return fuel.getDepletedFuel(thermalProportion);
-    }
-
-    public IFissionFuelStats getFuel() { return fuel; }
-    public double getWeight() { return weight; }
-    public void setWeight(double weight) { this.weight = weight; }
-    public double getThermalProportion() { return thermalProportion; }
-    public void setThermalProportion(double thermalProportion) { this.thermalProportion = thermalProportion; }
 }

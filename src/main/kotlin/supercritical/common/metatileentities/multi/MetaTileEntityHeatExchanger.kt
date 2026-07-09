@@ -1,117 +1,120 @@
-package supercritical.common.metatileentities.multi;
+package supercritical.common.metatileentities.multi
 
-import com.gregtechceu.gtceu.api.capability.IControllable;
-import com.gregtechceu.gtceu.api.data.RotationState;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
-import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
-import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
-import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
-import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern;
-import com.gregtechceu.gtceu.api.pattern.Predicates;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.common.data.GTBlocks;
-import com.gregtechceu.gtceu.common.data.GTMaterials;
-import com.gregtechceu.gtceu.common.data.GTRecipeModifiers;
-import com.gregtechceu.gtceu.config.ConfigHolder;
-import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.NotNull;
-import supercritical.api.recipes.SCRecipeMaps;
-import supercritical.api.registries.SCRegistries;
-
-import static supercritical.api.util.SCUtility.scId;
+import com.gregtechceu.gtceu.api.capability.IControllable
+import com.gregtechceu.gtceu.api.data.RotationState
+import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
+import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition
+import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine
+import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility
+import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine
+import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic
+import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern
+import com.gregtechceu.gtceu.api.pattern.Predicates
+import com.gregtechceu.gtceu.api.recipe.GTRecipe
+import com.gregtechceu.gtceu.common.data.GTBlocks
+import com.gregtechceu.gtceu.common.data.GTMaterials
+import com.gregtechceu.gtceu.common.data.GTRecipeModifiers
+import com.gregtechceu.gtceu.config.ConfigHolder
+import net.minecraft.MethodsReturnNonnullByDefault
+import net.minecraft.resources.ResourceLocation
+import supercritical.api.recipes.SCRecipeMaps
+import supercritical.api.registries.SCRegistries
+import supercritical.api.util.SCUtility
+import java.util.function.Function
 
 /**
  * Heat exchanger multiblock. Converts a hot coolant into a cooled coolant while producing power.
  * Does not require external energy input.
  */
 @MethodsReturnNonnullByDefault
-public class MetaTileEntityHeatExchanger extends WorkableMultiblockMachine implements IControllable {
+class MetaTileEntityHeatExchanger(holder: IMachineBlockEntity, vararg args: Any?) :
+    WorkableMultiblockMachine(holder, *args), IControllable {
+    private var workingEnabled = true
 
-    private boolean workingEnabled = true;
-
-    public MetaTileEntityHeatExchanger(IMachineBlockEntity holder, Object... args) {
-        super(holder, args);
+    override fun isWorkingEnabled(): Boolean {
+        return workingEnabled
     }
 
-    @Override
-    public boolean isWorkingEnabled() {
-        return workingEnabled;
+    override fun setWorkingEnabled(workingEnabled: Boolean) {
+        this.workingEnabled = workingEnabled
     }
 
-    @Override
-    public void setWorkingEnabled(boolean workingEnabled) {
-        this.workingEnabled = workingEnabled;
+    override fun createRecipeLogic(vararg args: Any?): RecipeLogic {
+        return HeatExchangerRecipeLogic(this)
     }
 
-    @Override
-    protected @NotNull RecipeLogic createRecipeLogic(Object... args) {
-        return new HeatExchangerRecipeLogic(this);
+    override fun getRecipeLogic(): HeatExchangerRecipeLogic {
+        return super.getRecipeLogic() as HeatExchangerRecipeLogic
     }
 
-    @Override
-    public @NotNull HeatExchangerRecipeLogic getRecipeLogic() {
-        return (HeatExchangerRecipeLogic) super.getRecipeLogic();
+    class HeatExchangerRecipeLogic(machine: IRecipeLogicMachine) : RecipeLogic(machine) {
+        override fun serverTick() {
+            if (!machine.isWorkingEnabled()) {
+                return
+            }
+            super.serverTick()
+        }
+
+        override fun checkMatchedRecipeAvailable(match: GTRecipe?): Boolean {
+            val modified = machine.fullModifyRecipe(match)
+            if (modified != null) {
+                val recipeMatch = checkRecipe(modified)
+                if (recipeMatch.isSuccess()) {
+                    setupRecipe(modified)
+                }
+                if (lastRecipe != null && getStatus() == Status.WORKING) {
+                    lastOriginRecipe = match
+                    lastFailedMatches = null
+                    return true
+                }
+            }
+            return false
+        }
     }
 
-    public static MultiblockMachineDefinition register() {
-        return SCRegistries.REGISTRATE
-                .multiblock("heat_exchanger", MetaTileEntityHeatExchanger::new)
+    companion object {
+        fun register(): MultiblockMachineDefinition {
+            return SCRegistries.REGISTRATE
+                .multiblock(
+                    "heat_exchanger",
+                    Function { holder: IMachineBlockEntity? -> MetaTileEntityHeatExchanger(holder!!) })
                 .rotationState(RotationState.NON_Y_AXIS)
                 .recipeType(SCRecipeMaps.HEAT_EXCHANGER_RECIPES)
                 .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH)
-                .pattern(definition -> FactoryBlockPattern.start()
+                .pattern(Function { definition: MultiblockMachineDefinition? ->
+                    FactoryBlockPattern.start()
                         .aisle("CCC", "BCB", "ACA")
                         .aisle("CCC", "CDC", "ACA").setRepeatable(1, 7)
                         .aisle("CCC", "BSB", "AEA")
-                        .where('S', Predicates.controller(Predicates.blocks(definition.getBlock())))
+                        .where('S', Predicates.controller(Predicates.blocks(definition!!.getBlock())))
                         .where('A', Predicates.frames(GTMaterials.Steel))
-                        .where('B', Predicates.abilities(PartAbility.IMPORT_FLUIDS).setMinGlobalLimited(2)
-                                .or(Predicates.abilities(PartAbility.EXPORT_FLUIDS).setMinGlobalLimited(2)))
-                        .where('C', Predicates.blocks(GTBlocks.CASING_STEEL_SOLID.get())
-                                .or(Predicates.abilities(PartAbility.MAINTENANCE)
-                                        .setMinGlobalLimited(ConfigHolder.INSTANCE.machines.enableMaintenance ? 1 : 0)
-                                        .setMaxGlobalLimited(1)))
+                        .where(
+                            'B', Predicates.abilities(PartAbility.IMPORT_FLUIDS).setMinGlobalLimited(2)
+                                .or(Predicates.abilities(PartAbility.EXPORT_FLUIDS).setMinGlobalLimited(2))
+                        )
+                        .where(
+                            'C', Predicates.blocks(GTBlocks.CASING_STEEL_SOLID.get())
+                                .or(
+                                    Predicates.abilities(PartAbility.MAINTENANCE)
+                                        .setMinGlobalLimited(if (ConfigHolder.INSTANCE.machines.enableMaintenance) 1 else 0)
+                                        .setMaxGlobalLimited(1)
+                                )
+                        )
                         .where('D', Predicates.blocks(GTBlocks.CASING_STEEL_PIPE.get()))
-                        .where('E', Predicates.blocks(GTBlocks.CASING_STEEL_SOLID.get())
-                                .or(Predicates.abilities(PartAbility.MUFFLER).setMinGlobalLimited(1).setMaxGlobalLimited(1)))
-                        .build())
-                .workableCasingModel(new ResourceLocation("gtceu", "block/casings/solid/machine_casing_solid_steel"),
-                        scId("block/multiblock/heat_exchanger"))
-                .register();
-    }
-
-    public static class HeatExchangerRecipeLogic extends RecipeLogic {
-
-        public HeatExchangerRecipeLogic(IRecipeLogicMachine machine) {
-            super(machine);
-        }
-
-        @Override
-        public void serverTick() {
-            if (!machine.isWorkingEnabled()) {
-                return;
-            }
-            super.serverTick();
-        }
-
-        @Override
-        public boolean checkMatchedRecipeAvailable(GTRecipe match) {
-            var modified = machine.fullModifyRecipe(match);
-            if (modified != null) {
-                var recipeMatch = checkRecipe(modified);
-                if (recipeMatch.isSuccess()) {
-                    setupRecipe(modified);
-                }
-                if (lastRecipe != null && getStatus() == Status.WORKING) {
-                    lastOriginRecipe = match;
-                    lastFailedMatches = null;
-                    return true;
-                }
-            }
-            return false;
+                        .where(
+                            'E', Predicates.blocks(GTBlocks.CASING_STEEL_SOLID.get())
+                                .or(
+                                    Predicates.abilities(PartAbility.MUFFLER).setMinGlobalLimited(1)
+                                        .setMaxGlobalLimited(1)
+                                )
+                        )
+                        .build()
+                })
+                .workableCasingModel(
+                    ResourceLocation("gtceu", "block/casings/solid/machine_casing_solid_steel"),
+                    SCUtility.scId("block/multiblock/heat_exchanger")
+                )
+                .register()
         }
     }
 }

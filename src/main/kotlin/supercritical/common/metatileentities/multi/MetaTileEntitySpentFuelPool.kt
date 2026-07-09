@@ -1,240 +1,317 @@
-package supercritical.common.metatileentities.multi;
+package supercritical.common.metatileentities.multi
 
-import com.gregtechceu.gtceu.api.capability.IControllable;
-import com.gregtechceu.gtceu.api.data.RotationState;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
-import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
-import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
-import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.pattern.BlockPattern;
-import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern;
-import com.gregtechceu.gtceu.api.pattern.Predicates;
-import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
-import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
-import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
-import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
-import com.gregtechceu.gtceu.common.data.GTBlocks;
-import com.gregtechceu.gtceu.config.ConfigHolder;
-import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.level.material.Fluids;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import supercritical.api.pattern.SCPredicates;
-import supercritical.api.recipes.SCRecipeMaps;
-import supercritical.api.registries.SCRegistries;
-import supercritical.common.registry.SCBlocks;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-
-import static supercritical.api.util.SCUtility.scId;
+import com.gregtechceu.gtceu.api.capability.IControllable
+import com.gregtechceu.gtceu.api.data.RotationState
+import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
+import com.gregtechceu.gtceu.api.machine.MetaMachine
+import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition
+import com.gregtechceu.gtceu.api.machine.TickableSubscription
+import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine
+import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility
+import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine
+import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic
+import com.gregtechceu.gtceu.api.pattern.BlockPattern
+import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern
+import com.gregtechceu.gtceu.api.pattern.Predicates
+import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection
+import com.gregtechceu.gtceu.api.recipe.GTRecipe
+import com.gregtechceu.gtceu.api.recipe.content.ContentModifier
+import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction
+import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic
+import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier
+import com.gregtechceu.gtceu.common.data.GTBlocks
+import com.gregtechceu.gtceu.config.ConfigHolder
+import net.minecraft.MethodsReturnNonnullByDefault
+import net.minecraft.core.BlockPos
+import net.minecraft.network.chat.Component
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.material.Fluids
+import supercritical.api.pattern.SCPredicates
+import supercritical.api.recipes.SCRecipeMaps
+import supercritical.api.registries.SCRegistries
+import supercritical.api.util.SCUtility
+import supercritical.common.registry.SCBlocks
+import java.util.function.BiConsumer
+import java.util.function.Function
+import java.util.function.ToIntFunction
+import kotlin.math.max
 
 /**
  * Spent fuel pool multiblock. Slowly cools spent nuclear fuel by submerging it in water.
  * Pool length is variable and determines maximum recipe parallelism.
  */
 @MethodsReturnNonnullByDefault
-public class MetaTileEntitySpentFuelPool extends WorkableMultiblockMachine implements IControllable, IDisplayUIMachine {
+class MetaTileEntitySpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?) :
+    WorkableMultiblockMachine(holder, *args), IControllable, IDisplayUIMachine {
+    private var workingEnabled = true
+    var isWaterFilled: Boolean = false
+        private set
+    private var waterPositions: MutableList<BlockPos?>? = null
+    private var waterFillSubscription: TickableSubscription? = null
+    var poolLength: Int = 1
+        private set
 
-    public static final int PARALLEL_PER_LENGTH = 32;
-
-    private boolean workingEnabled = true;
-    private boolean waterFilled;
-    private List<BlockPos> waterPositions;
-    @Nullable
-    private TickableSubscription waterFillSubscription;
-    private int poolLength = 1;
-
-    public MetaTileEntitySpentFuelPool(IMachineBlockEntity holder, Object... args) {
-        super(holder, args);
+    override fun isWorkingEnabled(): Boolean {
+        return workingEnabled
     }
 
-    @Override
-    public boolean isWorkingEnabled() {
-        return workingEnabled;
+    override fun setWorkingEnabled(workingEnabled: Boolean) {
+        this.workingEnabled = workingEnabled
     }
 
-    @Override
-    public void setWorkingEnabled(boolean workingEnabled) {
-        this.workingEnabled = workingEnabled;
+    override fun createRecipeLogic(vararg args: Any?): RecipeLogic {
+        return SpentFuelPoolRecipeLogic(this)
     }
 
-    @Override
-    protected @NotNull RecipeLogic createRecipeLogic(Object... args) {
-        return new SpentFuelPoolRecipeLogic(this);
+    override fun getRecipeLogic(): SpentFuelPoolRecipeLogic {
+        return super.getRecipeLogic() as SpentFuelPoolRecipeLogic
     }
 
-    @Override
-    public @NotNull SpentFuelPoolRecipeLogic getRecipeLogic() {
-        return (SpentFuelPoolRecipeLogic) super.getRecipeLogic();
+    override fun onStructureFormed() {
+        super.onStructureFormed()
+        this.waterPositions = getMultiblockState().getMatchContext()
+            .getOrDefault<ArrayList<BlockPos?>?>(SCPredicates.FLUID_BLOCKS_KEY, ArrayList<BlockPos?>())
+        this.waterPositions!!.sort(Comparator.comparingInt<BlockPos?>(ToIntFunction { obj: BlockPos? -> obj!!.getY() }))
+        this.isWaterFilled = waterPositions!!.isEmpty()
+        val repetitions = getPattern().getFormedRepetitionCount()
+        this.poolLength = if (repetitions != null && repetitions.size > 2) max(1, repetitions[2]) else 1
+        this.waterFillSubscription = subscribeServerTick(Runnable { this.tryFillWater() })
     }
 
-    @Override
-    public void onStructureFormed() {
-        super.onStructureFormed();
-        this.waterPositions = getMultiblockState().getMatchContext().getOrDefault(SCPredicates.FLUID_BLOCKS_KEY, new ArrayList<>());
-        this.waterPositions.sort(Comparator.comparingInt(BlockPos::getY));
-        this.waterFilled = waterPositions.isEmpty();
-        int[] repetitions = getPattern().getFormedRepetitionCount();
-        this.poolLength = repetitions != null && repetitions.length > 2 ? Math.max(1, repetitions[2]) : 1;
-        this.waterFillSubscription = subscribeServerTick(this::tryFillWater);
+    override fun onStructureInvalid() {
+        super.onStructureInvalid()
+        unsubscribe(this.waterFillSubscription)
+        this.waterFillSubscription = null
+        this.waterPositions = null
+        this.isWaterFilled = false
+        this.poolLength = 1
     }
 
-    @Override
-    public void onStructureInvalid() {
-        super.onStructureInvalid();
-        unsubscribe(this.waterFillSubscription);
-        this.waterFillSubscription = null;
-        this.waterPositions = null;
-        this.waterFilled = false;
-        this.poolLength = 1;
-    }
+    private fun tryFillWater() {
+        if (this.isWaterFilled || waterPositions == null || waterPositions!!.isEmpty()) return
+        if (getOffsetTimer() % 5 != 0L) return
 
-    private void tryFillWater() {
-        if (waterFilled || waterPositions == null || waterPositions.isEmpty()) return;
-        if (getOffsetTimer() % 5 != 0) return;
-
-        SCPredicates.fillFluid(this, this.waterPositions, Fluids.WATER);
-        if (this.waterPositions.isEmpty()) {
-            this.waterFilled = true;
+        SCPredicates.fillFluid(this, this.waterPositions, Fluids.WATER)
+        if (this.waterPositions!!.isEmpty()) {
+            this.isWaterFilled = true
         }
     }
 
-    @Override
-    public boolean isRecipeLogicAvailable() {
-        return super.isRecipeLogicAvailable() && waterFilled;
+    override fun isRecipeLogicAvailable(): Boolean {
+        return super.isRecipeLogicAvailable() && this.isWaterFilled
     }
 
-    public boolean isWaterFilled() {
-        return waterFilled;
-    }
+    val maxParallel: Int
+        get() = this.poolLength * PARALLEL_PER_LENGTH
 
-    public int getPoolLength() {
-        return poolLength;
-    }
-
-    public int getMaxParallel() {
-        return getPoolLength() * PARALLEL_PER_LENGTH;
-    }
-
-    @Override
-    public void addDisplayText(List<Component> textList) {
-        IDisplayUIMachine.super.addDisplayText(textList);
+    override fun addDisplayText(textList: MutableList<Component?>) {
+        super<IDisplayUIMachine>.addDisplayText(textList)
         if (isFormed()) {
-            if (!waterFilled) {
-                textList.add(Component.translatable("supercritical.multiblock.spent_fuel_pool.obstructed"));
+            if (!this.isWaterFilled) {
+                textList.add(Component.translatable("supercritical.multiblock.spent_fuel_pool.obstructed"))
             } else if (!isWorkingEnabled()) {
-                textList.add(Component.translatable("gtceu.multiblock.work_paused"));
+                textList.add(Component.translatable("gtceu.multiblock.work_paused"))
             } else if (recipeLogic.isActive()) {
-                textList.add(Component.translatable("gtceu.multiblock.running"));
+                textList.add(Component.translatable("gtceu.multiblock.running"))
             } else {
-                textList.add(Component.translatable("gtceu.multiblock.idling"));
+                textList.add(Component.translatable("gtceu.multiblock.idling"))
             }
-            textList.add(Component.translatable("supercritical.multiblock.spent_fuel_pool.parallel", getMaxParallel()));
+            textList.add(
+                Component.translatable(
+                    "supercritical.multiblock.spent_fuel_pool.parallel",
+                    this.maxParallel
+                )
+            )
         }
     }
 
-    @NotNull
-    @Override
-    public BlockPattern getPattern() {
-        return buildPattern(getDefinition());
+    override fun getPattern(): BlockPattern {
+        return buildPattern(getDefinition())
     }
 
-    private static BlockPattern buildPattern(MultiblockMachineDefinition definition) {
-        return FactoryBlockPattern.start(RelativeDirection.FRONT, RelativeDirection.UP, RelativeDirection.RIGHT)
-                // spotless:off
-                .aisle("CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "TTTTTTTTTT")
-                .aisle("CCCCCCCCCC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "S........T")
-                .aisle("CCCCCCCCCC", "CWRRRRRRWC", "CWRRRRRRWC", "CWRRRRRRWC", "CWRRRRRRWC", "CWRRRRRRWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "T........T")
+    class SpentFuelPoolRecipeLogic(machine: IRecipeLogicMachine) : RecipeLogic(machine) {
+        override fun serverTick() {
+            if (!machine.isWorkingEnabled()) {
+                return
+            }
+            super.serverTick()
+        }
+
+        override fun checkMatchedRecipeAvailable(match: GTRecipe?): Boolean {
+            if (machine !is MetaTileEntitySpentFuelPool || !machine.isWaterFilled) {
+                return false
+            }
+            val modified = machine.fullModifyRecipe(match)
+            if (modified != null) {
+                val recipeMatch = checkRecipe(modified)
+                if (recipeMatch.isSuccess()) {
+                    setupRecipe(modified)
+                }
+                if (lastRecipe != null && getStatus() == Status.WORKING) {
+                    lastOriginRecipe = match
+                    lastFailedMatches = null
+                    return true
+                }
+            }
+            return false
+        }
+    }
+
+    companion object {
+        const val PARALLEL_PER_LENGTH: Int = 32
+
+        private fun buildPattern(definition: MultiblockMachineDefinition): BlockPattern {
+            return FactoryBlockPattern.start(
+                RelativeDirection.FRONT,
+                RelativeDirection.UP,
+                RelativeDirection.RIGHT
+            ) // spotless:off
+                .aisle(
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "TTTTTTTTTT"
+                )
+                .aisle(
+                    "CCCCCCCCCC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "S........T"
+                )
+                .aisle(
+                    "CCCCCCCCCC",
+                    "CWRRRRRRWC",
+                    "CWRRRRRRWC",
+                    "CWRRRRRRWC",
+                    "CWRRRRRRWC",
+                    "CWRRRRRRWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "T........T"
+                )
                 .setRepeatable(1, 10)
-                .aisle("CCCCCCCCCC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "T........T")
-                .aisle("CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "TTTTTTTTTT")
-                //spotless:on
+                .aisle(
+                    "CCCCCCCCCC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "CWWWWWWWWC",
+                    "T........T"
+                )
+                .aisle(
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "CCCCCCCCCC",
+                    "TTTTTTTTTT"
+                ) //spotless:on
                 .where('S', Predicates.controller(Predicates.blocks(definition.getBlock())))
                 .where('.', Predicates.any())
                 .where('C', Predicates.blocks(SCBlocks.GRAY_PANELLING.get()))
                 .where('W', SCPredicates.fluid(Fluids.WATER))
                 .where('R', Predicates.blocks(SCBlocks.SPENT_FUEL_CASING.get()))
-                .where('T', Predicates.blocks(GTBlocks.CASING_STAINLESS_CLEAN.get())
+                .where(
+                    'T', Predicates.blocks(GTBlocks.CASING_STAINLESS_CLEAN.get())
                         .or(Predicates.autoAbilities(SCRecipeMaps.SPENT_FUEL_POOL_RECIPES))
                         .or(Predicates.autoAbilities(ConfigHolder.INSTANCE.machines.enableMaintenance, false, false))
-                        .or(Predicates.abilities(PartAbility.IMPORT_FLUIDS)))
-                .build();
-    }
+                        .or(Predicates.abilities(PartAbility.IMPORT_FLUIDS))
+                )
+                .build()
+        }
 
-    public static MultiblockMachineDefinition register() {
-        return SCRegistries.REGISTRATE
-                .multiblock("spent_fuel_pool", MetaTileEntitySpentFuelPool::new)
+        fun register(): MultiblockMachineDefinition {
+            return SCRegistries.REGISTRATE
+                .multiblock(
+                    "spent_fuel_pool",
+                    Function { holder: IMachineBlockEntity? -> MetaTileEntitySpentFuelPool(holder!!) })
                 .rotationState(RotationState.NON_Y_AXIS)
                 .allowExtendedFacing(false)
                 .recipeType(SCRecipeMaps.SPENT_FUEL_POOL_RECIPES)
-                .recipeModifiers(MetaTileEntitySpentFuelPool::poolParallel)
-                .pattern(MetaTileEntitySpentFuelPool::buildPattern)
-                .workableCasingModel(scId("block/gray_panelling"), scId("block/multiblock/spent_fuel_pool"))
-                .tooltipBuilder((stack, tooltip) -> {
-                    tooltip.add(Component.translatable("supercritical.machine.spent_fuel_pool.tooltip.parallel", PARALLEL_PER_LENGTH));
-                    tooltip.add(Component.translatable("supercritical.machine.fluid_auto_fill.tooltip"));
+                .recipeModifiers(RecipeModifier { machine: MetaMachine?, recipe: GTRecipe? ->
+                    Companion.poolParallel(
+                        machine,
+                        recipe!!
+                    )
                 })
-                .register();
-    }
-
-    public static class SpentFuelPoolRecipeLogic extends RecipeLogic {
-
-        public SpentFuelPoolRecipeLogic(IRecipeLogicMachine machine) {
-            super(machine);
+                .pattern(Function { definition: MultiblockMachineDefinition? -> Companion.buildPattern(definition!!) })
+                .workableCasingModel(
+                    SCUtility.scId("block/gray_panelling"),
+                    SCUtility.scId("block/multiblock/spent_fuel_pool")
+                )
+                .tooltipBuilder(BiConsumer { stack: ItemStack?, tooltip: MutableList<Component?>? ->
+                    tooltip!!.add(
+                        Component.translatable(
+                            "supercritical.machine.spent_fuel_pool.tooltip.parallel",
+                            PARALLEL_PER_LENGTH
+                        )
+                    )
+                    tooltip.add(Component.translatable("supercritical.machine.fluid_auto_fill.tooltip"))
+                })
+                .register()
         }
 
-        @Override
-        public void serverTick() {
-            if (!machine.isWorkingEnabled()) {
-                return;
+        /**
+         * Recipe modifier that applies pool-length based parallelism.
+         */
+        fun poolParallel(machine: MetaMachine?, recipe: GTRecipe): ModifierFunction {
+            if (machine !is MetaTileEntitySpentFuelPool || !machine.isFormed()) {
+                return ModifierFunction.IDENTITY
             }
-            super.serverTick();
-        }
-
-        @Override
-        public boolean checkMatchedRecipeAvailable(GTRecipe match) {
-            if (!(machine instanceof MetaTileEntitySpentFuelPool pool) || !pool.isWaterFilled()) {
-                return false;
-            }
-            var modified = machine.fullModifyRecipe(match);
-            if (modified != null) {
-                var recipeMatch = checkRecipe(modified);
-                if (recipeMatch.isSuccess()) {
-                    setupRecipe(modified);
-                }
-                if (lastRecipe != null && getStatus() == Status.WORKING) {
-                    lastOriginRecipe = match;
-                    lastFailedMatches = null;
-                    return true;
-                }
-            }
-            return false;
-        }
-    }
-
-    /**
-     * Recipe modifier that applies pool-length based parallelism.
-     */
-    public static ModifierFunction poolParallel(MetaMachine machine, GTRecipe recipe) {
-        if (!(machine instanceof MetaTileEntitySpentFuelPool pool) || !pool.isFormed()) {
-            return ModifierFunction.IDENTITY;
-        }
-        int parallels = ParallelLogic.getParallelAmount(machine, recipe, pool.getMaxParallel());
-        if (parallels <= 1) return ModifierFunction.IDENTITY;
-        return ModifierFunction.builder()
-                .modifyAllContents(ContentModifier.multiplier(parallels))
-                .eutMultiplier(parallels)
+            val parallels = ParallelLogic.getParallelAmount(machine, recipe, machine.maxParallel)
+            if (parallels <= 1) return ModifierFunction.IDENTITY
+            return ModifierFunction.builder()
+                .modifyAllContents(ContentModifier.multiplier(parallels.toDouble()))
+                .eutMultiplier(parallels.toDouble())
                 .parallels(parallels)
-                .build();
+                .build()
+        }
     }
 }

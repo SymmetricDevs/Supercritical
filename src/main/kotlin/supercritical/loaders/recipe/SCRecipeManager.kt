@@ -1,40 +1,34 @@
-package supercritical.loaders.recipe;
+package supercritical.loaders.recipe
 
-import supercritical.api.recipe.handlers.FluidRecipeHandler;
-import supercritical.api.recipe.handlers.NuclearRecipeHandler;
-import supercritical.api.recipes.SCRecipeMaps;
-import supercritical.common.SCConfigHolder;
+import supercritical.api.recipe.handlers.FluidRecipeHandler
+import supercritical.api.recipe.handlers.NuclearRecipeHandler
+import supercritical.api.recipes.SCRecipeMaps
+import supercritical.common.SCConfigHolder
 
-public final class SCRecipeManager {
+object SCRecipeManager {
+    var isLoaded: Boolean = false
+        private set
 
-    private static boolean loaded;
+    fun load() {
+        if (SCConfigHolder.MISC.disableAllRecipes.get() || isLoaded) return
 
-    private SCRecipeManager() {}
+        SCMiscRecipes.init()
+        SCMachineRecipeLoader.init()
+        SCMetaTileEntityLoader.init()
+        SCMetaTileEntityMachineRecipeLoader.init()
 
-    public static void load() {
-        if (SCConfigHolder.MISC.disableAllRecipes.get() || loaded) return;
+        SCRecipeMaps.GAS_CENTRIFUGE_RECIPES.beginStagingRecipes()
+        SCRecipeMaps.SPENT_FUEL_POOL_RECIPES.beginStagingRecipes()
+        SCNuclearRecipes.init()
+        NuclearRecipeHandler.register()
+        SCRecipeMaps.GAS_CENTRIFUGE_RECIPES.getAdditionHandler().completeStaging()
+        SCRecipeMaps.SPENT_FUEL_POOL_RECIPES.getAdditionHandler().completeStaging()
 
-        SCMiscRecipes.init();
-        SCMachineRecipeLoader.init();
-        SCMetaTileEntityLoader.init();
-        SCMetaTileEntityMachineRecipeLoader.init();
-
-        SCRecipeMaps.GAS_CENTRIFUGE_RECIPES.beginStagingRecipes();
-        SCRecipeMaps.SPENT_FUEL_POOL_RECIPES.beginStagingRecipes();
-        SCNuclearRecipes.init();
-        NuclearRecipeHandler.register();
-        SCRecipeMaps.GAS_CENTRIFUGE_RECIPES.getAdditionHandler().completeStaging();
-        SCRecipeMaps.SPENT_FUEL_POOL_RECIPES.getAdditionHandler().completeStaging();
-
-        loaded = true;
+        isLoaded = true
     }
 
-    public static void loadLatest() {
-        if (SCConfigHolder.MISC.disableAllRecipes.get()) return;
-        FluidRecipeHandler.runRecipeGeneration();
-    }
-
-    public static boolean isLoaded() {
-        return loaded;
+    fun loadLatest() {
+        if (SCConfigHolder.MISC.disableAllRecipes.get()) return
+        FluidRecipeHandler.runRecipeGeneration()
     }
 }

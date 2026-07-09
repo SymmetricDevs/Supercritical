@@ -1,13 +1,9 @@
-package supercritical.api.capability;
+package supercritical.api.capability
 
-import org.jetbrains.annotations.Nullable;
+interface ILockableHandler<T> {
+    fun setLock(isLocked: Boolean)
 
-public interface ILockableHandler<T> {
+    val isLocked: Boolean
 
-    void setLock(boolean isLocked);
-
-    boolean isLocked();
-
-    @Nullable
-    T getLockedObject();
+    val lockedObject: T?
 }

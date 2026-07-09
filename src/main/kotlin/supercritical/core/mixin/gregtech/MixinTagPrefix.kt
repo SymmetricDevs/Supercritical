@@ -1,25 +1,21 @@
-package supercritical.core.mixin.gregtech;
+package supercritical.core.mixin.gregtech
 
-import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
-import supercritical.api.unification.tag.TagPrefixExtension;
+import com.gregtechceu.gtceu.api.data.tag.TagPrefix
+import org.spongepowered.asm.mixin.Mixin
+import org.spongepowered.asm.mixin.Unique
+import supercritical.api.unification.tag.TagPrefixExtension
+import java.util.function.Function
 
-import java.util.function.Function;
-
-@Mixin(value = TagPrefix.class, remap = false)
-public abstract class MixinTagPrefix implements TagPrefixExtension {
-
+@Mixin(value = [TagPrefix::class], remap = false)
+abstract class MixinTagPrefix : TagPrefixExtension {
     @Unique
-    private Function<Double, Double> sc$radiationDamageFunction = null;
+    private var `sc$radiationDamageFunction`: Function<Double?, Double?>? = null
 
-    @Override
-    public Function<Double, Double> getRadiationDamageFunction() {
-        return sc$radiationDamageFunction;
+    override fun getRadiationDamageFunction(): Function<Double?, Double?>? {
+        return `sc$radiationDamageFunction`
     }
 
-    @Override
-    public void setRadiationDamageFunction(Function<Double, Double> function) {
-        sc$radiationDamageFunction = function;
+    override fun setRadiationDamageFunction(function: Function<Double?, Double?>?) {
+        `sc$radiationDamageFunction` = function
     }
 }

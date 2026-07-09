@@ -1,13 +1,10 @@
-package supercritical.data.tags;
+package supercritical.data.tags
 
-import com.tterrag.registrate.providers.RegistrateTagsProvider;
-import net.minecraft.world.level.block.Block;
+import com.tterrag.registrate.providers.RegistrateTagsProvider
+import net.minecraft.world.level.block.Block
 
-public final class SCBlockTagLoader {
-
-    private SCBlockTagLoader() {}
-
-    public static void init(RegistrateTagsProvider<Block> provider) {
+object SCBlockTagLoader {
+    fun init(provider: RegistrateTagsProvider<Block?>?) {
         // Add Supercritical block tags here as content is migrated to datagen.
     }
 }

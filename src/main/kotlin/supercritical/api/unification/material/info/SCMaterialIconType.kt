@@ -1,21 +1,17 @@
+package supercritical.api.unification.material.info
 
-package supercritical.api.unification.material.info;
+import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconType
 
-import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconType;
-
-public final class SCMaterialIconType {
-
+object SCMaterialIconType {
     // Nuclear MaterialIconTypes
-    public static final MaterialIconType fuelRod = new MaterialIconType("fuelRod");
-    public static final MaterialIconType fuelRodDepleted = new MaterialIconType("fuelRodDepleted");
-    public static final MaterialIconType fuelRodHotDepleted = new MaterialIconType("fuelRodHotDepleted");
-    public static final MaterialIconType fuelPelletRaw = new MaterialIconType("fuelPelletRaw");
-    public static final MaterialIconType fuelPellet = new MaterialIconType("fuelPellet");
-    public static final MaterialIconType fuelPelletDepleted = new MaterialIconType("fuelPelletDepleted");
+    val fuelRod: MaterialIconType = MaterialIconType("fuelRod")
+    val fuelRodDepleted: MaterialIconType = MaterialIconType("fuelRodDepleted")
+    val fuelRodHotDepleted: MaterialIconType = MaterialIconType("fuelRodHotDepleted")
+    val fuelPelletRaw: MaterialIconType = MaterialIconType("fuelPelletRaw")
+    val fuelPellet: MaterialIconType = MaterialIconType("fuelPellet")
+    val fuelPelletDepleted: MaterialIconType = MaterialIconType("fuelPelletDepleted")
 
-    public static final MaterialIconType dustSpentFuel = new MaterialIconType("dustSpentFuel");
-    public static final MaterialIconType dustBredFuel = new MaterialIconType("dustBredFuel");
-    public static final MaterialIconType dustFissionByproduct = new MaterialIconType("dustFissionByproduct");
-
-    private SCMaterialIconType() {}
+    val dustSpentFuel: MaterialIconType = MaterialIconType("dustSpentFuel")
+    val dustBredFuel: MaterialIconType = MaterialIconType("dustBredFuel")
+    val dustFissionByproduct: MaterialIconType = MaterialIconType("dustFissionByproduct")
 }

@@ -1,135 +1,119 @@
-package supercritical.api.unification.material.properties;
+package supercritical.api.unification.material.properties
 
-import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-import com.gregtechceu.gtceu.api.data.chemical.material.properties.IMaterialProperty;
-import com.gregtechceu.gtceu.api.data.chemical.material.properties.MaterialProperties;
-import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
-import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKey;
-import net.minecraft.world.level.material.Fluid;
-import supercritical.api.nuclear.fission.ICoolantStats;
+import com.gregtechceu.gtceu.api.data.chemical.material.Material
+import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidProperty
+import com.gregtechceu.gtceu.api.data.chemical.material.properties.IMaterialProperty
+import com.gregtechceu.gtceu.api.data.chemical.material.properties.MaterialProperties
+import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey
+import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKey
+import net.minecraft.world.level.material.Fluid
+import supercritical.api.nuclear.fission.ICoolantStats
 
-public final class CoolantProperty implements IMaterialProperty, ICoolantStats {
+class CoolantProperty(
+    material: Material,
+    var hotHPCoolant: Material,
+    val coolantKey: FluidStorageKey?,
+    private var moderatorFactor: Double,
+    private var coolingFactor: Double,
+    private var boilingPoint: Double,
+    private var heatOfVaporization: Double,
+    private var specificHeatCapacity: Double
+) : IMaterialProperty, ICoolantStats {
+    private var accumulatesHydrogen = false
+    private var slowAbsorptionFactor = 0.0
+    private var fastAbsorptionFactor = 0.0
+    private val mass: Double
 
-    private Material hotHPCoolant;
-    private double moderatorFactor;
-    private double coolingFactor;
-    private double boilingPoint;
-    private double heatOfVaporization;
-    private double specificHeatCapacity;
-    private boolean accumulatesHydrogen;
-    private double slowAbsorptionFactor;
-    private double fastAbsorptionFactor;
-    private final FluidStorageKey key;
-    private final double mass;
-
-    public CoolantProperty(Material material, Material hotHPCoolant, FluidStorageKey key, double moderatorFactor,
-                           double coolingFactor, double boilingPoint, double heatOfVaporization,
-                           double specificHeatCapacity) {
-        this.hotHPCoolant = hotHPCoolant;
-        this.moderatorFactor = moderatorFactor;
-        this.coolingFactor = coolingFactor;
-        this.boilingPoint = boilingPoint;
-        this.heatOfVaporization = heatOfVaporization;
-        this.specificHeatCapacity = specificHeatCapacity;
-        this.key = key;
-        this.mass = material.getMass();
+    init {
+        this.mass = material.getMass().toDouble()
     }
 
-    @Override
-    public void verifyProperty(MaterialProperties properties) {
-        properties.ensureSet(PropertyKey.FLUID, true);
+    override fun verifyProperty(properties: MaterialProperties) {
+        properties.ensureSet<FluidProperty?>(PropertyKey.FLUID, true)
     }
 
-    public Material getHotHPCoolant() {
-        return hotHPCoolant;
+    fun setHotHPCoolant(hotHPCoolant: Material): CoolantProperty {
+        this.hotHPCoolant = hotHPCoolant
+        return this
     }
 
-    public CoolantProperty setHotHPCoolant(Material hotHPCoolant) {
-        this.hotHPCoolant = hotHPCoolant;
-        return this;
+    override fun getModeratorFactor(): Double {
+        return moderatorFactor
     }
 
-    public double getModeratorFactor() {
-        return moderatorFactor;
+    fun setModeratorFactor(moderatorFactor: Double): CoolantProperty {
+        this.moderatorFactor = moderatorFactor
+        return this
     }
 
-    public CoolantProperty setModeratorFactor(double moderatorFactor) {
-        this.moderatorFactor = moderatorFactor;
-        return this;
+    override fun getCoolingFactor(): Double {
+        return coolingFactor
     }
 
-    public double getCoolingFactor() {
-        return coolingFactor;
+    fun setCoolingFactor(coolingFactor: Double): CoolantProperty {
+        this.coolingFactor = coolingFactor
+        return this
     }
 
-    public CoolantProperty setCoolingFactor(double coolingFactor) {
-        this.coolingFactor = coolingFactor;
-        return this;
+    override fun getBoilingPoint(): Double {
+        return boilingPoint
     }
 
-    public double getBoilingPoint() {
-        return boilingPoint;
+    fun setBoilingPoint(boilingPoint: Double): CoolantProperty {
+        this.boilingPoint = boilingPoint
+        return this
     }
 
-    public CoolantProperty setBoilingPoint(double boilingPoint) {
-        this.boilingPoint = boilingPoint;
-        return this;
+    override fun getHeatOfVaporization(): Double {
+        return heatOfVaporization
     }
 
-    public double getHeatOfVaporization() {
-        return heatOfVaporization;
+    fun setHeatOfVaporization(heatOfVaporization: Double): CoolantProperty {
+        this.heatOfVaporization = heatOfVaporization
+        return this
     }
 
-    public CoolantProperty setHeatOfVaporization(double heatOfVaporization) {
-        this.heatOfVaporization = heatOfVaporization;
-        return this;
+    override fun getSpecificHeatCapacity(): Double {
+        return specificHeatCapacity
     }
 
-    public double getSpecificHeatCapacity() {
-        return specificHeatCapacity;
+    fun setSpecificHeatCapacity(specificHeatCapacity: Double): CoolantProperty {
+        this.specificHeatCapacity = specificHeatCapacity
+        return this
     }
 
-    public CoolantProperty setSpecificHeatCapacity(double specificHeatCapacity) {
-        this.specificHeatCapacity = specificHeatCapacity;
-        return this;
+    override fun accumulatesHydrogen(): Boolean {
+        return accumulatesHydrogen
     }
 
-    public boolean accumulatesHydrogen() {
-        return accumulatesHydrogen;
+    fun setAccumulatesHydrogen(accumulatesHydrogen: Boolean): CoolantProperty {
+        this.accumulatesHydrogen = accumulatesHydrogen
+        return this
     }
 
-    public CoolantProperty setAccumulatesHydrogen(boolean accumulatesHydrogen) {
-        this.accumulatesHydrogen = accumulatesHydrogen;
-        return this;
+    override fun getSlowAbsorptionFactor(): Double {
+        return slowAbsorptionFactor
     }
 
-    public double getSlowAbsorptionFactor() {
-        return slowAbsorptionFactor;
+    fun setSlowAbsorptionFactor(slowAbsorptionFactor: Double): CoolantProperty {
+        this.slowAbsorptionFactor = slowAbsorptionFactor
+        return this
     }
 
-    public CoolantProperty setSlowAbsorptionFactor(double slowAbsorptionFactor) {
-        this.slowAbsorptionFactor = slowAbsorptionFactor;
-        return this;
+    override fun getFastAbsorptionFactor(): Double {
+        return fastAbsorptionFactor
     }
 
-    public double getFastAbsorptionFactor() {
-        return fastAbsorptionFactor;
+    fun setFastAbsorptionFactor(fastAbsorptionFactor: Double): CoolantProperty {
+        this.fastAbsorptionFactor = fastAbsorptionFactor
+        return this
     }
 
-    public CoolantProperty setFastAbsorptionFactor(double fastAbsorptionFactor) {
-        this.fastAbsorptionFactor = fastAbsorptionFactor;
-        return this;
+    override fun getMass(): Double {
+        return mass
     }
 
-    public FluidStorageKey getCoolantKey() {
-        return key;
-    }
-
-    public double getMass() {
-        return mass;
-    }
-
-    public Fluid getHotCoolant() {
-        return hotHPCoolant.getFluid();
+    override fun getHotCoolant(): Fluid? {
+        return hotHPCoolant.getFluid()
     }
 }

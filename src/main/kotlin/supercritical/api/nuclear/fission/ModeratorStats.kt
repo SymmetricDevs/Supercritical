@@ -1,29 +1,19 @@
-package supercritical.api.nuclear.fission;
+package supercritical.api.nuclear.fission
 
-public final class ModeratorStats implements IModeratorStats {
-
-    private final int maxTemperature;
-    private final double moderationFactor;
-    private final double absorptionFactor;
-
-    public ModeratorStats(int maxTemperature, double moderationFactor, double absorptionFactor) {
-        this.maxTemperature = maxTemperature;
-        this.moderationFactor = moderationFactor;
-        this.absorptionFactor = absorptionFactor;
+class ModeratorStats(
+    private val maxTemperature: Int,
+    private val moderationFactor: Double,
+    private val absorptionFactor: Double
+) : IModeratorStats {
+    override fun getMaxTemperature(): Int {
+        return maxTemperature
     }
 
-    @Override
-    public int getMaxTemperature() {
-        return maxTemperature;
+    override fun getModerationFactor(): Double {
+        return moderationFactor
     }
 
-    @Override
-    public double getModerationFactor() {
-        return moderationFactor;
-    }
-
-    @Override
-    public double getAbsorptionFactor() {
-        return absorptionFactor;
+    override fun getAbsorptionFactor(): Double {
+        return absorptionFactor
     }
 }

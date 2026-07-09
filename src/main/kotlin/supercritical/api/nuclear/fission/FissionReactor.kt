@@ -1,644 +1,652 @@
-package supercritical.api.nuclear.fission;
+package supercritical.api.nuclear.fission
 
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
+import net.minecraftforge.fluids.FluidStack
+import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction
+import supercritical.api.nuclear.fission.components.ControlRod
+import supercritical.api.nuclear.fission.components.CoolantChannel
+import supercritical.api.nuclear.fission.components.FuelRod
+import supercritical.api.nuclear.fission.components.ReactorComponent
+import supercritical.common.SCConfigHolder
+import java.util.*
+import kotlin.math.exp
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sqrt
 
-import supercritical.api.capability.ICoolantHandler;
-import supercritical.api.nuclear.fission.components.ControlRod;
-import supercritical.api.nuclear.fission.components.CoolantChannel;
-import supercritical.api.nuclear.fission.components.FuelRod;
-import supercritical.api.nuclear.fission.components.ReactorComponent;
-import supercritical.common.SCConfigHolder;
+class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Double) {
+    private val reactorLayout: Array<Array<ReactorComponent?>?>
+    val fuelRods: MutableList<FuelRod> = ArrayList<FuelRod>()
+    val controlRods: MutableList<ControlRod> = ArrayList<ControlRod>()
+    val coolantChannels: MutableList<CoolantChannel> = ArrayList<CoolantChannel>()
+    private val effectiveControlRods: MutableList<ControlRod?> = ArrayList<ControlRod?>()
+    private val reactorRadius: Double
+    private val surfaceArea: Double
+    private val exteriorPressure: Double = STANDARD_PRESSURE
+    private val envTemperature: Double = ROOM_TEMPERATURE
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+    private var k = 0.0
+    private var controlRodFactor = 0.0
+    private var coolantBoilingPointStandardPressure = 0.0
+    private var coolantExitTemperature = 0.0
+    private var coolantHeatOfVaporization = 0.0
+    private var coolantBaseTemperature = 0.0
+    private var prevTemperature = 0.0
+    private var neutronPoisonAmount = 0.0
+    private var decayProductsAmount = 0.0
+    private var decayNeutrons = 0.0
+    private var neutronToPowerConversion = 0.0
+    private var structuralMass: Double
+    private var coolantMass = 0.0
+    private var weightedGenerationTime = 2.0
+    var isOn: Boolean = false
 
-public class FissionReactor {
+    var kEff: Double = 0.0
+    var controlRodInsertion: Double
+    var power: Double = 0.0
+    var temperature: Double = ROOM_TEMPERATURE
+    var pressure: Double = STANDARD_PRESSURE
+    var fuelDepletion: Double = -1.0
+    var accumulatedHydrogen: Double = 0.0
+    var maxTemperature: Double = 2000.0
+    var maxPressure: Double = 15000000.0
+    var maxPower: Double = 3.0
+    var fuelMass: Double = 0.0
+    var neutronFlux: Double = 0.0
+    var controlRodRegulationOn: Boolean = true
 
-    public static final double R = 8.31446261815324;
-    public static final double STANDARD_PRESSURE = 101325;
-    public static final double ROOM_TEMPERATURE = 273;
-    public static final double AIR_BOILING_POINT = 78.8;
-
-    public static double thermalConductivity = 45; // W/(m K), for steel
-    public static double wallThickness = 0.1; // m
-    public static double coolantWallThickness = 0.06; // m
-    public static double specificHeatCapacity = 420; // J/(kg K), for steel
-    public static double convectiveHeatTransferCoefficient = 10; // W/(m^2 K), for slow-moving air
-    public static double powerDefectCoefficient = 0.016; // reactivity units
-    public static double decayProductRate = 0.997; // based on the half-life of xenon-135, using real-life days as Minecraft days
-    public static double poisonFraction = 0.063; // xenon-135 yield from fission
-    public static double crossSectionRatio = 4; // ratio between the cross section for typical fuels and xenon-135
-    public static double zircaloyHydrogenReactionTemperature = 1500; // K
-
-    private final ReactorComponent[][] reactorLayout;
-    private final List<FuelRod> fuelRods = new ArrayList<>();
-    private final List<ControlRod> controlRods = new ArrayList<>();
-    private final List<CoolantChannel> coolantChannels = new ArrayList<>();
-    private final List<ControlRod> effectiveControlRods = new ArrayList<>();
-    private final int reactorDepth;
-    private final double reactorRadius;
-    private final double surfaceArea;
-    private final double exteriorPressure = STANDARD_PRESSURE;
-    private final double envTemperature = ROOM_TEMPERATURE;
-
-    private double k;
-    private double controlRodFactor;
-    private double coolantBoilingPointStandardPressure;
-    private double coolantExitTemperature;
-    private double coolantHeatOfVaporization;
-    private double coolantBaseTemperature;
-    private double prevTemperature;
-    private double neutronPoisonAmount;
-    private double decayProductsAmount;
-    private double decayNeutrons;
-    private double neutronToPowerConversion;
-    private double structuralMass;
-    private double coolantMass;
-    private double weightedGenerationTime = 2;
-    private boolean on;
-
-    public double kEff;
-    public double controlRodInsertion;
-    public double power;
-    public double temperature = ROOM_TEMPERATURE;
-    public double pressure = STANDARD_PRESSURE;
-    public double fuelDepletion = -1;
-    public double accumulatedHydrogen;
-    public double maxTemperature = 2000;
-    public double maxPressure = 15000000;
-    public double maxPower = 3;
-    public double fuelMass;
-    public double neutronFlux;
-    public boolean controlRodRegulationOn = true;
-
-    public FissionReactor(int size, int depth, double controlRodInsertion) {
-        reactorLayout = new ReactorComponent[size][size];
-        reactorDepth = depth;
-        reactorRadius = (double) size / 2 + 1.5;
-        this.controlRodInsertion = Math.max(0.001, controlRodInsertion);
-        surfaceArea = (reactorRadius * reactorRadius) * Math.PI * 2 + reactorDepth * reactorRadius * Math.PI * 2;
-        structuralMass = reactorDepth * reactorRadius * reactorRadius * Math.PI * 300;
+    fun setComponent(x: Int, y: Int, component: ReactorComponent?) {
+        reactorLayout[x]!![y] = component
     }
 
-    public void setComponent(int x, int y, ReactorComponent component) {
-        reactorLayout[x][y] = component;
+    fun getComponent(x: Int, y: Int): ReactorComponent? {
+        return reactorLayout[x]!![y]
     }
 
-    public ReactorComponent getComponent(int x, int y) {
-        return reactorLayout[x][y];
-    }
+    fun prepareThermalProperties() {
+        fuelRods.clear()
+        controlRods.clear()
+        coolantChannels.clear()
+        effectiveControlRods.clear()
+        structuralMass = reactorDepth * reactorRadius * reactorRadius * Math.PI * 300
+        fuelMass = 0.0
+        coolantMass = 0.0
+        maxTemperature = 2000.0
 
-    public void prepareThermalProperties() {
-        fuelRods.clear();
-        controlRods.clear();
-        coolantChannels.clear();
-        effectiveControlRods.clear();
-        structuralMass = reactorDepth * reactorRadius * reactorRadius * Math.PI * 300;
-        fuelMass = 0;
-        coolantMass = 0;
-        maxTemperature = 2000;
-
-        int fuelIndex = 0;
-        int controlIndex = 0;
-        int coolantIndex = 0;
-        for (int x = 0; x < reactorLayout.length; x++) {
-            for (int y = 0; y < reactorLayout[x].length; y++) {
-                ReactorComponent component = reactorLayout[x][y];
-                if (component == null || !component.isValid()) continue;
-                component.setPos(x, y);
-                maxTemperature = Math.min(maxTemperature, component.getMaxTemperature());
-                structuralMass += component.getMass();
-                if (component instanceof FuelRod fuelRod) {
-                    fuelRod.setIndex(fuelIndex++);
-                    fuelRods.add(fuelRod);
-                    fuelMass += fuelRod.getMass();
-                } else if (component instanceof ControlRod controlRod) {
-                    controlRod.setIndex(controlIndex++);
-                    controlRods.add(controlRod);
-                } else if (component instanceof CoolantChannel coolantChannel) {
-                    coolantChannel.setIndex(coolantIndex++);
-                    coolantChannel.setWeight(0);
-                    coolantChannels.add(coolantChannel);
+        var fuelIndex = 0
+        var controlIndex = 0
+        var coolantIndex = 0
+        for (x in reactorLayout.indices) {
+            for (y in reactorLayout[x]!!.indices) {
+                val component = reactorLayout[x]!![y]
+                if (component == null || !component.isValid()) continue
+                component.setPos(x, y)
+                maxTemperature = min(maxTemperature, component.getMaxTemperature())
+                structuralMass += component.getMass()
+                if (component is FuelRod) {
+                    component.setIndex(fuelIndex++)
+                    fuelRods.add(component)
+                    fuelMass += component.getMass()
+                } else if (component is ControlRod) {
+                    component.setIndex(controlIndex++)
+                    controlRods.add(component)
+                } else if (component is CoolantChannel) {
+                    component.setIndex(coolantIndex++)
+                    component.setWeight(0.0)
+                    coolantChannels.add(component)
                 }
             }
         }
     }
 
-    public double computeK(boolean addToEffectiveLists, boolean controlRodsInserted) {
-        double[][] geometricMatrixNeutrons = new double[fuelRods.size()][fuelRods.size()];
-        double[][] geometricMatrixFastNeutrons = new double[fuelRods.size()][fuelRods.size()];
-        double[][] geometricMatrixSlowNeutrons = new double[fuelRods.size()][fuelRods.size()];
+    fun computeK(addToEffectiveLists: Boolean, controlRodsInserted: Boolean): Double {
+        val geometricMatrixNeutrons = Array<DoubleArray?>(fuelRods.size) { DoubleArray(fuelRods.size) }
+        val geometricMatrixFastNeutrons = Array<DoubleArray?>(fuelRods.size) { DoubleArray(fuelRods.size) }
+        val geometricMatrixSlowNeutrons = Array<DoubleArray?>(fuelRods.size) { DoubleArray(fuelRods.size) }
 
-        for (int i = 0; i < fuelRods.size(); i++) {
-            for (int j = 0; j < i; j++) {
-                double mij = 0;
-                double saij = 0;
-                double faij = 0;
-                FuelRod rodOne = fuelRods.get(i);
-                FuelRod rodTwo = fuelRods.get(j);
+        for (i in fuelRods.indices) {
+            for (j in 0..<i) {
+                var mij = 0.0
+                var saij = 0.0
+                var faij = 0.0
+                val rodOne = fuelRods.get(i)
+                val rodTwo = fuelRods.get(j)
 
-                int prevX = fuelRods.get(i).getX();
-                int prevY = fuelRods.get(i).getY();
-                int resolution = SCConfigHolder.NUCLEAR.fissionReactorResolution.get().intValue();
-                for (int t = 0; t < resolution; t++) {
-                    int x = (int) Math.round((rodTwo.getX() - rodOne.getX()) *
-                            ((double) t / resolution) + fuelRods.get(i).getX());
-                    int y = (int) Math.round((rodTwo.getY() - rodOne.getY()) *
-                            ((double) t / resolution) + fuelRods.get(i).getY());
-                    if (x < 0 || x > reactorLayout.length - 1 || y < 0 || y > reactorLayout.length - 1) {
-                        continue;
+                var prevX = fuelRods.get(i).getX()
+                var prevY = fuelRods.get(i).getY()
+                val resolution = SCConfigHolder.NUCLEAR.fissionReactorResolution.get().toInt()
+                for (t in 0..<resolution) {
+                    val x = Math.round(
+                        (rodTwo.getX() - rodOne.getX()) *
+                                (t.toDouble() / resolution) + fuelRods.get(i).getX()
+                    ).toInt()
+                    val y = Math.round(
+                        (rodTwo.getY() - rodOne.getY()) *
+                                (t.toDouble() / resolution) + fuelRods.get(i).getY()
+                    ).toInt()
+                    if (x < 0 || x > reactorLayout.size - 1 || y < 0 || y > reactorLayout.size - 1) {
+                        continue
                     }
-                    ReactorComponent component = reactorLayout[x][y];
+                    val component = reactorLayout[x]!![y]
 
                     if (component == null) {
-                        continue;
+                        continue
                     }
 
                     if (!component.samePositionAs(fuelRods.get(i)) &&
-                            !component.samePositionAs(fuelRods.get(j))) {
-                        saij += component.getAbsorptionFactor(controlRodsInserted, true);
-                        faij += component.getAbsorptionFactor(controlRodsInserted, false);
+                        !component.samePositionAs(fuelRods.get(j))
+                    ) {
+                        saij += component.getAbsorptionFactor(controlRodsInserted, true)
+                        faij += component.getAbsorptionFactor(controlRodsInserted, false)
                     }
 
                     if (component.getModerationFactor() > 0) {
-                        mij += component.getModerationFactor();
-                        saij = (faij + saij) / 2;
+                        mij += component.getModerationFactor()
+                        saij = (faij + saij) / 2
                     }
 
                     if (!addToEffectiveLists || (x == prevX && y == prevY)) {
-                        continue;
+                        continue
                     }
-                    prevX = x;
-                    prevY = y;
+                    prevX = x
+                    prevY = y
 
-                    if (component instanceof ControlRod controlRod) {
-                        controlRod.addFuelRodPair();
+                    if (component is ControlRod) {
+                        component.addFuelRodPair()
                     }
                 }
 
-                mij /= resolution;
-                faij /= resolution;
-                saij /= resolution;
+                mij /= resolution.toDouble()
+                faij /= resolution.toDouble()
+                saij /= resolution.toDouble()
 
-                double dist = rodOne.getDistance(rodTwo);
-                double unabsorbedFast = Math.exp(-faij * dist) / dist;
-                double unabsorbedSlow = Math.exp(-saij * dist) / dist;
-                double fast = Math.exp(-mij * dist) / dist;
-                double slow = (1 / dist - fast) * unabsorbedSlow;
-                fast = fast * unabsorbedFast;
+                val dist = rodOne.getDistance(rodTwo)
+                val unabsorbedFast = exp(-faij * dist) / dist
+                val unabsorbedSlow = exp(-saij * dist) / dist
+                var fast = exp(-mij * dist) / dist
+                val slow = (1 / dist - fast) * unabsorbedSlow
+                fast = fast * unabsorbedFast
 
-                double slowNeutronFissionMultiplier = rodTwo.getFuel().getSlowFissionMultiplier();
-                double fastNeutronFissionMultiplier = rodTwo.getFuel().getFastFissionMultiplier();
-                geometricMatrixNeutrons[i][j] = slow * slowNeutronFissionMultiplier +
-                        fast * fastNeutronFissionMultiplier;
+                var slowNeutronFissionMultiplier = rodTwo.getFuel().getSlowFissionMultiplier()
+                var fastNeutronFissionMultiplier = rodTwo.getFuel().getFastFissionMultiplier()
+                geometricMatrixNeutrons[i]!![j] = slow * slowNeutronFissionMultiplier +
+                        fast * fastNeutronFissionMultiplier
 
-                slowNeutronFissionMultiplier = rodOne.getFuel().getSlowFissionMultiplier();
-                fastNeutronFissionMultiplier = rodOne.getFuel().getFastFissionMultiplier();
-                geometricMatrixNeutrons[j][i] = slow * slowNeutronFissionMultiplier +
-                        fast * fastNeutronFissionMultiplier;
+                slowNeutronFissionMultiplier = rodOne.getFuel().getSlowFissionMultiplier()
+                fastNeutronFissionMultiplier = rodOne.getFuel().getFastFissionMultiplier()
+                geometricMatrixNeutrons[j]!![i] = slow * slowNeutronFissionMultiplier +
+                        fast * fastNeutronFissionMultiplier
 
                 if (addToEffectiveLists) {
-                    geometricMatrixFastNeutrons[i][j] = fast * rodTwo.getFuel().getFastNeutronCaptureCrossSection();
-                    geometricMatrixSlowNeutrons[i][j] = slow * rodTwo.getFuel().getSlowNeutronCaptureCrossSection();
+                    geometricMatrixFastNeutrons[i]!![j] = fast * rodTwo.getFuel().getFastNeutronCaptureCrossSection()
+                    geometricMatrixSlowNeutrons[i]!![j] = slow * rodTwo.getFuel().getSlowNeutronCaptureCrossSection()
 
-                    geometricMatrixFastNeutrons[j][i] = fast * rodOne.getFuel().getFastNeutronCaptureCrossSection();
-                    geometricMatrixSlowNeutrons[j][i] = slow * rodOne.getFuel().getSlowNeutronCaptureCrossSection();
+                    geometricMatrixFastNeutrons[j]!![i] = fast * rodOne.getFuel().getFastNeutronCaptureCrossSection()
+                    geometricMatrixSlowNeutrons[j]!![i] = slow * rodOne.getFuel().getSlowNeutronCaptureCrossSection()
                 }
             }
         }
 
-        double[] vector = new double[fuelRods.size()];
-        Arrays.fill(vector, 1);
-        for (int i = 0; i < SCConfigHolder.NUCLEAR.fissionReactorPowerIterations.get(); i++) {
-            normalize(vector);
-            multiply(geometricMatrixNeutrons, vector);
+        val vector = DoubleArray(fuelRods.size)
+        Arrays.fill(vector, 1.0)
+        for (i in 0..<SCConfigHolder.NUCLEAR.fissionReactorPowerIterations.get()) {
+            normalize(vector)
+            multiply(geometricMatrixNeutrons, vector)
         }
-        double kCalc = getMagnitude(vector);
+        var kCalc: Double = getMagnitude(vector)
         if (addToEffectiveLists) {
-            linearNormalize(vector);
-            for (int i = 0; i < fuelRods.size(); i++) {
-                fuelRods.get(i).setWeight(vector[i]);
+            linearNormalize(vector)
+            for (i in fuelRods.indices) {
+                fuelRods.get(i).setWeight(vector[i])
             }
-            double[] fastVector = Arrays.copyOf(vector, vector.length);
-            double[] slowVector = Arrays.copyOf(vector, vector.length);
-            multiply(geometricMatrixFastNeutrons, fastVector);
-            multiply(geometricMatrixSlowNeutrons, slowVector);
-            for (int i = 0; i < fuelRods.size(); i++) {
-                if (slowVector[i] + fastVector[i] == 0) {
-                    fuelRods.get(i).setThermalProportion(0);
+            val fastVector = vector.copyOf(vector.size)
+            val slowVector = vector.copyOf(vector.size)
+            multiply(geometricMatrixFastNeutrons, fastVector)
+            multiply(geometricMatrixSlowNeutrons, slowVector)
+            for (i in fuelRods.indices) {
+                if (slowVector[i] + fastVector[i] == 0.0) {
+                    fuelRods.get(i).setThermalProportion(0.0)
                 } else {
-                    fuelRods.get(i).setThermalProportion(slowVector[i] / (slowVector[i] + fastVector[i]));
+                    fuelRods.get(i).setThermalProportion(slowVector[i] / (slowVector[i] + fastVector[i]))
                 }
             }
         }
 
-        kCalc *= reactorDepth / (1. + reactorDepth);
-        return kCalc;
+        kCalc *= reactorDepth / (1.0 + reactorDepth)
+        return kCalc
     }
 
-    public void computeGeometry() {
-        effectiveControlRods.clear();
+    fun computeGeometry() {
+        effectiveControlRods.clear()
 
         if (fuelRods.isEmpty()) {
-            k = 0;
-            kEff = 0;
-            maxPower = 0;
-            controlRodFactor = 0;
-            prepareInitialConditions();
-            return;
+            k = 0.0
+            kEff = 0.0
+            maxPower = 0.0
+            controlRodFactor = 0.0
+            prepareInitialConditions()
+            return
         }
 
-        k = computeK(true, false);
-        double kExperimental = computeK(false, true);
+        k = computeK(true, false)
+        val kExperimental = computeK(false, true)
 
-        computeControlRodWeights(((k - 1) / k) - ((kExperimental - 1) / kExperimental));
+        computeControlRodWeights(((k - 1) / k) - ((kExperimental - 1) / kExperimental))
 
-        neutronToPowerConversion = 0;
-        decayNeutrons = 0;
+        neutronToPowerConversion = 0.0
+        decayNeutrons = 0.0
 
-        for (FuelRod rod : fuelRods) {
-            neutronToPowerConversion += rod.getFuel().getReleasedHeatEnergy() / rod.getFuel().getRequiredNeutrons();
-            decayNeutrons += rod.getFuel().getDecayRate();
+        for (rod in fuelRods) {
+            neutronToPowerConversion += rod.getFuel().getReleasedHeatEnergy() / rod.getFuel().getRequiredNeutrons()
+            decayNeutrons += rod.getFuel().getDecayRate()
         }
-        computeCoolantWeights();
+        computeCoolantWeights()
 
-        if (fuelRods.size() > 1) {
-            neutronToPowerConversion /= fuelRods.size();
-            maxPower = calculateMaxPower();
+        if (fuelRods.size > 1) {
+            neutronToPowerConversion /= fuelRods.size.toDouble()
+            maxPower = calculateMaxPower()
         } else {
-            k = 0.00001;
-            maxPower = 0.1 * SCConfigHolder.NUCLEAR.nuclearPowerMultiplier.get();
+            k = 0.00001
+            maxPower = 0.1 * SCConfigHolder.NUCLEAR.nuclearPowerMultiplier.get()
         }
 
-        controlRodFactor = ControlRod.controlRodFactor(effectiveControlRods, controlRodInsertion);
+        controlRodFactor = ControlRod.Companion.controlRodFactor(effectiveControlRods, controlRodInsertion)
 
-        prepareInitialConditions();
+        prepareInitialConditions()
     }
 
-    private final int[] dx = { 0, 1, 0, -1 };
-    private final int[] dy = { 1, 0, -1, 0 };
+    private val dx = intArrayOf(0, 1, 0, -1)
+    private val dy = intArrayOf(1, 0, -1, 0)
 
-    protected void computeCoolantWeights() {
-        for (FuelRod rod : fuelRods) {
-            for (int i = 0; i < 4; i++) {
-                int x = rod.getX() + dx[i];
-                int y = rod.getY() + dy[i];
-                if (x < 0 || x >= reactorLayout.length || y < 0 || y >= reactorLayout[x].length) continue;
-                ReactorComponent comp = reactorLayout[x][y];
-                if (comp instanceof CoolantChannel coolantChannel) {
-                    coolantChannel.addWeight(rod.getWeight());
+    init {
+        reactorLayout = Array<Array<ReactorComponent?>?>(size) { arrayOfNulls<ReactorComponent>(size) }
+        reactorRadius = size.toDouble() / 2 + 1.5
+        this.controlRodInsertion = max(0.001, controlRodInsertion)
+        surfaceArea = (reactorRadius * reactorRadius) * Math.PI * 2 + reactorDepth * reactorRadius * Math.PI * 2
+        structuralMass = reactorDepth * reactorRadius * reactorRadius * Math.PI * 300
+    }
+
+    protected fun computeCoolantWeights() {
+        for (rod in fuelRods) {
+            for (i in 0..3) {
+                val x = rod.getX() + dx[i]
+                val y = rod.getY() + dy[i]
+                if (x < 0 || x >= reactorLayout.size || y < 0 || y >= reactorLayout[x]!!.size) continue
+                val comp = reactorLayout[x]!![y]
+                if (comp is CoolantChannel) {
+                    comp.addWeight(rod.getWeight())
                 }
             }
         }
     }
 
-    protected void computeControlRodWeights(double totalWorth) {
-        double totalWeight = 0;
-        for (ControlRod rod : controlRods) {
-            rod.computeWeightFromFuelRodMap();
+    protected fun computeControlRodWeights(totalWorth: Double) {
+        var totalWeight = 0.0
+        for (rod in controlRods) {
+            rod.computeWeightFromFuelRodMap()
             if (rod.getWeight() > 0) {
-                effectiveControlRods.add(rod);
-                totalWeight += rod.getWeight();
+                effectiveControlRods.add(rod)
+                totalWeight += rod.getWeight()
             }
         }
-        ControlRod.normalizeWeights(effectiveControlRods, totalWeight, totalWorth);
+        ControlRod.Companion.normalizeWeights(effectiveControlRods, totalWeight, totalWorth)
     }
 
-    public void resetFuelDepletion() {
-        this.fuelDepletion = 0;
+    fun resetFuelDepletion() {
+        this.fuelDepletion = 0.0
     }
 
-    public void prepareInitialConditions() {
-        coolantBaseTemperature = 0;
-        coolantBoilingPointStandardPressure = 0;
-        coolantExitTemperature = 0;
-        coolantHeatOfVaporization = 0;
-        weightedGenerationTime = 0;
+    fun prepareInitialConditions() {
+        coolantBaseTemperature = 0.0
+        coolantBoilingPointStandardPressure = 0.0
+        coolantExitTemperature = 0.0
+        coolantHeatOfVaporization = 0.0
+        weightedGenerationTime = 0.0
 
-        for (FuelRod rod : fuelRods) {
-            weightedGenerationTime += rod.getNeutronGenerationTime();
+        for (rod in fuelRods) {
+            weightedGenerationTime += rod.getNeutronGenerationTime()
         }
         if (fuelRods.isEmpty()) {
-            weightedGenerationTime = 2;
+            weightedGenerationTime = 2.0
         } else {
-            weightedGenerationTime /= fuelRods.size();
+            weightedGenerationTime /= fuelRods.size.toDouble()
         }
 
-        for (CoolantChannel channel : coolantChannels) {
-            ICoolantStats prop = channel.getCoolant();
-            var original = CoolantRegistry.originalFluid(prop);
+        for (channel in coolantChannels) {
+            val prop = channel.getCoolant()
+            val original = CoolantRegistry.originalFluid(prop)
 
             if (original != null) {
-                coolantBaseTemperature += original.getFluidType().getTemperature();
+                coolantBaseTemperature += original.getFluidType().getTemperature().toDouble()
             }
-            coolantBoilingPointStandardPressure += prop.getBoilingPoint();
-            coolantExitTemperature += prop.getHotCoolant().getFluidType().getTemperature();
-            coolantHeatOfVaporization += prop.getHeatOfVaporization();
+            coolantBoilingPointStandardPressure += prop.getBoilingPoint()
+            coolantExitTemperature += prop.getHotCoolant().getFluidType().getTemperature().toDouble()
+            coolantHeatOfVaporization += prop.getHeatOfVaporization()
         }
 
         if (!coolantChannels.isEmpty()) {
-            coolantBaseTemperature /= coolantChannels.size();
-            coolantBoilingPointStandardPressure /= coolantChannels.size();
-            coolantExitTemperature /= coolantChannels.size();
-            coolantHeatOfVaporization /= coolantChannels.size();
+            coolantBaseTemperature /= coolantChannels.size.toDouble()
+            coolantBoilingPointStandardPressure /= coolantChannels.size.toDouble()
+            coolantExitTemperature /= coolantChannels.size.toDouble()
+            coolantHeatOfVaporization /= coolantChannels.size.toDouble()
 
-            if (coolantBaseTemperature == 0) {
-                coolantBaseTemperature = envTemperature;
+            if (coolantBaseTemperature == 0.0) {
+                coolantBaseTemperature = envTemperature
             }
-            if (coolantBoilingPointStandardPressure == 0) {
-                coolantBoilingPointStandardPressure = AIR_BOILING_POINT;
+            if (coolantBoilingPointStandardPressure == 0.0) {
+                coolantBoilingPointStandardPressure = AIR_BOILING_POINT
             }
         }
-        on = true;
+        this.isOn = true
     }
 
-    public double makeCoolantFlow() {
-        double heatRemoved = 0;
-        coolantMass = 0;
-        for (CoolantChannel channel : coolantChannels) {
-            ICoolantHandler input = channel.getInputHandler();
-            ICoolantHandler output = channel.getOutputHandler();
-            if (input == null || output == null) continue;
+    fun makeCoolantFlow(): Double {
+        var heatRemoved = 0.0
+        coolantMass = 0.0
+        for (channel in coolantChannels) {
+            val input = channel.getInputHandler()
+            val output = channel.getOutputHandler()
+            if (input == null || output == null) continue
 
-            var inputTank = input.getFluidTank();
-            var outputTank = output.getFluidTank();
-            FluidStack drained = inputTank.drain(16000, FluidAction.SIMULATE);
-            if (drained.isEmpty()) continue;
+            val inputTank = input.getFluidTank()
+            val outputTank = output.getFluidTank()
+            val drained = inputTank.drain(16000, FluidAction.SIMULATE)
+            if (drained.isEmpty()) continue
 
-            int available = drained.getAmount();
-            ICoolantStats prop = channel.getCoolant();
-            var original = CoolantRegistry.originalFluid(prop);
-            int coolantTemp = original == null ? (int) ROOM_TEMPERATURE : original.getFluidType().getTemperature();
-            var hotCoolant = prop.getHotCoolant();
-            int cooledTemperature = hotCoolant == null ? (int) ROOM_TEMPERATURE : hotCoolant.getFluidType().getTemperature();
-            if (cooledTemperature > this.temperature) continue;
+            val available = drained.getAmount()
+            val prop = channel.getCoolant()
+            val original = CoolantRegistry.originalFluid(prop)
+            val coolantTemp =
+                if (original == null) ROOM_TEMPERATURE.toInt() else original.getFluidType().getTemperature()
+            val hotCoolant = prop.getHotCoolant()
+            val cooledTemperature =
+                if (hotCoolant == null) ROOM_TEMPERATURE.toInt() else hotCoolant.getFluidType().getTemperature()
+            if (cooledTemperature > this.temperature) continue
 
-            double heatRemovedPerLiter = prop.getSpecificHeatCapacity() /
+            val heatRemovedPerLiter = prop.getSpecificHeatCapacity() /
                     SCConfigHolder.NUCLEAR.fissionCoolantDivisor.get() *
-                    (cooledTemperature - coolantTemp);
-            if (heatRemovedPerLiter <= 0) continue;
+                    (cooledTemperature - coolantTemp)
+            if (heatRemovedPerLiter <= 0) continue
 
-            double heatFluxPerAreaAndTemp = 1 /
-                    (1 / prop.getCoolingFactor() + coolantWallThickness / thermalConductivity);
-            double idealHeatFlux = heatFluxPerAreaAndTemp * channel.getWeight() * reactorDepth *
-                    (temperature - cooledTemperature);
+            val heatFluxPerAreaAndTemp: Double = 1 /
+                    (1 / prop.getCoolingFactor() + coolantWallThickness / thermalConductivity)
+            val idealHeatFlux = heatFluxPerAreaAndTemp * channel.getWeight() * reactorDepth *
+                    (temperature - cooledTemperature)
 
-            double idealFluidUsed = idealHeatFlux / heatRemovedPerLiter;
-            double cappedFluidUsed = Math.min(available, idealFluidUsed);
+            val idealFluidUsed = idealHeatFlux / heatRemovedPerLiter
+            val cappedFluidUsed = min(available.toDouble(), idealFluidUsed)
 
-            int remainingSpace = outputTank.getTankCapacity(0) - outputTank.getFluidInTank(0).getAmount();
-            int actualFlowRate = Math.min(remainingSpace,
-                    (int) (cappedFluidUsed + channel.partialCoolant));
-            channel.partialCoolant += cappedFluidUsed - actualFlowRate;
+            val remainingSpace = outputTank.getTankCapacity(0) - outputTank.getFluidInTank(0).getAmount()
+            val actualFlowRate = min(
+                remainingSpace,
+                (cappedFluidUsed + channel.partialCoolant).toInt()
+            )
+            channel.partialCoolant += cappedFluidUsed - actualFlowRate
 
-            FluidStack hotFluid = new FluidStack(hotCoolant, actualFlowRate);
-            inputTank.drain(actualFlowRate, FluidAction.EXECUTE);
-            outputTank.fill(hotFluid, FluidAction.EXECUTE);
+            val hotFluid = FluidStack(hotCoolant, actualFlowRate)
+            inputTank.drain(actualFlowRate, FluidAction.EXECUTE)
+            outputTank.fill(hotFluid, FluidAction.EXECUTE)
 
             if (prop.accumulatesHydrogen() &&
-                    this.temperature > zircaloyHydrogenReactionTemperature) {
-                double boilingPoint = coolantBoilingPoint(prop);
+                this.temperature > zircaloyHydrogenReactionTemperature
+            ) {
+                val boilingPoint = coolantBoilingPoint(prop)
                 if (this.temperature > boilingPoint) {
-                    this.accumulatedHydrogen += (this.temperature - boilingPoint) / boilingPoint;
-                } else if (actualFlowRate < Math.min(remainingSpace, idealFluidUsed)) {
+                    this.accumulatedHydrogen += (this.temperature - boilingPoint) / boilingPoint
+                } else if (actualFlowRate < min(remainingSpace.toDouble(), idealFluidUsed)) {
                     this.accumulatedHydrogen += (this.temperature - zircaloyHydrogenReactionTemperature) /
-                            zircaloyHydrogenReactionTemperature;
+                            zircaloyHydrogenReactionTemperature
                 }
             }
 
-            this.coolantMass += cappedFluidUsed * prop.getMass();
-            heatRemoved += cappedFluidUsed * heatRemovedPerLiter;
+            this.coolantMass += cappedFluidUsed * prop.getMass()
+            heatRemoved += cappedFluidUsed * heatRemovedPerLiter
         }
-        this.coolantMass /= 1000;
-        this.accumulatedHydrogen *= 0.98;
-        return heatRemoved;
+        this.coolantMass /= 1000.0
+        this.accumulatedHydrogen *= 0.98
+        return heatRemoved
     }
 
-    public double calculateMaxPower() {
-        double hypotheticalTemperature = Math.min(maxTemperature, zircaloyHydrogenReactionTemperature);
-        double heatRemoved = 0;
-        for (CoolantChannel channel : coolantChannels) {
-            ICoolantStats prop = channel.getCoolant();
-            var original = CoolantRegistry.originalFluid(prop);
-            int coolantTemp = original == null ? (int) ROOM_TEMPERATURE : original.getFluidType().getTemperature();
+    fun calculateMaxPower(): Double {
+        val hypotheticalTemperature = min(maxTemperature, zircaloyHydrogenReactionTemperature)
+        var heatRemoved = 0.0
+        for (channel in coolantChannels) {
+            val prop = channel.getCoolant()
+            val original = CoolantRegistry.originalFluid(prop)
+            val coolantTemp =
+                if (original == null) ROOM_TEMPERATURE.toInt() else original.getFluidType().getTemperature()
 
-            var hotCoolant = prop.getHotCoolant();
-            int cooledTemperature = hotCoolant == null ? (int) ROOM_TEMPERATURE : hotCoolant.getFluidType().getTemperature();
+            val hotCoolant = prop.getHotCoolant()
+            val cooledTemperature =
+                if (hotCoolant == null) ROOM_TEMPERATURE.toInt() else hotCoolant.getFluidType().getTemperature()
             if (cooledTemperature > hypotheticalTemperature) {
-                continue;
+                continue
             }
 
-            double heatRemovedPerLiter = prop.getSpecificHeatCapacity() /
+            val heatRemovedPerLiter = prop.getSpecificHeatCapacity() /
                     SCConfigHolder.NUCLEAR.fissionCoolantDivisor.get() *
-                    (cooledTemperature - coolantTemp);
+                    (cooledTemperature - coolantTemp)
 
-            double heatFluxPerAreaAndTemp = 1 /
-                    (1 / prop.getCoolingFactor() + coolantWallThickness / thermalConductivity);
-            double idealHeatFlux = heatFluxPerAreaAndTemp * channel.getWeight() * reactorDepth *
-                    (hypotheticalTemperature - cooledTemperature);
+            val heatFluxPerAreaAndTemp: Double = 1 /
+                    (1 / prop.getCoolingFactor() + coolantWallThickness / thermalConductivity)
+            val idealHeatFlux = heatFluxPerAreaAndTemp * channel.getWeight() * reactorDepth *
+                    (hypotheticalTemperature - cooledTemperature)
 
-            double idealFluidUsed = idealHeatFlux / heatRemovedPerLiter;
+            val idealFluidUsed = idealHeatFlux / heatRemovedPerLiter
 
-            heatRemoved += idealFluidUsed * heatRemovedPerLiter;
+            heatRemoved += idealFluidUsed * heatRemovedPerLiter
         }
-        double timeConstant = specificHeatCapacity *
-                (1 / convectiveHeatTransferCoefficient + wallThickness / thermalConductivity) / this.surfaceArea;
+        val timeConstant: Double = specificHeatCapacity *
+                (1 / convectiveHeatTransferCoefficient + wallThickness / thermalConductivity) / this.surfaceArea
 
         return ((hypotheticalTemperature - envTemperature) * (timeConstant * (this.coolantMass +
-                this.structuralMass + this.fuelMass)) + heatRemoved) / 1e6;
+                this.structuralMass + this.fuelMass)) + heatRemoved) / 1e6
     }
 
-    protected double coolantBoilingPoint() {
-        return this.coolantBoilingPointStandardPressure;
+    protected fun coolantBoilingPoint(): Double {
+        return this.coolantBoilingPointStandardPressure
     }
 
-    protected double coolantBoilingPoint(ICoolantStats coolant) {
-        if (coolant.getBoilingPoint() == 0) {
-            return coolantBoilingPoint();
+    protected fun coolantBoilingPoint(coolant: ICoolantStats): Double {
+        if (coolant.getBoilingPoint() == 0.0) {
+            return coolantBoilingPoint()
         }
-        return coolant.getBoilingPoint();
+        return coolant.getBoilingPoint()
     }
 
-    public void updateTemperature() {
-        this.prevTemperature = this.temperature;
-        this.temperature = responseFunctionTemperature(envTemperature, this.temperature, this.power * 1e6, 0);
-        this.temperature = Math.min(maxTemperature, temperature);
-        double heatRemoved = this.makeCoolantFlow();
-        this.temperature = responseFunctionTemperature(envTemperature, prevTemperature, this.power * 1e6, heatRemoved);
-        this.temperature = Math.max(this.temperature, this.coolantBaseTemperature);
+    fun updateTemperature() {
+        this.prevTemperature = this.temperature
+        this.temperature = responseFunctionTemperature(envTemperature, this.temperature, this.power * 1e6, 0.0)
+        this.temperature = min(maxTemperature, temperature)
+        val heatRemoved = this.makeCoolantFlow()
+        this.temperature = responseFunctionTemperature(envTemperature, prevTemperature, this.power * 1e6, heatRemoved)
+        this.temperature = max(this.temperature, this.coolantBaseTemperature)
     }
 
-    public void updatePressure() {
+    fun updatePressure() {
         this.pressure = responseFunction(
-                !(this.temperature <= this.coolantBoilingPoint()) && this.on ? 1000. * R * this.temperature :
-                        this.exteriorPressure,
-                this.pressure, 0.2);
+            if (!(this.temperature <= this.coolantBoilingPoint()) && this.isOn) 1000.0 * R * this.temperature else this.exteriorPressure,
+            this.pressure, 0.2
+        )
     }
 
-    public void updateNeutronPoisoning() {
-        this.decayProductsAmount *= decayProductRate;
-        this.neutronPoisonAmount += this.decayProductsAmount * (1 - decayProductRate) * poisonFraction;
-        this.neutronPoisonAmount *= decayProductRate * Math.exp(-crossSectionRatio * power / surfaceArea);
+    fun updateNeutronPoisoning() {
+        this.decayProductsAmount *= decayProductRate
+        this.neutronPoisonAmount += this.decayProductsAmount * (1 - decayProductRate) * poisonFraction
+        this.neutronPoisonAmount *= decayProductRate * exp(-crossSectionRatio * power / surfaceArea)
     }
 
-    public double getTotalDecayNeutrons() {
-        return this.neutronPoisonAmount * 0.05 + this.decayProductsAmount * 0.1 + this.decayNeutrons;
-    }
+    val totalDecayNeutrons: Double
+        get() = this.neutronPoisonAmount * 0.05 + this.decayProductsAmount * 0.1 + this.decayNeutrons
 
-    public void updatePower() {
-        if (this.on) {
-            this.neutronFlux += getTotalDecayNeutrons();
-            this.kEff = 1 / ((1 / this.k) + powerDefectCoefficient * (this.power / this.maxPower) +
-                    neutronPoisonAmount * crossSectionRatio / surfaceArea + controlRodFactor);
-            this.kEff = Math.max(0, this.kEff);
+    fun updatePower() {
+        if (this.isOn) {
+            this.neutronFlux += this.totalDecayNeutrons
+            this.kEff =
+                1 / ((1 / this.k) + powerDefectCoefficient * (this.power / this.maxPower) + neutronPoisonAmount * crossSectionRatio / surfaceArea + controlRodFactor)
+            this.kEff = max(0.0, this.kEff)
 
-            double inverseReactorPeriod = (this.kEff - 1) / weightedGenerationTime;
+            val inverseReactorPeriod = (this.kEff - 1) / weightedGenerationTime
 
-            this.neutronFlux *= Math.exp(inverseReactorPeriod);
+            this.neutronFlux *= exp(inverseReactorPeriod)
 
-            this.fuelDepletion += this.neutronFlux * reactorDepth;
-            this.decayProductsAmount += Math.max(neutronFlux, 0.) / 250000;
+            this.fuelDepletion += this.neutronFlux * reactorDepth
+            this.decayProductsAmount += max(neutronFlux, 0.0) / 250000
 
-            this.power = this.neutronFlux * this.neutronToPowerConversion;
+            this.power = this.neutronFlux * this.neutronToPowerConversion
         } else {
-            this.neutronFlux *= 0.5;
-            this.power *= 0.5;
+            this.neutronFlux *= 0.5
+            this.power *= 0.5
         }
     }
 
-    public boolean checkForMeltdown() {
-        return this.temperature > this.maxTemperature;
+    fun checkForMeltdown(): Boolean {
+        return this.temperature > this.maxTemperature
     }
 
-    public boolean checkForExplosion() {
-        return this.pressure > this.maxPressure;
+    fun checkForExplosion(): Boolean {
+        return this.pressure > this.maxPressure
     }
 
-    public void tick() {
-        if (!on || fuelRods.isEmpty()) return;
-        updatePower();
-        updateTemperature();
-        updatePressure();
-        updateNeutronPoisoning();
-        regulateControlRods();
+    fun tick() {
+        if (!this.isOn || fuelRods.isEmpty()) return
+        updatePower()
+        updateTemperature()
+        updatePressure()
+        updateNeutronPoisoning()
+        regulateControlRods()
     }
 
-    protected static double responseFunction(double target, double current, double criticalRate) {
-        if (current < 0) current = criticalRate < 1 ? 0 : 0.1;
-        double expDecay = Math.exp(-criticalRate);
-        return current * expDecay + target * (1 - expDecay);
+    protected fun responseFunctionTemperature(
+        envTemperature: Double, currentTemperature: Double, heatAdded: Double,
+        heatAbsorbed: Double
+    ): Double {
+        var currentTemperature = currentTemperature
+        var heatAbsorbed = heatAbsorbed
+        currentTemperature = max(0.1, currentTemperature)
+        heatAbsorbed = max(0.0, heatAbsorbed)
+        val timeConstant: Double = specificHeatCapacity *
+                (1 / convectiveHeatTransferCoefficient + wallThickness / thermalConductivity) / this.surfaceArea
+        val expDecay = exp(-timeConstant)
+        val effectiveEnvTemperature = envTemperature +
+                (heatAdded - heatAbsorbed) / (timeConstant * (this.coolantMass + this.structuralMass + this.fuelMass))
+        return currentTemperature * expDecay + effectiveEnvTemperature * (1 - expDecay)
     }
 
-    protected double responseFunctionTemperature(double envTemperature, double currentTemperature, double heatAdded,
-                                                 double heatAbsorbed) {
-        currentTemperature = Math.max(0.1, currentTemperature);
-        heatAbsorbed = Math.max(0, heatAbsorbed);
-        double timeConstant = specificHeatCapacity *
-                (1 / convectiveHeatTransferCoefficient + wallThickness / thermalConductivity) / this.surfaceArea;
-        double expDecay = Math.exp(-timeConstant);
-        double effectiveEnvTemperature = envTemperature +
-                (heatAdded - heatAbsorbed) / (timeConstant * (this.coolantMass + this.structuralMass + this.fuelMass));
-        return currentTemperature * expDecay + effectiveEnvTemperature * (1 - expDecay);
+    fun updateControlRodInsertion(controlRodInsertion: Double) {
+        this.controlRodInsertion = max(0.001, controlRodInsertion)
+        this.controlRodFactor = ControlRod.Companion.controlRodFactor(effectiveControlRods, this.controlRodInsertion)
     }
 
-    public static double getMagnitude(double[] vector) {
-        double magnitude = 0;
-        for (double component : vector) magnitude += component * component;
-        return Math.sqrt(magnitude);
-    }
+    fun regulateControlRods() {
+        if (!this.isOn || !this.controlRodRegulationOn) return
 
-    public static void normalize(double[] vector) {
-        double magnitude = getMagnitude(vector);
-        if (magnitude == 0) return;
-        for (int i = 0; i < vector.length; i++) vector[i] /= magnitude;
-    }
-
-    public static void linearNormalize(double[] vector) {
-        double sum = 0;
-        for (double component : vector) sum += component;
-        if (sum == 0) return;
-        for (int i = 0; i < vector.length; i++) vector[i] /= sum;
-    }
-
-    public static void multiply(double[][] matrix, double[] vector) {
-        double[] result = new double[vector.length];
-        for (int i = 0; i < matrix.length; i++) {
-            for (int j = 0; j < matrix[i].length; j++) {
-                result[i] += matrix[i][j] * vector[j];
-            }
-        }
-        System.arraycopy(result, 0, vector, 0, result.length);
-    }
-
-    public void updateControlRodInsertion(double controlRodInsertion) {
-        this.controlRodInsertion = Math.max(0.001, controlRodInsertion);
-        this.controlRodFactor = ControlRod.controlRodFactor(effectiveControlRods, this.controlRodInsertion);
-    }
-
-    public void regulateControlRods() {
-        if (!this.on || !this.controlRodRegulationOn) return;
-
-        boolean adjustFactor = false;
-        if (pressure > maxPressure * 0.8 || temperature > (coolantExitTemperature + maxTemperature) / 2 ||
-                temperature > maxTemperature - 150 || temperature - prevTemperature > 30) {
+        var adjustFactor = false
+        if (pressure > maxPressure * 0.8 || temperature > (coolantExitTemperature + maxTemperature) / 2 || temperature > maxTemperature - 150 || temperature - prevTemperature > 30) {
             if (kEff > 0.99) {
-                this.controlRodInsertion += 0.004;
-                adjustFactor = true;
+                this.controlRodInsertion += 0.004
+                adjustFactor = true
             }
         } else if (temperature > coolantExitTemperature * 0.3 + coolantBaseTemperature * 0.7) {
             if (kEff > 1.01) {
-                this.controlRodInsertion += 0.008;
-                adjustFactor = true;
+                this.controlRodInsertion += 0.008
+                adjustFactor = true
             } else if (kEff < 1.005) {
-                this.controlRodInsertion -= 0.001;
-                adjustFactor = true;
+                this.controlRodInsertion -= 0.001
+                adjustFactor = true
             }
         } else if (temperature > coolantExitTemperature * 0.1 + coolantBaseTemperature * 0.9) {
             if (kEff > 1.025) {
-                this.controlRodInsertion += 0.012;
-                adjustFactor = true;
+                this.controlRodInsertion += 0.012
+                adjustFactor = true
             } else if (kEff < 1.015) {
-                this.controlRodInsertion -= 0.004;
-                adjustFactor = true;
+                this.controlRodInsertion -= 0.004
+                adjustFactor = true
             }
         } else {
             if (kEff > 1.1) {
-                this.controlRodInsertion += 0.02;
-                adjustFactor = true;
+                this.controlRodInsertion += 0.02
+                adjustFactor = true
             } else if (kEff < 1.05) {
-                this.controlRodInsertion -= 0.006;
-                adjustFactor = true;
+                this.controlRodInsertion -= 0.006
+                adjustFactor = true
             }
         }
 
         if (adjustFactor) {
-            this.controlRodInsertion = Math.max(0, Math.min(1, this.controlRodInsertion));
-            this.controlRodFactor = ControlRod.controlRodFactor(effectiveControlRods, this.controlRodInsertion);
+            this.controlRodInsertion = max(0.0, min(1.0, this.controlRodInsertion))
+            this.controlRodFactor =
+                ControlRod.Companion.controlRodFactor(effectiveControlRods, this.controlRodInsertion)
         }
     }
 
-    public void turnOff() {
-        this.on = false;
-        this.maxPower = 0;
-        this.k = 0;
-        this.kEff = 0;
-        this.coolantMass = 0;
-        this.fuelMass = 0;
-        for (ReactorComponent[] components : reactorLayout) {
-            Arrays.fill(components, null);
+    fun turnOff() {
+        this.isOn = false
+        this.maxPower = 0.0
+        this.k = 0.0
+        this.kEff = 0.0
+        this.coolantMass = 0.0
+        this.fuelMass = 0.0
+        for (components in reactorLayout) {
+            Arrays.fill(components, null)
         }
-        fuelRods.clear();
-        controlRods.clear();
-        coolantChannels.clear();
-        effectiveControlRods.clear();
+        fuelRods.clear()
+        controlRods.clear()
+        coolantChannels.clear()
+        effectiveControlRods.clear()
     }
 
-    public List<FuelRod> getFuelRods() { return fuelRods; }
-    public List<ControlRod> getControlRods() { return controlRods; }
-    public List<CoolantChannel> getCoolantChannels() { return coolantChannels; }
-    public int getReactorDepth() { return reactorDepth; }
-    public boolean isOn() { return on; }
-    public void setOn(boolean on) { this.on = on; }
+    companion object {
+        const val R: Double = 8.31446261815324
+        const val STANDARD_PRESSURE: Double = 101325.0
+        const val ROOM_TEMPERATURE: Double = 273.0
+        const val AIR_BOILING_POINT: Double = 78.8
+
+        var thermalConductivity: Double = 45.0 // W/(m K), for steel
+        var wallThickness: Double = 0.1 // m
+        var coolantWallThickness: Double = 0.06 // m
+        var specificHeatCapacity: Double = 420.0 // J/(kg K), for steel
+        var convectiveHeatTransferCoefficient: Double = 10.0 // W/(m^2 K), for slow-moving air
+        var powerDefectCoefficient: Double = 0.016 // reactivity units
+        var decayProductRate: Double =
+            0.997 // based on the half-life of xenon-135, using real-life days as Minecraft days
+        var poisonFraction: Double = 0.063 // xenon-135 yield from fission
+        var crossSectionRatio: Double = 4.0 // ratio between the cross section for typical fuels and xenon-135
+        var zircaloyHydrogenReactionTemperature: Double = 1500.0 // K
+
+        protected fun responseFunction(target: Double, current: Double, criticalRate: Double): Double {
+            var current = current
+            if (current < 0) current = if (criticalRate < 1) 0.0 else 0.1
+            val expDecay = exp(-criticalRate)
+            return current * expDecay + target * (1 - expDecay)
+        }
+
+        fun getMagnitude(vector: DoubleArray): Double {
+            var magnitude = 0.0
+            for (component in vector) magnitude += component * component
+            return sqrt(magnitude)
+        }
+
+        fun normalize(vector: DoubleArray) {
+            val magnitude: Double = getMagnitude(vector)
+            if (magnitude == 0.0) return
+            for (i in vector.indices) vector[i] /= magnitude
+        }
+
+        fun linearNormalize(vector: DoubleArray) {
+            var sum = 0.0
+            for (component in vector) sum += component
+            if (sum == 0.0) return
+            for (i in vector.indices) vector[i] /= sum
+        }
+
+        fun multiply(matrix: Array<DoubleArray?>, vector: DoubleArray) {
+            val result = DoubleArray(vector.size)
+            for (i in matrix.indices) {
+                for (j in matrix[i]!!.indices) {
+                    result[i] += matrix[i]!![j] * vector[j]
+                }
+            }
+            System.arraycopy(result, 0, vector, 0, result.size)
+        }
+    }
 }

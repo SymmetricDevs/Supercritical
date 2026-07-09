@@ -1,23 +1,24 @@
-package supercritical.api.unification.tag;
+package supercritical.api.unification.tag
 
-import java.util.function.Function;
+import com.gregtechceu.gtceu.api.data.tag.TagPrefix
 
 /**
- * Extends GTCEu Modern's {@link com.gregtechceu.gtceu.api.data.tag.TagPrefix} to include
+ * Extends GTCEu Modern's [TagPrefix] to include
  * radiation damage behaviour for Supercritical nuclear items.
  */
-public interface TagPrefixExtension {
+interface TagPrefixExtension {
+    var radiationDamageFunction: Function<Double?, Double?>?
 
-    Function<Double, Double> getRadiationDamageFunction();
+    companion object {
+        fun getRadiationDamageFunction(prefix: TagPrefix): java.util.function.Function<Double?, Double?>? {
+            return (prefix as Any? as TagPrefixExtension).radiationDamageFunction
+        }
 
-    void setRadiationDamageFunction(Function<Double, Double> function);
-
-    static Function<Double, Double> getRadiationDamageFunction(com.gregtechceu.gtceu.api.data.tag.TagPrefix prefix) {
-        return ((TagPrefixExtension) (Object) prefix).getRadiationDamageFunction();
-    }
-
-    static void setRadiationDamageFunction(com.gregtechceu.gtceu.api.data.tag.TagPrefix prefix,
-                                           Function<Double, Double> function) {
-        ((TagPrefixExtension) (Object) prefix).setRadiationDamageFunction(function);
+        fun setRadiationDamageFunction(
+            prefix: TagPrefix,
+            function: java.util.function.Function<Double?, Double?>?
+        ) {
+            (prefix as Any? as TagPrefixExtension).radiationDamageFunction = function
+        }
     }
 }

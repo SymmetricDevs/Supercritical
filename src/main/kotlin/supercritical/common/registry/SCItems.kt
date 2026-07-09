@@ -1,54 +1,52 @@
+package supercritical.common.registry
 
-package supercritical.common.registry;
+import com.gregtechceu.gtceu.api.data.chemical.material.Material
+import com.gregtechceu.gtceu.api.data.tag.TagPrefix
+import com.gregtechceu.gtceu.common.data.GTMaterialItems
+import com.gregtechceu.gtceu.common.data.GTMaterials
+import net.minecraft.world.item.Item
+import net.minecraftforge.eventbus.api.IEventBus
+import net.minecraftforge.registries.DeferredRegister
+import net.minecraftforge.registries.ForgeRegistries
+import net.minecraftforge.registries.RegistryObject
+import supercritical.BuildConfig
+import supercritical.api.unification.material.SCMaterials
+import supercritical.api.unification.ore.SCOrePrefix
+import java.util.*
+import java.util.function.Supplier
 
-import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
-import com.gregtechceu.gtceu.common.data.GTMaterialItems;
-import com.gregtechceu.gtceu.common.data.GTMaterials;
-import net.minecraft.world.item.Item;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
-import supercritical.BuildConfig;
-import supercritical.api.unification.material.SCMaterials;
-import supercritical.api.unification.ore.SCOrePrefix;
+object SCItems {
+    val ITEMS: DeferredRegister<Item?> = DeferredRegister.create<Item?>(ForgeRegistries.ITEMS, BuildConfig.MOD_ID)
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.function.Supplier;
+    val ANODE_BASKET: RegistryObject<Item?>? = ITEMS.register<Item?>(
+        "anode_basket",
+        Supplier { Item(Item.Properties()) })
+    val FUEL_CLADDING: RegistryObject<Item?>? = ITEMS.register<Item?>(
+        "fuel_cladding",
+        Supplier { Item(Item.Properties()) })
 
-public final class SCItems {
+    val NUCLEAR_FUEL_ITEMS: MutableMap<String?, NuclearFuelItems?> = registerNuclearFuelItems()
 
-    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, BuildConfig.MOD_ID);
-
-    public static final RegistryObject<Item> ANODE_BASKET = ITEMS.register("anode_basket",
-            () -> new Item(new Item.Properties()));
-    public static final RegistryObject<Item> FUEL_CLADDING = ITEMS.register("fuel_cladding",
-            () -> new Item(new Item.Properties()));
-
-    public static final Map<String, NuclearFuelItems> NUCLEAR_FUEL_ITEMS = registerNuclearFuelItems();
-
-    private SCItems() {}
-
-    public static void register(IEventBus modEventBus) {
-        ITEMS.register(modEventBus);
+    fun register(modEventBus: IEventBus?) {
+        ITEMS.register(modEventBus)
     }
 
-    private static Map<String, NuclearFuelItems> registerNuclearFuelItems() {
-        var items = new LinkedHashMap<String, NuclearFuelItems>();
-        registerFuelItemSet(items, "uraninite", () -> GTMaterials.Uraninite);
-        registerFuelItemSet(items, "leu_235", () -> SCMaterials.LEU235);
-        registerFuelItemSet(items, "heu_235", () -> SCMaterials.HEU235);
-        registerFuelItemSet(items, "low_grade_mox", () -> SCMaterials.LowGradeMOX);
-        registerFuelItemSet(items, "high_grade_mox", () -> SCMaterials.HighGradeMOX);
-        return Collections.unmodifiableMap(items);
+    private fun registerNuclearFuelItems(): MutableMap<String?, NuclearFuelItems?> {
+        val items = LinkedHashMap<String?, NuclearFuelItems?>()
+        registerFuelItemSet(items, "uraninite", Supplier { GTMaterials.Uraninite })
+        registerFuelItemSet(items, "leu_235", Supplier { SCMaterials.LEU235 })
+        registerFuelItemSet(items, "heu_235", Supplier { SCMaterials.HEU235 })
+        registerFuelItemSet(items, "low_grade_mox", Supplier { SCMaterials.LowGradeMOX })
+        registerFuelItemSet(items, "high_grade_mox", Supplier { SCMaterials.HighGradeMOX })
+        return Collections.unmodifiableMap<String?, NuclearFuelItems?>(items)
     }
 
-    private static void registerFuelItemSet(Map<String, NuclearFuelItems> items, String materialName,
-                                            Supplier<Material> materialSupplier) {
-        items.put(materialName, new NuclearFuelItems(
+    private fun registerFuelItemSet(
+        items: MutableMap<String?, NuclearFuelItems?>, materialName: String?,
+        materialSupplier: Supplier<Material?>
+    ) {
+        items.put(
+            materialName, NuclearFuelItems(
                 itemSupplier(SCOrePrefix.fuelRod, materialSupplier),
                 itemSupplier(SCOrePrefix.fuelRodDepleted, materialSupplier),
                 itemSupplier(SCOrePrefix.fuelRodHotDepleted, materialSupplier),
@@ -57,20 +55,25 @@ public final class SCItems {
                 itemSupplier(SCOrePrefix.fuelPelletDepleted, materialSupplier),
                 itemSupplier(SCOrePrefix.dustSpentFuel, materialSupplier),
                 itemSupplier(SCOrePrefix.dustBredFuel, materialSupplier),
-                itemSupplier(SCOrePrefix.dustFissionByproduct, materialSupplier)));
+                itemSupplier(SCOrePrefix.dustFissionByproduct, materialSupplier)
+            )
+        )
     }
 
-    private static Supplier<Item> itemSupplier(TagPrefix prefix, Supplier<Material> materialSupplier) {
-        return () -> GTMaterialItems.MATERIAL_ITEMS.get(prefix, materialSupplier.get()).get();
+    private fun itemSupplier(prefix: TagPrefix?, materialSupplier: Supplier<Material?>): Supplier<Item?> {
+        return Supplier { GTMaterialItems.MATERIAL_ITEMS.get(prefix, materialSupplier.get())!!.get() }
     }
 
-    public record NuclearFuelItems(Supplier<Item> fuelRod,
-                                   Supplier<Item> depletedFuelRod,
-                                   Supplier<Item> hotDepletedFuelRod,
-                                   Supplier<Item> rawFuelPellet,
-                                   Supplier<Item> fuelPellet,
-                                   Supplier<Item> depletedFuelPellet,
-                                   Supplier<Item> spentFuelDust,
-                                   Supplier<Item> bredFuelDust,
-                                   Supplier<Item> fissionByproductDust) {}
+    @JvmRecord
+    data class NuclearFuelItems(
+        val fuelRod: Supplier<Item?>?,
+        val depletedFuelRod: Supplier<Item?>?,
+        val hotDepletedFuelRod: Supplier<Item?>?,
+        val rawFuelPellet: Supplier<Item?>?,
+        val fuelPellet: Supplier<Item?>?,
+        val depletedFuelPellet: Supplier<Item?>?,
+        val spentFuelDust: Supplier<Item?>?,
+        val bredFuelDust: Supplier<Item?>?,
+        val fissionByproductDust: Supplier<Item?>?
+    )
 }

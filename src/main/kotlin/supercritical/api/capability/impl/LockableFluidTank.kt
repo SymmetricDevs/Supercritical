@@ -1,75 +1,65 @@
-package supercritical.api.capability.impl;
+package supercritical.api.capability.impl
 
-import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
-import net.minecraftforge.fluids.FluidStack;
+import com.gregtechceu.gtceu.api.capability.recipe.IO
+import com.gregtechceu.gtceu.api.machine.MetaMachine
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank
+import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced
+import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted
+import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder
+import net.minecraft.world.level.material.Fluid
+import net.minecraftforge.fluids.FluidStack
+import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction
+import supercritical.api.capability.ILockableHandler
 
-import org.jetbrains.annotations.Nullable;
-
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
-
-import supercritical.api.capability.ILockableHandler;
-
-public class LockableFluidTank extends NotifiableFluidTank implements ILockableHandler<Fluid> {
-
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            LockableFluidTank.class, NotifiableFluidTank.MANAGED_FIELD_HOLDER);
+class LockableFluidTank(machine: MetaMachine, capacity: Int, io: IO?) : NotifiableFluidTank(machine, 1, capacity, io),
+    ILockableHandler<Fluid?> {
+    @Persisted
+    @DescSynced
+    private var locked = false
 
     @Persisted
     @DescSynced
-    private boolean locked;
-    @Persisted
-    @DescSynced
-    private FluidStack lockedFluid = FluidStack.EMPTY;
+    private var lockedFluid: FluidStack = FluidStack.EMPTY
 
-    public LockableFluidTank(MetaMachine machine, int capacity, IO io) {
-        super(machine, 1, capacity, io);
+    override fun getFieldHolder(): ManagedFieldHolder {
+        return MANAGED_FIELD_HOLDER
     }
 
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
+    override fun getLockedObject(): Fluid? {
+        return if (lockedFluid.isEmpty()) null else lockedFluid.getFluid()
     }
 
-    @Override
-    public Fluid getLockedObject() {
-        return lockedFluid.isEmpty() ? null : lockedFluid.getFluid();
-    }
-
-    @Override
-    public void setLock(boolean isLocked) {
-        this.locked = isLocked;
+    override fun setLock(isLocked: Boolean) {
+        this.locked = isLocked
         if (!isLocked) {
-            this.lockedFluid = FluidStack.EMPTY;
+            this.lockedFluid = FluidStack.EMPTY
         } else if (!getFluidInTank(0).isEmpty()) {
-            this.lockedFluid = getFluidInTank(0).copy();
-            this.lockedFluid.setAmount(1);
+            this.lockedFluid = getFluidInTank(0).copy()
+            this.lockedFluid.setAmount(1)
         }
     }
 
-    @Override
-    public int fill(FluidStack resource, FluidAction action) {
-        if (locked && !lockedFluid.isEmpty() && resource.getFluid() != lockedFluid.getFluid()) {
-            return 0;
+    override fun fill(resource: FluidStack, action: FluidAction?): Int {
+        if (locked && !lockedFluid.isEmpty() && resource.getFluid() !== lockedFluid.getFluid()) {
+            return 0
         }
-        return super.fill(resource, action);
+        return super.fill(resource, action)
     }
 
-    @Override
-    public boolean isFluidValid(int tank, FluidStack stack) {
-        if (locked && !lockedFluid.isEmpty() && stack.getFluid() != lockedFluid.getFluid()) {
-            return false;
+    override fun isFluidValid(tank: Int, stack: FluidStack): Boolean {
+        if (locked && !lockedFluid.isEmpty() && stack.getFluid() !== lockedFluid.getFluid()) {
+            return false
         }
-        return super.isFluidValid(tank, stack);
+        return super.isFluidValid(tank, stack)
     }
 
-    @Override
-    public boolean isLocked() {
-        return locked;
+    override fun isLocked(): Boolean {
+        return locked
+    }
+
+    companion object {
+        val MANAGED_FIELD_HOLDER: ManagedFieldHolder = ManagedFieldHolder(
+            LockableFluidTank::class.java, NotifiableFluidTank.MANAGED_FIELD_HOLDER
+        )
     }
 }

@@ -1,57 +1,67 @@
-package supercritical.api.recipes;
+package supercritical.api.recipes
 
-import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
-import com.gregtechceu.gtceu.common.data.GTSoundEntries;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeType
+import com.gregtechceu.gtceu.common.data.GTRecipeTypes
+import com.gregtechceu.gtceu.common.data.GTSoundEntries
+import java.util.*
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+object SCRecipeMaps {
+    const val HEAT_EXCHANGER_ID: String = "heat_exchanger"
+    const val SPENT_FUEL_POOL_ID: String = "spent_fuel_pool"
+    const val GAS_CENTRIFUGE_ID: String = "gas_centrifuge"
 
-public final class SCRecipeMaps {
+    var HEAT_EXCHANGER_RECIPES: GTRecipeType? = null
+    var SPENT_FUEL_POOL_RECIPES: GTRecipeType? = null
+    var GAS_CENTRIFUGE_RECIPES: GTRecipeType? = null
 
-    public static final String HEAT_EXCHANGER_ID = "heat_exchanger";
-    public static final String SPENT_FUEL_POOL_ID = "spent_fuel_pool";
-    public static final String GAS_CENTRIFUGE_ID = "gas_centrifuge";
+    private val RECIPE_MAPS: MutableMap<String?, RecipeMapInfo?> = LinkedHashMap<String?, RecipeMapInfo?>()
 
-    public static GTRecipeType HEAT_EXCHANGER_RECIPES;
-    public static GTRecipeType SPENT_FUEL_POOL_RECIPES;
-    public static GTRecipeType GAS_CENTRIFUGE_RECIPES;
+    private var initialized = false
 
-    private static final Map<String, RecipeMapInfo> RECIPE_MAPS = new LinkedHashMap<>();
-
-    private static boolean initialized;
-
-    private SCRecipeMaps() {}
-
-    public static synchronized void init() {
-        if (initialized) return;
+    @Synchronized
+    fun init() {
+        if (initialized) return
 
         HEAT_EXCHANGER_RECIPES = GTRecipeTypes.register(HEAT_EXCHANGER_ID, GTRecipeTypes.MULTIBLOCK)
-                .setMaxIOSize(1, 0, 2, 2)
-                .setSound(GTSoundEntries.COOLING);
+            .setMaxIOSize(1, 0, 2, 2)
+            .setSound(GTSoundEntries.COOLING)
 
         SPENT_FUEL_POOL_RECIPES = GTRecipeTypes.register(SPENT_FUEL_POOL_ID, GTRecipeTypes.MULTIBLOCK)
-                .setMaxIOSize(1, 1, 1, 1);
+            .setMaxIOSize(1, 1, 1, 1)
 
         GAS_CENTRIFUGE_RECIPES = GTRecipeTypes.register(GAS_CENTRIFUGE_ID, GTRecipeTypes.MULTIBLOCK)
-                .setMaxIOSize(0, 0, 1, 2)
-                .setSound(GTSoundEntries.CENTRIFUGE);
+            .setMaxIOSize(0, 0, 1, 2)
+            .setSound(GTSoundEntries.CENTRIFUGE)
 
-        register(HEAT_EXCHANGER_ID, HEAT_EXCHANGER_RECIPES, 1, 0, 2, 2);
-        register(SPENT_FUEL_POOL_ID, SPENT_FUEL_POOL_RECIPES, 1, 1, 1, 1);
-        register(GAS_CENTRIFUGE_ID, GAS_CENTRIFUGE_RECIPES, 0, 0, 1, 2);
+        register(HEAT_EXCHANGER_ID, HEAT_EXCHANGER_RECIPES, 1, 0, 2, 2)
+        register(SPENT_FUEL_POOL_ID, SPENT_FUEL_POOL_RECIPES, 1, 1, 1, 1)
+        register(GAS_CENTRIFUGE_ID, GAS_CENTRIFUGE_RECIPES, 0, 0, 1, 2)
 
-        initialized = true;
+        initialized = true
     }
 
-    private static void register(String id, GTRecipeType recipeType, int itemInputs, int itemOutputs, int fluidInputs, int fluidOutputs) {
-        RECIPE_MAPS.put(id, new RecipeMapInfo(id, recipeType, itemInputs, itemOutputs, fluidInputs, fluidOutputs));
+    private fun register(
+        id: String?,
+        recipeType: GTRecipeType?,
+        itemInputs: Int,
+        itemOutputs: Int,
+        fluidInputs: Int,
+        fluidOutputs: Int
+    ) {
+        RECIPE_MAPS.put(id, RecipeMapInfo(id, recipeType, itemInputs, itemOutputs, fluidInputs, fluidOutputs))
     }
 
-    public static Map<String, RecipeMapInfo> all() {
-        return Collections.unmodifiableMap(RECIPE_MAPS);
+    fun all(): MutableMap<String?, RecipeMapInfo?> {
+        return Collections.unmodifiableMap<String?, RecipeMapInfo?>(RECIPE_MAPS)
     }
 
-    public record RecipeMapInfo(String id, GTRecipeType recipeType, int itemInputs, int itemOutputs, int fluidInputs, int fluidOutputs) {}
+    @JvmRecord
+    data class RecipeMapInfo(
+        val id: String?,
+        val recipeType: GTRecipeType?,
+        val itemInputs: Int,
+        val itemOutputs: Int,
+        val fluidInputs: Int,
+        val fluidOutputs: Int
+    )
 }

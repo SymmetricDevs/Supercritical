@@ -1,58 +1,60 @@
-package supercritical.api.nuclear.fission.components;
+package supercritical.api.nuclear.fission.components
 
-import java.util.List;
+class ControlRod(
+    maxTemperature: Double,
+    private val tipModeration: Boolean,
+    thermalConductivity: Double,
+    mass: Double
+) : ReactorComponent(0.0, maxTemperature, thermalConductivity, mass, true) {
+    private var weight = 0.0
+    private var relatedFuelRodPairs = 0
 
-public class ControlRod extends ReactorComponent {
-
-    private double weight;
-    private final boolean tipModeration;
-    private int relatedFuelRodPairs;
-
-    public ControlRod(double maxTemperature, boolean tipModeration, double thermalConductivity, double mass) {
-        super(0, maxTemperature, thermalConductivity, mass, true);
-        this.tipModeration = tipModeration;
+    override fun getAbsorptionFactor(controlsInserted: Boolean, thermal: Boolean): Double {
+        return (if (controlsInserted) 4 else 0).toDouble()
     }
 
-    public static void normalizeWeights(List<ControlRod> effectiveControlRods, double totalWeight, double totalWorth) {
-        if (totalWeight == 0) return;
-        for (ControlRod rod : effectiveControlRods) {
-            rod.weight = rod.weight / totalWeight * totalWorth;
-        }
+    fun addFuelRodPair() {
+        relatedFuelRodPairs++
     }
 
-    public static double controlRodFactor(List<ControlRod> effectiveControlRods, double insertion) {
-        double factor = 0;
-        for (ControlRod rod : effectiveControlRods) {
-            if (rod.hasModeratorTip()) {
-                if (insertion <= 0.3) {
-                    factor -= insertion / 3 * rod.weight;
-                } else {
-                    factor -= (-11D / 7 * (insertion - 0.3) + 0.1) * rod.weight;
-                }
-            } else {
-                factor += insertion * rod.weight;
+    fun hasModeratorTip(): Boolean {
+        return tipModeration
+    }
+
+    fun computeWeightFromFuelRodMap() {
+        weight = (relatedFuelRodPairs * 4).toDouble()
+    }
+
+    fun getWeight(): Double {
+        return weight
+    }
+
+    fun setWeight(weight: Double) {
+        this.weight = weight
+    }
+
+    companion object {
+        fun normalizeWeights(effectiveControlRods: MutableList<ControlRod>, totalWeight: Double, totalWorth: Double) {
+            if (totalWeight == 0.0) return
+            for (rod in effectiveControlRods) {
+                rod.weight = rod.weight / totalWeight * totalWorth
             }
         }
-        return factor;
-    }
 
-    @Override
-    public double getAbsorptionFactor(boolean controlsInserted, boolean thermal) {
-        return controlsInserted ? 4 : 0;
+        fun controlRodFactor(effectiveControlRods: MutableList<ControlRod>, insertion: Double): Double {
+            var factor = 0.0
+            for (rod in effectiveControlRods) {
+                if (rod.hasModeratorTip()) {
+                    if (insertion <= 0.3) {
+                        factor -= insertion / 3 * rod.weight
+                    } else {
+                        factor -= (-11.0 / 7 * (insertion - 0.3) + 0.1) * rod.weight
+                    }
+                } else {
+                    factor += insertion * rod.weight
+                }
+            }
+            return factor
+        }
     }
-
-    public void addFuelRodPair() {
-        relatedFuelRodPairs++;
-    }
-
-    public boolean hasModeratorTip() {
-        return tipModeration;
-    }
-
-    public void computeWeightFromFuelRodMap() {
-        weight = relatedFuelRodPairs * 4;
-    }
-
-    public double getWeight() { return weight; }
-    public void setWeight(double weight) { this.weight = weight; }
 }

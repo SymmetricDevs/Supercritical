@@ -1,99 +1,106 @@
-package supercritical.common.registry;
+package supercritical.common.registry
 
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.MapColor;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
-import supercritical.BuildConfig;
+import net.minecraft.world.item.BlockItem
+import net.minecraft.world.item.DyeColor
+import net.minecraft.world.item.Item
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.SoundType
+import net.minecraft.world.level.block.state.BlockBehaviour
+import net.minecraft.world.level.material.MapColor
+import net.minecraftforge.eventbus.api.IEventBus
+import net.minecraftforge.registries.DeferredRegister
+import net.minecraftforge.registries.ForgeRegistries
+import net.minecraftforge.registries.RegistryObject
+import supercritical.BuildConfig
+import java.util.*
+import java.util.Map
+import java.util.function.Supplier
 
-import java.util.EnumMap;
-import java.util.Map;
+object SCBlocks {
+    val BLOCKS: DeferredRegister<Block?> = DeferredRegister.create<Block?>(ForgeRegistries.BLOCKS, BuildConfig.MOD_ID)
 
-public final class SCBlocks {
+    val REACTOR_VESSEL: RegistryObject<Block?> = registerFissionCasing("reactor_vessel")
+    val FUEL_CHANNEL: RegistryObject<Block?> = registerFissionCasing("fuel_channel")
+    val CONTROL_ROD_CHANNEL: RegistryObject<Block?> = registerFissionCasing("control_rod_channel")
+    val COOLANT_CHANNEL: RegistryObject<Block?> = registerFissionCasing("coolant_channel")
 
-    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, BuildConfig.MOD_ID);
+    val SPENT_FUEL_CASING: RegistryObject<Block?> = registerNuclearCasing("spent_fuel_casing")
+    val GAS_CENTRIFUGE_HEATER: RegistryObject<Block?> = registerNuclearCasing("gas_centrifuge_heater")
+    val GAS_CENTRIFUGE_COLUMN: RegistryObject<Block?> = registerGasCentrifugeCasing("gas_centrifuge_column")
 
-    public static final RegistryObject<Block> REACTOR_VESSEL = registerFissionCasing("reactor_vessel");
-    public static final RegistryObject<Block> FUEL_CHANNEL = registerFissionCasing("fuel_channel");
-    public static final RegistryObject<Block> CONTROL_ROD_CHANNEL = registerFissionCasing("control_rod_channel");
-    public static final RegistryObject<Block> COOLANT_CHANNEL = registerFissionCasing("coolant_channel");
+    val PANELLING: MutableMap<DyeColor?, RegistryObject<Block?>?> = registerPanelling()
+    val WHITE_PANELLING: RegistryObject<Block?>? = PANELLING.get(DyeColor.WHITE)
+    val ORANGE_PANELLING: RegistryObject<Block?>? = PANELLING.get(DyeColor.ORANGE)
+    val MAGENTA_PANELLING: RegistryObject<Block?>? = PANELLING.get(DyeColor.MAGENTA)
+    val LIGHT_BLUE_PANELLING: RegistryObject<Block?>? = PANELLING.get(DyeColor.LIGHT_BLUE)
+    val YELLOW_PANELLING: RegistryObject<Block?>? = PANELLING.get(DyeColor.YELLOW)
+    val LIME_PANELLING: RegistryObject<Block?>? = PANELLING.get(DyeColor.LIME)
+    val PINK_PANELLING: RegistryObject<Block?>? = PANELLING.get(DyeColor.PINK)
+    val GRAY_PANELLING: RegistryObject<Block?>? = PANELLING.get(DyeColor.GRAY)
+    val LIGHT_GRAY_PANELLING: RegistryObject<Block?>? = PANELLING.get(DyeColor.LIGHT_GRAY)
+    val CYAN_PANELLING: RegistryObject<Block?>? = PANELLING.get(DyeColor.CYAN)
+    val PURPLE_PANELLING: RegistryObject<Block?>? = PANELLING.get(DyeColor.PURPLE)
+    val BLUE_PANELLING: RegistryObject<Block?>? = PANELLING.get(DyeColor.BLUE)
+    val BROWN_PANELLING: RegistryObject<Block?>? = PANELLING.get(DyeColor.BROWN)
+    val GREEN_PANELLING: RegistryObject<Block?>? = PANELLING.get(DyeColor.GREEN)
+    val RED_PANELLING: RegistryObject<Block?>? = PANELLING.get(DyeColor.RED)
+    val BLACK_PANELLING: RegistryObject<Block?>? = PANELLING.get(DyeColor.BLACK)
 
-    public static final RegistryObject<Block> SPENT_FUEL_CASING = registerNuclearCasing("spent_fuel_casing");
-    public static final RegistryObject<Block> GAS_CENTRIFUGE_HEATER = registerNuclearCasing("gas_centrifuge_heater");
-    public static final RegistryObject<Block> GAS_CENTRIFUGE_COLUMN = registerGasCentrifugeCasing("gas_centrifuge_column");
-
-    public static final Map<DyeColor, RegistryObject<Block>> PANELLING = registerPanelling();
-    public static final RegistryObject<Block> WHITE_PANELLING = PANELLING.get(DyeColor.WHITE);
-    public static final RegistryObject<Block> ORANGE_PANELLING = PANELLING.get(DyeColor.ORANGE);
-    public static final RegistryObject<Block> MAGENTA_PANELLING = PANELLING.get(DyeColor.MAGENTA);
-    public static final RegistryObject<Block> LIGHT_BLUE_PANELLING = PANELLING.get(DyeColor.LIGHT_BLUE);
-    public static final RegistryObject<Block> YELLOW_PANELLING = PANELLING.get(DyeColor.YELLOW);
-    public static final RegistryObject<Block> LIME_PANELLING = PANELLING.get(DyeColor.LIME);
-    public static final RegistryObject<Block> PINK_PANELLING = PANELLING.get(DyeColor.PINK);
-    public static final RegistryObject<Block> GRAY_PANELLING = PANELLING.get(DyeColor.GRAY);
-    public static final RegistryObject<Block> LIGHT_GRAY_PANELLING = PANELLING.get(DyeColor.LIGHT_GRAY);
-    public static final RegistryObject<Block> CYAN_PANELLING = PANELLING.get(DyeColor.CYAN);
-    public static final RegistryObject<Block> PURPLE_PANELLING = PANELLING.get(DyeColor.PURPLE);
-    public static final RegistryObject<Block> BLUE_PANELLING = PANELLING.get(DyeColor.BLUE);
-    public static final RegistryObject<Block> BROWN_PANELLING = PANELLING.get(DyeColor.BROWN);
-    public static final RegistryObject<Block> GREEN_PANELLING = PANELLING.get(DyeColor.GREEN);
-    public static final RegistryObject<Block> RED_PANELLING = PANELLING.get(DyeColor.RED);
-    public static final RegistryObject<Block> BLACK_PANELLING = PANELLING.get(DyeColor.BLACK);
-
-    private SCBlocks() {}
-
-    public static void register(IEventBus modEventBus) {
-        BLOCKS.register(modEventBus);
+    fun register(modEventBus: IEventBus?) {
+        BLOCKS.register(modEventBus)
     }
 
-    private static RegistryObject<Block> registerFissionCasing(String name) {
-        return registerSimpleBlock(name, BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)
+    private fun registerFissionCasing(name: String?): RegistryObject<Block?> {
+        return registerSimpleBlock(
+            name, BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)
                 .mapColor(MapColor.METAL)
-                .strength(10.0F, 10.0F)
-                .sound(SoundType.METAL)
-                .requiresCorrectToolForDrops());
-    }
-
-    private static RegistryObject<Block> registerNuclearCasing(String name) {
-        return registerSimpleBlock(name, BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)
-                .mapColor(MapColor.METAL)
-                .strength(5.0F, 10.0F)
-                .sound(SoundType.METAL)
-                .requiresCorrectToolForDrops());
-    }
-
-    private static RegistryObject<Block> registerGasCentrifugeCasing(String name) {
-        return registerSimpleBlock(name, BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)
-                .mapColor(MapColor.METAL)
-                .strength(5.0F, 10.0F)
+                .strength(10.0f, 10.0f)
                 .sound(SoundType.METAL)
                 .requiresCorrectToolForDrops()
-                .noOcclusion());
+        )
     }
 
-    private static Map<DyeColor, RegistryObject<Block>> registerPanelling() {
-        var blocks = new EnumMap<DyeColor, RegistryObject<Block>>(DyeColor.class);
-        for (DyeColor color : DyeColor.values()) {
-            blocks.put(color, registerSimpleBlock(color.getName() + "_panelling", BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)
-                    .mapColor(color)
-                    .strength(2.0F, 5.0F)
-                    .sound(SoundType.METAL)
-                    .requiresCorrectToolForDrops()));
+    private fun registerNuclearCasing(name: String?): RegistryObject<Block?> {
+        return registerSimpleBlock(
+            name, BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)
+                .mapColor(MapColor.METAL)
+                .strength(5.0f, 10.0f)
+                .sound(SoundType.METAL)
+                .requiresCorrectToolForDrops()
+        )
+    }
+
+    private fun registerGasCentrifugeCasing(name: String?): RegistryObject<Block?> {
+        return registerSimpleBlock(
+            name, BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)
+                .mapColor(MapColor.METAL)
+                .strength(5.0f, 10.0f)
+                .sound(SoundType.METAL)
+                .requiresCorrectToolForDrops()
+                .noOcclusion()
+        )
+    }
+
+    private fun registerPanelling(): MutableMap<DyeColor?, RegistryObject<Block?>?> {
+        val blocks = EnumMap<DyeColor?, RegistryObject<Block?>?>(DyeColor::class.java)
+        for (color in DyeColor.entries) {
+            blocks.put(
+                color, registerSimpleBlock(
+                    color.getName() + "_panelling", BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)
+                        .mapColor(color)
+                        .strength(2.0f, 5.0f)
+                        .sound(SoundType.METAL)
+                        .requiresCorrectToolForDrops()
+                )
+            )
         }
-        return Map.copyOf(blocks);
+        return Map.copyOf<DyeColor?, RegistryObject<Block?>?>(blocks)
     }
 
-    private static RegistryObject<Block> registerSimpleBlock(String name, BlockBehaviour.Properties properties) {
-        var block = BLOCKS.register(name, () -> new Block(properties));
-        SCItems.ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties()));
-        return block;
+    private fun registerSimpleBlock(name: String?, properties: BlockBehaviour.Properties): RegistryObject<Block?> {
+        val block = BLOCKS.register<Block?>(name, Supplier { Block(properties) })
+        SCItems.ITEMS.register<BlockItem?>(name, Supplier { BlockItem(block.get(), Item.Properties()) })
+        return block
     }
 }

@@ -1,26 +1,23 @@
-package supercritical.api.nuclear.fission;
+package supercritical.api.nuclear.fission
 
-import net.minecraft.world.level.material.Fluid;
+interface ICoolantStats {
+    val hotCoolant: Fluid?
 
-public interface ICoolantStats {
+    val specificHeatCapacity: Double
 
-    Fluid getHotCoolant();
+    val moderatorFactor: Double
 
-    double getSpecificHeatCapacity();
+    val slowAbsorptionFactor: Double
 
-    double getModeratorFactor();
+    val fastAbsorptionFactor: Double
 
-    double getSlowAbsorptionFactor();
+    val coolingFactor: Double
 
-    double getFastAbsorptionFactor();
+    val boilingPoint: Double
 
-    double getCoolingFactor();
+    val heatOfVaporization: Double
 
-    double getBoilingPoint();
+    fun accumulatesHydrogen(): Boolean
 
-    double getHeatOfVaporization();
-
-    boolean accumulatesHydrogen();
-
-    double getMass();
+    val mass: Double
 }

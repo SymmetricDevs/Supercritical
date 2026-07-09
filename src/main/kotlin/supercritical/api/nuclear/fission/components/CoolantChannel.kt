@@ -1,39 +1,29 @@
-package supercritical.api.nuclear.fission.components;
+package supercritical.api.nuclear.fission.components
 
-import supercritical.api.capability.ICoolantHandler;
-import supercritical.api.nuclear.fission.ICoolantStats;
+import supercritical.api.capability.ICoolantHandler
+import supercritical.api.nuclear.fission.ICoolantStats
 
-public class CoolantChannel extends ReactorComponent {
+class CoolantChannel(maxTemperature: Double, thermalConductivity: Double, val coolant: ICoolantStats, mass: Double) :
+    ReactorComponent(
+        coolant.getModeratorFactor(), maxTemperature, thermalConductivity, mass, true
+    ) {
+    var weight: Double = 0.0
+    var partialCoolant: Double = 0.0
+    var inputHandler: ICoolantHandler? = null
+        private set
+    var outputHandler: ICoolantHandler? = null
+        private set
 
-    private final ICoolantStats coolant;
-    private double weight;
-    public double partialCoolant;
-    private ICoolantHandler inputHandler;
-    private ICoolantHandler outputHandler;
-
-    public CoolantChannel(double maxTemperature, double thermalConductivity, ICoolantStats coolant, double mass) {
-        super(coolant.getModeratorFactor(), maxTemperature, thermalConductivity, mass, true);
-        this.coolant = coolant;
+    fun setHandlers(input: ICoolantHandler?, output: ICoolantHandler?) {
+        this.inputHandler = input
+        this.outputHandler = output
     }
 
-    public void setHandlers(ICoolantHandler input, ICoolantHandler output) {
-        this.inputHandler = input;
-        this.outputHandler = output;
+    fun addWeight(weight: Double) {
+        this.weight += weight
     }
 
-    public ICoolantHandler getInputHandler() { return inputHandler; }
-    public ICoolantHandler getOutputHandler() { return outputHandler; }
-
-    public void addWeight(double weight) {
-        this.weight += weight;
+    override fun getAbsorptionFactor(controlsInserted: Boolean, thermal: Boolean): Double {
+        return if (thermal) coolant.getSlowAbsorptionFactor() else coolant.getFastAbsorptionFactor()
     }
-
-    @Override
-    public double getAbsorptionFactor(boolean controlsInserted, boolean thermal) {
-        return thermal ? coolant.getSlowAbsorptionFactor() : coolant.getFastAbsorptionFactor();
-    }
-
-    public ICoolantStats getCoolant() { return coolant; }
-    public double getWeight() { return weight; }
-    public void setWeight(double weight) { this.weight = weight; }
 }

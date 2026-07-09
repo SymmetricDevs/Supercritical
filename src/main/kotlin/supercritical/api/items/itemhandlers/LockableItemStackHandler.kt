@@ -1,74 +1,67 @@
-package supercritical.api.items.itemhandlers;
+package supercritical.api.items.itemhandlers
 
-import net.minecraft.world.item.ItemStack;
+import com.gregtechceu.gtceu.api.capability.recipe.IO
+import com.gregtechceu.gtceu.api.machine.MetaMachine
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler
+import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced
+import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted
+import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder
+import net.minecraft.world.item.ItemStack
+import supercritical.api.capability.ILockableHandler
 
-import org.jetbrains.annotations.NotNull;
-
-import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
-
-import supercritical.api.capability.ILockableHandler;
-
-public class LockableItemStackHandler extends NotifiableItemStackHandler implements ILockableHandler<ItemStack> {
-
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            LockableItemStackHandler.class, NotifiableItemStackHandler.MANAGED_FIELD_HOLDER);
+class LockableItemStackHandler(machine: MetaMachine, io: IO) : NotifiableItemStackHandler(
+    machine, 1, io, if (io.support(
+            IO.IN
+        )
+    ) IO.BOTH else io
+), ILockableHandler<ItemStack?> {
+    @Persisted
+    @DescSynced
+    protected var locked: Boolean = false
 
     @Persisted
     @DescSynced
-    protected boolean locked;
-    @Persisted
-    @DescSynced
-    protected ItemStack lockedItemStack = ItemStack.EMPTY;
+    protected var lockedItemStack: ItemStack = ItemStack.EMPTY
 
-    public LockableItemStackHandler(MetaMachine machine, IO io) {
-        super(machine, 1, io, io.support(IO.IN) ? IO.BOTH : io);
+    override fun getFieldHolder(): ManagedFieldHolder {
+        return MANAGED_FIELD_HOLDER
     }
 
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
+    override fun isLocked(): Boolean {
+        return locked
     }
 
-    @Override
-    public boolean isLocked() {
-        return locked;
-    }
-
-    @Override
-    public void setLock(boolean isLocked) {
-        this.locked = isLocked;
+    override fun setLock(isLocked: Boolean) {
+        this.locked = isLocked
         if (isLocked && !this.getStackInSlot(0).isEmpty()) {
-            lockedItemStack = this.getStackInSlot(0).copy();
-            lockedItemStack.setCount(1);
+            lockedItemStack = this.getStackInSlot(0).copy()
+            lockedItemStack.setCount(1)
         } else {
-            lockedItemStack = ItemStack.EMPTY;
+            lockedItemStack = ItemStack.EMPTY
         }
     }
 
-    @NotNull
-    @Override
-    public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+    override fun insertItem(slot: Int, stack: ItemStack, simulate: Boolean): ItemStack {
         if (this.locked && !this.lockedItemStack.isEmpty() && !ItemStack.isSameItem(this.lockedItemStack, stack)) {
-            return stack;
+            return stack
         }
-        return super.insertItem(slot, stack, simulate);
+        return super.insertItem(slot, stack, simulate)
     }
 
-    @Override
-    public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+    override fun isItemValid(slot: Int, stack: ItemStack): Boolean {
         if (this.locked && !this.lockedItemStack.isEmpty() && !ItemStack.isSameItem(this.lockedItemStack, stack)) {
-            return false;
+            return false
         }
-        return super.isItemValid(slot, stack);
+        return super.isItemValid(slot, stack)
     }
 
-    @Override
-    public ItemStack getLockedObject() {
-        return lockedItemStack;
+    override fun getLockedObject(): ItemStack {
+        return lockedItemStack
+    }
+
+    companion object {
+        val MANAGED_FIELD_HOLDER: ManagedFieldHolder = ManagedFieldHolder(
+            LockableItemStackHandler::class.java, NotifiableItemStackHandler.MANAGED_FIELD_HOLDER
+        )
     }
 }

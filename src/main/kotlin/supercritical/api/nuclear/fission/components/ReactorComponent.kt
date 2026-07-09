@@ -1,52 +1,32 @@
-package supercritical.api.nuclear.fission.components;
+package supercritical.api.nuclear.fission.components
 
-public class ReactorComponent {
+import kotlin.math.pow
+import kotlin.math.sqrt
 
-    private final double moderationFactor;
-    protected double maxTemperature;
-    private final double thermalConductivity;
-    private final double mass;
-    private int x;
-    private int y;
-    private final boolean valid;
-    private int index = -1;
+open class ReactorComponent(
+    val moderationFactor: Double, var maxTemperature: Double, val thermalConductivity: Double, val mass: Double,
+    val isValid: Boolean
+) {
+    var x: Int = 0
+        private set
+    var y: Int = 0
+        private set
+    var index: Int = -1
 
-    public ReactorComponent(double moderationFactor, double maxTemperature, double thermalConductivity, double mass,
-                            boolean valid) {
-        this.moderationFactor = moderationFactor;
-        this.maxTemperature = maxTemperature;
-        this.thermalConductivity = thermalConductivity;
-        this.mass = mass;
-        this.valid = valid;
+    fun setPos(x: Int, y: Int) {
+        this.x = x
+        this.y = y
     }
 
-    public void setPos(int x, int y) {
-        this.x = x;
-        this.y = y;
+    open fun getAbsorptionFactor(controlsInserted: Boolean, thermal: Boolean): Double {
+        return 0.0
     }
 
-    public double getAbsorptionFactor(boolean controlsInserted, boolean thermal) {
-        return 0;
+    fun samePositionAs(component: ReactorComponent): Boolean {
+        return x == component.x && y == component.y
     }
 
-    public boolean isValid() {
-        return valid;
+    fun getDistance(component: ReactorComponent): Double {
+        return sqrt((x - component.x).toDouble().pow(2.0) + (y - component.y).toDouble().pow(2.0))
     }
-
-    public boolean samePositionAs(ReactorComponent component) {
-        return x == component.x && y == component.y;
-    }
-
-    public double getDistance(ReactorComponent component) {
-        return Math.sqrt(Math.pow(x - component.x, 2) + Math.pow(y - component.y, 2));
-    }
-
-    public double getModerationFactor() { return moderationFactor; }
-    public double getMaxTemperature() { return maxTemperature; }
-    public double getThermalConductivity() { return thermalConductivity; }
-    public double getMass() { return mass; }
-    public int getX() { return x; }
-    public int getY() { return y; }
-    public int getIndex() { return index; }
-    public void setIndex(int index) { this.index = index; }
 }

@@ -1,37 +1,28 @@
-package supercritical.api.nuclear.fission;
+package supercritical.api.nuclear.fission
 
-import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluid
+import java.util.*
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+object CoolantRegistry {
+    private val COOLANTS: MutableMap<Fluid?, ICoolantStats?> = LinkedHashMap<Fluid?, ICoolantStats?>()
+    private val COOLANTS_INVERSE: MutableMap<ICoolantStats?, Fluid?> = LinkedHashMap<ICoolantStats?, Fluid?>()
 
-public final class CoolantRegistry {
-
-    private static final Map<Fluid, ICoolantStats> COOLANTS = new LinkedHashMap<>();
-    private static final Map<ICoolantStats, Fluid> COOLANTS_INVERSE = new LinkedHashMap<>();
-
-    private CoolantRegistry() {}
-
-    public static void registerCoolant(Fluid fluid, ICoolantStats coolant) {
-        COOLANTS.put(fluid, coolant);
-        COOLANTS_INVERSE.put(coolant, fluid);
+    fun registerCoolant(fluid: Fluid?, coolant: ICoolantStats?) {
+        COOLANTS.put(fluid, coolant)
+        COOLANTS_INVERSE.put(coolant, fluid)
     }
 
-    public static ICoolantStats getCoolant(Fluid fluid) {
-        return COOLANTS.get(fluid);
+    fun getCoolant(fluid: Fluid?): ICoolantStats? {
+        return COOLANTS.get(fluid)
     }
 
-    public static Collection<Fluid> getAllCoolants() {
-        return Collections.unmodifiableSet(COOLANTS.keySet());
+    val allCoolants: MutableCollection<Fluid?>
+        get() = Collections.unmodifiableSet<Fluid?>(COOLANTS.keys)
+
+    fun originalFluid(stats: ICoolantStats?): Fluid? {
+        return COOLANTS_INVERSE.get(stats)
     }
 
-    public static Fluid originalFluid(ICoolantStats stats) {
-        return COOLANTS_INVERSE.get(stats);
-    }
-
-    public static Collection<ICoolantStats> getAllCoolantStats() {
-        return Collections.unmodifiableCollection(COOLANTS.values());
-    }
+    val allCoolantStats: MutableCollection<ICoolantStats?>
+        get() = Collections.unmodifiableCollection<ICoolantStats?>(COOLANTS.values)
 }
