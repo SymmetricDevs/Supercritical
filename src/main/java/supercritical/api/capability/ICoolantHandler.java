@@ -1,7 +1,7 @@
 package supercritical.api.capability;
 
-import net.minecraft.util.EnumFacing;
-import net.minecraftforge.fluids.Fluid;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.material.Fluid;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -12,6 +12,12 @@ import supercritical.api.nuclear.fission.ICoolantStats;
 
 public interface ICoolantHandler extends ILockableHandler<Fluid>, IFissionReactorHatch {
 
+    @Override
+    boolean isLocked();
+
+    @Override
+    void setLock(boolean isLocked);
+
     @Nullable
     ICoolantStats getCoolant();
 
@@ -21,7 +27,8 @@ public interface ICoolantHandler extends ILockableHandler<Fluid>, IFissionReacto
     LockableFluidTank getFluidTank();
 
     @NotNull
-    EnumFacing getFrontFacing();
+    Direction getFrontFacing();
 
+    @Nullable
     ICoolantHandler getOutputHandler();
 }

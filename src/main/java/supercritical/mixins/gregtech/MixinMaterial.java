@@ -1,23 +1,21 @@
 package supercritical.mixins.gregtech;
 
+import com.gregtechceu.gtceu.api.data.chemical.Element;
+import com.gregtechceu.gtceu.api.data.chemical.material.Material;
+import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
+import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import com.google.common.collect.ImmutableList;
-
-import gregtech.api.unification.Element;
-import gregtech.api.unification.material.Material;
-import gregtech.api.unification.stack.MaterialStack;
-import lombok.experimental.ExtensionMethod;
 import supercritical.api.unification.ElementExtension;
 import supercritical.api.unification.material.MaterialExtension;
+import supercritical.api.unification.material.properties.SCPropertyKey;
 
 @Mixin(value = Material.class, remap = false)
-@ExtensionMethod({ MaterialExtension.Handler.class, ElementExtension.Handler.class })
 public abstract class MixinMaterial implements MaterialExtension {
 
     @Shadow
@@ -30,24 +28,31 @@ public abstract class MixinMaterial implements MaterialExtension {
     @Shadow
     public abstract ImmutableList<MaterialStack> getMaterialComponents();
 
-    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Override
     public double getDecaysPerSecond() {
         if (!isRadioactive()) {
             return 0;
         }
-        if (getElement() != null) {
-            return 6e23 * (Math.log(2) *
-                    Math.exp(-Math.log(2) / getElement().getHalfLiveSeconds()));
+        Element element = getElement();
+        if (element != null) {
+            double halfLife = ((ElementExtension) element).getHalfLifeSeconds();
+            if (halfLife > 0) {
+                return 6e23 * (Math.log(2) * Math.exp(-Math.log(2) / halfLife));
+            }
+            return 0;
         }
         double decaysPerSecond = 0;
-        for (MaterialStack stack : getMaterialComponents())
-            decaysPerSecond += stack.material.getDecaysPerSecond();
+        for (MaterialStack stack : getMaterialComponents()) {
+            decaysPerSecond += stack.amount() * MaterialExtension.getDecaysPerSecond(stack.material());
+        }
         return decaysPerSecond;
     }
 
     @Inject(method = "isRadioactive", at = @At(value = "RETURN", ordinal = 0), cancellable = true)
     public void isActuallyRadioactive(CallbackInfoReturnable<Boolean> cir) {
-        cir.setReturnValue(getElement().getHalfLiveSeconds() >= 0);
+        Element element = getElement();
+        if (element != null) {
+            cir.setReturnValue(((ElementExtension) element).getHalfLifeSeconds() >= 0);
+        }
     }
 }

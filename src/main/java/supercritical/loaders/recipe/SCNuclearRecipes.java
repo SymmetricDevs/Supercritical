@@ -1,335 +1,273 @@
 package supercritical.loaders.recipe;
 
-import static gregtech.api.GTValues.*;
-import static gregtech.api.recipes.RecipeMaps.*;
-import static gregtech.api.unification.material.Materials.*;
-import static gregtech.api.unification.ore.OrePrefix.*;
-import static supercritical.api.recipes.SCRecipeMaps.GAS_CENTRIFUGE_RECIPES;
-import static supercritical.api.unification.material.SCMaterials.*;
-import static supercritical.api.unification.ore.SCOrePrefix.*;
+import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
+import com.gregtechceu.gtceu.common.data.GTMaterials;
+import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
+import supercritical.api.recipes.SCRecipeMaps;
+import supercritical.api.unification.material.SCMaterials;
+import supercritical.api.unification.ore.SCOrePrefix;
+import supercritical.common.registry.SCItems;
 
-import supercritical.common.item.SCMetaItems;
+import static supercritical.loaders.recipe.SCRecipeUtils.addRecipe;
 
-public class SCNuclearRecipes {
+public final class SCNuclearRecipes {
+
+    private SCNuclearRecipes() {}
 
     public static void init() {
-        CHEMICAL_RECIPES.recipeBuilder()
-                .input(dust, Boron, 2)
-                .fluidInputs(Oxygen.getFluid(3000))
-                .output(dust, BoronTrioxide, 5)
-                .EUt(VA[LV]).duration(200)
-                .buildAndRegister();
+        chemistryAndMaterials();
+        gasCentrifugeRecipes();
+        fuelCycleRecipes();
+        radonRecipes();
+        componentRecipes();
+    }
 
-        CHEMICAL_RECIPES.recipeBuilder()
-                .input(dust, BoronTrioxide, 10)
-                .input(dust, Carbon, 7)
-                .output(dust, BoronCarbide, 5)
-                .fluidOutputs(CarbonMonoxide.getFluid(6000))
-                .EUt(VA[MV]).duration(400)
-                .buildAndRegister();
+    private static void chemistryAndMaterials() {
+        addRecipe(GTRecipeTypes.CHEMICAL_RECIPES, GTRecipeTypes.CHEMICAL_RECIPES.recipeBuilder("boron_trioxide")
+                .inputItems(TagPrefix.dust, GTMaterials.Boron, 2)
+                .inputFluids(GTMaterials.Oxygen.getFluid(3000))
+                .outputItems(TagPrefix.dust, SCMaterials.BoronTrioxide, 5)
+                .EUt(GTValues.VA[GTValues.LV]).duration(200)
+                .buildRawRecipe());
 
-        GAS_CENTRIFUGE_RECIPES.recipeBuilder().duration(800).EUt(VA[HV])
-                .fluidInputs(UraniumHexafluoride.getFluid(1000))
-                .fluidOutputs(EnrichedUraniumHexafluoride.getFluid(100))
-                .fluidOutputs(DepletedUraniumHexafluoride.getFluid(900))
-                .buildAndRegister();
+        addRecipe(GTRecipeTypes.CHEMICAL_RECIPES, GTRecipeTypes.CHEMICAL_RECIPES.recipeBuilder("boron_carbide")
+                .inputItems(TagPrefix.dust, SCMaterials.BoronTrioxide, 10)
+                .inputItems(TagPrefix.dust, GTMaterials.Carbon, 7)
+                .outputItems(TagPrefix.dust, SCMaterials.BoronCarbide, 5)
+                .outputFluids(GTMaterials.CarbonMonoxide.getFluid(6000))
+                .EUt(GTValues.VA[GTValues.MV]).duration(400)
+                .buildRawRecipe());
 
-        GAS_CENTRIFUGE_RECIPES.recipeBuilder().duration(800).EUt(VA[HV])
-                .fluidInputs(EnrichedUraniumHexafluoride.getFluid(1000))
-                .fluidOutputs(HighEnrichedUraniumHexafluoride.getFluid(100))
-                .fluidOutputs(DepletedUraniumHexafluoride.getFluid(900))
-                .buildAndRegister();
-
-        MIXER_RECIPES.recipeBuilder().duration(400).EUt(VA[HV])
-                .input(dust, FissilePlutoniumDioxide, 1)
-                .input(dust, Uraninite, 19)
+        addRecipe(GTRecipeTypes.MIXER_RECIPES, GTRecipeTypes.MIXER_RECIPES.recipeBuilder("low_grade_mox")
+                .inputItems(TagPrefix.dust, SCMaterials.FissilePlutoniumDioxide)
+                .inputItems(TagPrefix.dust, GTMaterials.Uraninite, 19)
                 .circuitMeta(1)
-                .output(dust, LowGradeMOX, 20)
-                .buildAndRegister();
+                .outputItems(TagPrefix.dust, SCMaterials.LowGradeMOX, 20)
+                .duration(400).EUt(GTValues.VA[GTValues.HV])
+                .buildRawRecipe());
 
-        MIXER_RECIPES.recipeBuilder().duration(400).EUt(VA[HV])
-                .input(dust, FissilePlutoniumDioxide, 1)
-                .input(dust, Uraninite, 4)
+        addRecipe(GTRecipeTypes.MIXER_RECIPES, GTRecipeTypes.MIXER_RECIPES.recipeBuilder("high_grade_mox")
+                .inputItems(TagPrefix.dust, SCMaterials.FissilePlutoniumDioxide)
+                .inputItems(TagPrefix.dust, GTMaterials.Uraninite, 4)
                 .circuitMeta(2)
-                .output(dust, HighGradeMOX, 5)
-                .buildAndRegister();
+                .outputItems(TagPrefix.dust, SCMaterials.HighGradeMOX, 5)
+                .duration(400).EUt(GTValues.VA[GTValues.HV])
+                .buildRawRecipe());
 
-        // Zircaloy
-        BLAST_RECIPES.recipeBuilder().duration(200).EUt(VA[EV]).blastFurnaceTemp(2100)
-                .input(dust, Zircon, 1)
-                .output(dust, SiliconDioxide, 3)
-                .chancedOutput(dust, ZirconiumDioxide, 3, 9000, 0)
-                .chancedOutput(dust, HafniumDioxide, 3, 1000, 0)
-                .buildAndRegister();
+        addRecipe(GTRecipeTypes.BLAST_RECIPES, GTRecipeTypes.BLAST_RECIPES.recipeBuilder("zircon_processing")
+                .inputItems(TagPrefix.dust, SCMaterials.Zircon)
+                .outputItems(TagPrefix.dust, GTMaterials.SiliconDioxide, 3)
+                .chancedOutput(TagPrefix.dust, SCMaterials.ZirconiumDioxide, 3, 9000, 0)
+                .chancedOutput(TagPrefix.dust, SCMaterials.HafniumDioxide, 3, 1000, 0)
+                .duration(200).EUt(GTValues.VA[GTValues.EV]).blastFurnaceTemp(2100)
+                .buildRawRecipe());
 
-        BLAST_RECIPES.recipeBuilder().duration(200).EUt(VA[EV]).blastFurnaceTemp(1400)
-                .input(dust, ZirconiumDioxide, 3)
-                .input(dust, Carbon, 1)
-                .fluidInputs(Chlorine.getFluid(4000))
-                .fluidOutputs(CarbonDioxide.getFluid(1000))
-                .output(dust, ZirconiumTetrachloride, 5)
-                .buildAndRegister();
+        addRecipe(GTRecipeTypes.BLAST_RECIPES, GTRecipeTypes.BLAST_RECIPES.recipeBuilder("zirconium_tetrachloride")
+                .inputItems(TagPrefix.dust, SCMaterials.ZirconiumDioxide, 3)
+                .inputItems(TagPrefix.dust, GTMaterials.Carbon)
+                .inputFluids(GTMaterials.Chlorine.getFluid(4000))
+                .outputFluids(GTMaterials.CarbonDioxide.getFluid(1000))
+                .outputItems(TagPrefix.dust, SCMaterials.ZirconiumTetrachloride, 5)
+                .duration(200).EUt(GTValues.VA[GTValues.EV]).blastFurnaceTemp(1400)
+                .buildRawRecipe());
 
-        BLAST_RECIPES.recipeBuilder().duration(200).EUt(VA[EV]).blastFurnaceTemp(1250)
-                .input(dust, HafniumDioxide, 3)
-                .input(dust, Carbon, 1)
-                .fluidInputs(Chlorine.getFluid(4000))
-                .fluidOutputs(CarbonDioxide.getFluid(1000))
-                .output(dust, HafniumTetrachloride, 5)
-                .buildAndRegister();
+        addRecipe(GTRecipeTypes.BLAST_RECIPES, GTRecipeTypes.BLAST_RECIPES.recipeBuilder("hafnium_tetrachloride")
+                .inputItems(TagPrefix.dust, SCMaterials.HafniumDioxide, 3)
+                .inputItems(TagPrefix.dust, GTMaterials.Carbon)
+                .inputFluids(GTMaterials.Chlorine.getFluid(4000))
+                .outputFluids(GTMaterials.CarbonDioxide.getFluid(1000))
+                .outputItems(TagPrefix.dust, SCMaterials.HafniumTetrachloride, 5)
+                .duration(200).EUt(GTValues.VA[GTValues.EV]).blastFurnaceTemp(1250)
+                .buildRawRecipe());
 
-        BLAST_RECIPES.recipeBuilder().duration(200).EUt(VA[EV]).blastFurnaceTemp(1150)
-                .input(dust, ZirconiumTetrachloride, 5)
-                .input(dust, Magnesium, 2)
-                .output(dust, Zirconium, 1)
-                .output(dust, MagnesiumChloride, 6)
-                .buildAndRegister();
+        addRecipe(GTRecipeTypes.BLAST_RECIPES, GTRecipeTypes.BLAST_RECIPES.recipeBuilder("zirconium_reduction")
+                .inputItems(TagPrefix.dust, SCMaterials.ZirconiumTetrachloride, 5)
+                .inputItems(TagPrefix.dust, GTMaterials.Magnesium, 2)
+                .outputItems(TagPrefix.dust, GTMaterials.Zirconium)
+                .outputItems(TagPrefix.dust, GTMaterials.MagnesiumChloride, 6)
+                .duration(200).EUt(GTValues.VA[GTValues.EV]).blastFurnaceTemp(1150)
+                .buildRawRecipe());
 
-        BLAST_RECIPES.recipeBuilder().duration(200).EUt(VA[EV]).blastFurnaceTemp(1150)
-                .input(dust, HafniumTetrachloride, 5)
-                .input(dust, Magnesium, 2)
-                .output(dust, Hafnium, 1)
-                .output(dust, MagnesiumChloride, 6)
-                .buildAndRegister();
+        addRecipe(GTRecipeTypes.BLAST_RECIPES, GTRecipeTypes.BLAST_RECIPES.recipeBuilder("hafnium_reduction")
+                .inputItems(TagPrefix.dust, SCMaterials.HafniumTetrachloride, 5)
+                .inputItems(TagPrefix.dust, GTMaterials.Magnesium, 2)
+                .outputItems(TagPrefix.dust, GTMaterials.Hafnium)
+                .outputItems(TagPrefix.dust, GTMaterials.MagnesiumChloride, 6)
+                .duration(200).EUt(GTValues.VA[GTValues.EV]).blastFurnaceTemp(1150)
+                .buildRawRecipe());
 
-        MIXER_RECIPES.recipeBuilder().duration(200).EUt(VA[EV])
-                .input(dust, Zirconium, 16)
-                .input(dust, Tin, 2)
-                .input(dust, Chrome, 1)
+        addRecipe(GTRecipeTypes.MIXER_RECIPES, GTRecipeTypes.MIXER_RECIPES.recipeBuilder("zircaloy")
+                .inputItems(TagPrefix.dust, GTMaterials.Zirconium, 16)
+                .inputItems(TagPrefix.dust, GTMaterials.Tin, 2)
+                .inputItems(TagPrefix.dust, GTMaterials.Chromium)
                 .circuitMeta(1)
-                .output(dust, Zircaloy, 19)
-                .buildAndRegister();
+                .outputItems(TagPrefix.dust, SCMaterials.Zircaloy, 19)
+                .duration(200).EUt(GTValues.VA[GTValues.EV])
+                .buildRawRecipe());
 
-        // Inconel 718
-        MIXER_RECIPES.recipeBuilder().duration(200).EUt(VA[EV])
-                .input(dust, Nickel, 5)
-                .input(dust, Chrome, 2)
-                .input(dust, Iron, 2)
-                .input(dust, Niobium)
-                .input(dust, Molybdenum)
+        addRecipe(GTRecipeTypes.MIXER_RECIPES, GTRecipeTypes.MIXER_RECIPES.recipeBuilder("inconel_718")
+                .inputItems(TagPrefix.dust, GTMaterials.Nickel, 5)
+                .inputItems(TagPrefix.dust, GTMaterials.Chromium, 2)
+                .inputItems(TagPrefix.dust, GTMaterials.Iron, 2)
+                .inputItems(TagPrefix.dust, GTMaterials.Niobium)
+                .inputItems(TagPrefix.dust, GTMaterials.Molybdenum)
                 .circuitMeta(4)
-                .output(dust, Inconel, 11)
-                .buildAndRegister();
+                .outputItems(TagPrefix.dust, SCMaterials.Inconel, 11)
+                .duration(200).EUt(GTValues.VA[GTValues.EV])
+                .buildRawRecipe());
+    }
 
-        CHEMICAL_RECIPES.recipeBuilder().duration(200).EUt(VA[LV])
-                .fluidInputs(DepletedUraniumHexafluoride.getFluid(1000))
-                .fluidInputs(Water.getFluid(2000))
-                .fluidInputs(Hydrogen.getFluid(2000))
-                .output(dust, DepletedUraniumDioxide, 3)
-                .fluidOutputs(HydrofluoricAcid.getFluid(6000))
-                .buildAndRegister();
+    private static void gasCentrifugeRecipes() {
+        addRecipe(SCRecipeMaps.GAS_CENTRIFUGE_RECIPES, SCRecipeMaps.GAS_CENTRIFUGE_RECIPES.recipeBuilder("uranium_hexafluoride_enrichment")
+                .inputFluids(GTMaterials.UraniumHexafluoride.getFluid(1000))
+                .outputFluids(GTMaterials.EnrichedUraniumHexafluoride.getFluid(100), GTMaterials.DepletedUraniumHexafluoride.getFluid(900))
+                .duration(800).EUt(GTValues.VA[GTValues.HV])
+                .buildRawRecipe());
 
-        MIXER_RECIPES.recipeBuilder().duration(200).EUt(VA[LV])
-                .input(dust, HighEnrichedUraniumDioxide, 1)
-                .input(dust, DepletedUraniumDioxide, 19)
+        addRecipe(SCRecipeMaps.GAS_CENTRIFUGE_RECIPES, SCRecipeMaps.GAS_CENTRIFUGE_RECIPES.recipeBuilder("enriched_uranium_hexafluoride_enrichment")
+                .inputFluids(GTMaterials.EnrichedUraniumHexafluoride.getFluid(1000))
+                .outputFluids(SCMaterials.HighEnrichedUraniumHexafluoride.getFluid(100), GTMaterials.DepletedUraniumHexafluoride.getFluid(900))
+                .duration(800).EUt(GTValues.VA[GTValues.HV])
+                .buildRawRecipe());
+    }
+
+    private static void fuelCycleRecipes() {
+        addRecipe(GTRecipeTypes.CHEMICAL_RECIPES, GTRecipeTypes.CHEMICAL_RECIPES.recipeBuilder("depleted_uranium_dioxide")
+                .inputFluids(GTMaterials.DepletedUraniumHexafluoride.getFluid(1000), GTMaterials.Water.getFluid(2000), GTMaterials.Hydrogen.getFluid(2000))
+                .outputItems(TagPrefix.dust, SCMaterials.DepletedUraniumDioxide, 3)
+                .outputFluids(GTMaterials.HydrofluoricAcid.getFluid(6000))
+                .duration(200).EUt(GTValues.VA[GTValues.LV])
+                .buildRawRecipe());
+
+        addRecipe(GTRecipeTypes.MIXER_RECIPES, GTRecipeTypes.MIXER_RECIPES.recipeBuilder("leu_235_from_heu")
+                .inputItems(TagPrefix.dust, SCMaterials.HighEnrichedUraniumDioxide)
+                .inputItems(TagPrefix.dust, SCMaterials.DepletedUraniumDioxide, 19)
                 .circuitMeta(1)
-                .output(dust, LEU235, 20)
-                .buildAndRegister();
+                .outputItems(TagPrefix.dust, SCMaterials.LEU235, 20)
+                .duration(200).EUt(GTValues.VA[GTValues.LV])
+                .buildRawRecipe());
 
-        MIXER_RECIPES.recipeBuilder().duration(200).EUt(VA[LV])
-                .input(dust, LowEnrichedUraniumDioxide, 1) // Assuming 20% enrichment
-                .input(dust, DepletedUraniumDioxide, 3)
+        addRecipe(GTRecipeTypes.MIXER_RECIPES, GTRecipeTypes.MIXER_RECIPES.recipeBuilder("leu_235_from_low_enriched")
+                .inputItems(TagPrefix.dust, SCMaterials.LowEnrichedUraniumDioxide)
+                .inputItems(TagPrefix.dust, SCMaterials.DepletedUraniumDioxide, 3)
                 .circuitMeta(1)
-                .output(dust, LEU235, 4)
-                .buildAndRegister();
+                .outputItems(TagPrefix.dust, SCMaterials.LEU235, 4)
+                .duration(200).EUt(GTValues.VA[GTValues.LV])
+                .buildRawRecipe());
 
-        MIXER_RECIPES.recipeBuilder().duration(200).EUt(VA[LV])
-                .input(dust, HighEnrichedUraniumDioxide, 1)
-                .input(dust, DepletedUraniumDioxide, 4)
+        addRecipe(GTRecipeTypes.MIXER_RECIPES, GTRecipeTypes.MIXER_RECIPES.recipeBuilder("heu_235")
+                .inputItems(TagPrefix.dust, SCMaterials.HighEnrichedUraniumDioxide)
+                .inputItems(TagPrefix.dust, SCMaterials.DepletedUraniumDioxide, 4)
                 .circuitMeta(2)
-                .output(dust, HEU235, 5)
-                .buildAndRegister();
+                .outputItems(TagPrefix.dust, SCMaterials.HEU235, 5)
+                .duration(200).EUt(GTValues.VA[GTValues.LV])
+                .buildRawRecipe());
 
-        CHEMICAL_RECIPES.recipeBuilder().duration(40).EUt(VA[ULV])
-                .input(dust, Plutonium239)
-                .fluidInputs(Oxygen.getFluid(2000))
-                .output(dust, FissilePlutoniumDioxide, 3)
-                .buildAndRegister();
+        addRecipe(GTRecipeTypes.CHEMICAL_RECIPES, GTRecipeTypes.CHEMICAL_RECIPES.recipeBuilder("fissile_plutonium_dioxide_239")
+                .inputItems(TagPrefix.dust, GTMaterials.Plutonium239)
+                .inputFluids(GTMaterials.Oxygen.getFluid(2000))
+                .outputItems(TagPrefix.dust, SCMaterials.FissilePlutoniumDioxide, 3)
+                .duration(40).EUt(GTValues.VA[GTValues.ULV])
+                .buildRawRecipe());
 
-        CHEMICAL_RECIPES.recipeBuilder().duration(40).EUt(VA[ULV])
-                .input(dust, Plutonium241)
-                .fluidInputs(Oxygen.getFluid(2000))
-                .output(dust, FissilePlutoniumDioxide, 3)
-                .buildAndRegister();
+        addRecipe(GTRecipeTypes.CHEMICAL_RECIPES, GTRecipeTypes.CHEMICAL_RECIPES.recipeBuilder("fissile_plutonium_dioxide_241")
+                .inputItems(TagPrefix.dust, GTMaterials.Plutonium241)
+                .inputFluids(GTMaterials.Oxygen.getFluid(2000))
+                .outputItems(TagPrefix.dust, SCMaterials.FissilePlutoniumDioxide, 3)
+                .duration(40).EUt(GTValues.VA[GTValues.ULV])
+                .buildRawRecipe());
 
-        // U/Pu extraction
+        fuelReprocessing("leu_235", SCMaterials.LEU235, GTMaterials.UraniumHexafluoride, 633,
+                new int[] {282, 132, 84, 18}, new Object[] {GTMaterials.Zirconium, 1645, GTMaterials.Molybdenum, 1169, GTMaterials.Neodymium, 1030, GTMaterials.Lead, 659, GTMaterials.Ruthenium, 609, GTMaterials.Technetium, 297}, 16, 111, 125);
+        fuelReprocessing("heu_235", SCMaterials.HEU235, GTMaterials.EnrichedUraniumHexafluoride, 821,
+                new int[] {235, 110, 70, 15}, new Object[] {GTMaterials.Zirconium, 1645, GTMaterials.Molybdenum, 1182, GTMaterials.Neodymium, 1031, GTMaterials.Ruthenium, 600, GTMaterials.Technetium, 300, GTMaterials.Yttrium, 211}, 16, 110, 129);
+        fuelReprocessing("low_grade_mox", SCMaterials.LowGradeMOX, GTMaterials.DepletedUraniumHexafluoride, 565,
+                new int[] {0, 165, 5, 15}, new Object[] {GTMaterials.Neodymium, 1015, GTMaterials.Molybdenum, 937, GTMaterials.Zirconium, 863, GTMaterials.Palladium, 738, GTMaterials.Bismuth, 300, GTMaterials.Tellurium, 188}, 6, 126, 118);
+        fuelReprocessing("high_grade_mox", SCMaterials.HighGradeMOX, GTMaterials.DepletedUraniumHexafluoride, 1141,
+                new int[] {0, 724, 192, 3}, new Object[] {GTMaterials.Neodymium, 1020, GTMaterials.Molybdenum, 937, GTMaterials.Zirconium, 863, GTMaterials.Samarium, 319, GTMaterials.Tellurium, 187, GTMaterials.Promethium, 119}, 6, 126, 114);
+    }
 
-        ASSEMBLER_RECIPES.recipeBuilder().duration(400).EUt(VA[LV])
-                .input(ring, Titanium, 2)
-                .input(stick, Titanium, 16)
-                .output(SCMetaItems.ANODE_BASKET)
-                .buildAndRegister();
+    private static void fuelReprocessing(String id, com.gregtechceu.gtceu.api.data.chemical.material.Material material,
+                                         com.gregtechceu.gtceu.api.data.chemical.material.Material fluorideOutput,
+                                         int fissionByproductChance, int[] bredChances, Object[] byproducts,
+                                         int krypton, int xenon, int radon) {
+        addRecipe(GTRecipeTypes.ELECTROLYZER_RECIPES, GTRecipeTypes.ELECTROLYZER_RECIPES.recipeBuilder(id + "_electrolytic_reprocessing")
+                .notConsumable(SCItems.ANODE_BASKET.get())
+                .notConsumableFluid(GTMaterials.Salt.getFluid(1000))
+                .inputItems(SCOrePrefix.fuelPelletDepleted, material)
+                .outputItems(SCOrePrefix.dustSpentFuel, material)
+                .outputItems(SCOrePrefix.dustBredFuel, material)
+                .chancedOutput(SCOrePrefix.dustFissionByproduct, material, fissionByproductChance, 0)
+                .duration(800).EUt(GTValues.VA[GTValues.EV])
+                .buildRawRecipe());
 
-        ELECTROLYZER_RECIPES.recipeBuilder().duration(800).EUt(VA[EV])
-                .notConsumable(SCMetaItems.ANODE_BASKET)
-                .notConsumable(Salt.getFluid(1000))
-                .input(fuelPelletDepleted, LEU235)
-                .output(dustSpentFuel, LEU235)
-                .output(dustBredFuel, LEU235)
-                .chancedOutput(dustFissionByproduct, LEU235, 633, 0)
-                .buildAndRegister();
+        addRecipe(GTRecipeTypes.CHEMICAL_RECIPES, GTRecipeTypes.CHEMICAL_RECIPES.recipeBuilder(id + "_spent_fuel_fluorination")
+                .inputItems(SCOrePrefix.dustSpentFuel, material)
+                .inputFluids(GTMaterials.HydrofluoricAcid.getFluid(4000), GTMaterials.Fluorine.getFluid(2000))
+                .outputFluids(fluorideOutput.getFluid(1000), GTMaterials.Water.getFluid(2000))
+                .duration(200).EUt(GTValues.VA[GTValues.LV])
+                .buildRawRecipe());
 
-        ELECTROLYZER_RECIPES.recipeBuilder().duration(800).EUt(VA[EV])
-                .notConsumable(SCMetaItems.ANODE_BASKET)
-                .notConsumable(Salt.getFluid(1000))
-                .input(fuelPelletDepleted, HEU235)
-                .output(dustSpentFuel, HEU235)
-                .output(dustBredFuel, HEU235)
-                .chancedOutput(dustFissionByproduct, HEU235, 821, 0)
-                .buildAndRegister();
+        var bred = GTRecipeTypes.CENTRIFUGE_RECIPES.recipeBuilder(id + "_bred_fuel_centrifuging")
+                .inputItems(SCOrePrefix.dustBredFuel, material)
+                .duration(200).EUt(GTValues.VA[GTValues.LV]);
+        if (bredChances[0] > 0) bred.chancedOutput(TagPrefix.dust, GTMaterials.Plutonium239, bredChances[0], 0);
+        if (bredChances[1] > 0) bred.chancedOutput(TagPrefix.dust, SCMaterials.Plutonium240, bredChances[1], 0);
+        if (bredChances[2] > 0) bred.chancedOutput(TagPrefix.dust, GTMaterials.Plutonium241, bredChances[2], 0);
+        if ("high_grade_mox".equals(id)) bred.chancedOutput(TagPrefix.dust, SCMaterials.Plutonium242, 59, 0);
+        bred.chancedOutput(TagPrefix.dust, SCMaterials.Neptunium239, bredChances[3], 0);
+        addRecipe(GTRecipeTypes.CENTRIFUGE_RECIPES, bred.buildRawRecipe());
 
-        ELECTROLYZER_RECIPES.recipeBuilder().duration(800).EUt(VA[EV])
-                .notConsumable(SCMetaItems.ANODE_BASKET)
-                .notConsumable(Salt.getFluid(1000))
-                .input(fuelPelletDepleted, LowGradeMOX)
-                .output(dustSpentFuel, LowGradeMOX)
-                .output(dustBredFuel, LowGradeMOX)
-                .chancedOutput(dustFissionByproduct, LowGradeMOX, 565, 0)
-                .buildAndRegister();
+        var fission = GTRecipeTypes.CENTRIFUGE_RECIPES.recipeBuilder(id + "_fission_byproduct_centrifuging")
+                .inputItems(SCOrePrefix.dustFissionByproduct, material)
+                .duration(200).EUt(GTValues.VA[GTValues.LV]);
+        for (int i = 0; i < byproducts.length; i += 2) {
+            fission.chancedOutput(TagPrefix.dust,
+                    (com.gregtechceu.gtceu.api.data.chemical.material.Material) byproducts[i], (Integer) byproducts[i + 1], 0);
+        }
+        fission.outputFluids(GTMaterials.Krypton.getFluid(krypton), GTMaterials.Xenon.getFluid(xenon), GTMaterials.Radon.getFluid(radon));
+        addRecipe(GTRecipeTypes.CENTRIFUGE_RECIPES, fission.buildRawRecipe());
+    }
 
-        ELECTROLYZER_RECIPES.recipeBuilder().duration(800).EUt(VA[EV])
-                .notConsumable(SCMetaItems.ANODE_BASKET)
-                .notConsumable(Salt.getFluid(1000))
-                .input(fuelPelletDepleted, HighGradeMOX)
-                .output(dustSpentFuel, HighGradeMOX)
-                .output(dustBredFuel, HighGradeMOX)
-                .chancedOutput(dustFissionByproduct, HighGradeMOX, 1141, 0)
-                .buildAndRegister();
+    private static void radonRecipes() {
+        addRecipe(GTRecipeTypes.CHEMICAL_BATH_RECIPES, GTRecipeTypes.CHEMICAL_BATH_RECIPES.recipeBuilder("radon_rich_gas_from_uraninite")
+                .inputItems(TagPrefix.crushed, GTMaterials.Uraninite)
+                .inputFluids(GTMaterials.DilutedHydrochloricAcid.getFluid(100))
+                .outputItems(TagPrefix.crushedPurified, GTMaterials.Uraninite)
+                .outputFluids(SCMaterials.RadonRichGasMixture.getFluid(1000))
+                .duration(200).EUt(GTValues.VA[GTValues.LV])
+                .buildRawRecipe());
 
-        CHEMICAL_RECIPES.recipeBuilder().duration(200).EUt(VA[LV])
-                .input(dustSpentFuel, LEU235, 1)
-                .fluidInputs(HydrofluoricAcid.getFluid(4000))
-                .fluidInputs(Fluorine.getFluid(2000))
-                .fluidOutputs(UraniumHexafluoride.getFluid(1000))
-                .fluidOutputs(Water.getFluid(2000))
-                .buildAndRegister();
+        addRecipe(GTRecipeTypes.CHEMICAL_BATH_RECIPES, GTRecipeTypes.CHEMICAL_BATH_RECIPES.recipeBuilder("radon_rich_gas_from_pitchblende")
+                .inputItems(TagPrefix.crushed, GTMaterials.Pitchblende)
+                .inputFluids(GTMaterials.DilutedHydrochloricAcid.getFluid(150))
+                .outputItems(TagPrefix.crushedPurified, GTMaterials.Pitchblende)
+                .outputFluids(SCMaterials.RadonRichGasMixture.getFluid(1500))
+                .duration(200).EUt(GTValues.VA[GTValues.LV])
+                .buildRawRecipe());
 
-        CHEMICAL_RECIPES.recipeBuilder().duration(200).EUt(VA[LV])
-                .input(dustSpentFuel, HEU235, 1)
-                .fluidInputs(HydrofluoricAcid.getFluid(4000))
-                .fluidInputs(Fluorine.getFluid(2000))
-                .fluidOutputs(EnrichedUraniumHexafluoride.getFluid(1000))
-                .fluidOutputs(Water.getFluid(2000))
-                .buildAndRegister();
+        addRecipe(GTRecipeTypes.DISTILLATION_RECIPES, GTRecipeTypes.DISTILLATION_RECIPES.recipeBuilder("radon_rich_gas_mixture_distillation")
+                .inputFluids(SCMaterials.RadonRichGasMixture.getFluid(3000))
+                .outputFluids(GTMaterials.Radon.getFluid(1000), GTMaterials.Helium.getFluid(2000))
+                .duration(1000).EUt(GTValues.VHA[GTValues.HV])
+                .buildRawRecipe());
+    }
 
-        CHEMICAL_RECIPES.recipeBuilder().duration(200).EUt(VA[LV])
-                .input(dustSpentFuel, LowGradeMOX, 1)
-                .fluidInputs(HydrofluoricAcid.getFluid(4000))
-                .fluidInputs(Fluorine.getFluid(2000))
-                .fluidOutputs(DepletedUraniumHexafluoride.getFluid(1000))
-                .fluidOutputs(Water.getFluid(2000))
-                .buildAndRegister();
+    private static void componentRecipes() {
+        addRecipe(GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("anode_basket")
+                .inputItems(TagPrefix.ring, GTMaterials.Titanium, 2)
+                .inputItems(TagPrefix.rod, GTMaterials.Titanium, 16)
+                .outputItems(SCItems.ANODE_BASKET.get())
+                .duration(400).EUt(GTValues.VA[GTValues.LV])
+                .buildRawRecipe());
 
-        CHEMICAL_RECIPES.recipeBuilder().duration(200).EUt(VA[LV])
-                .input(dustSpentFuel, HighGradeMOX, 1)
-                .fluidInputs(HydrofluoricAcid.getFluid(4000))
-                .fluidInputs(Fluorine.getFluid(2000))
-                .fluidOutputs(DepletedUraniumHexafluoride.getFluid(1000))
-                .fluidOutputs(Water.getFluid(2000))
-                .buildAndRegister();
-
-        CENTRIFUGE_RECIPES.recipeBuilder().duration(200).EUt(VA[LV])
-                .input(dustBredFuel, LEU235)
-                .chancedOutput(dust, Plutonium239, 282, 0)
-                .chancedOutput(dust, Plutonium240, 132, 0)
-                .chancedOutput(dust, Plutonium241, 84, 0)
-                .chancedOutput(dust, Neptunium239, 18, 0)
-                .buildAndRegister();
-
-        CENTRIFUGE_RECIPES.recipeBuilder().duration(200).EUt(VA[LV])
-                .input(dustBredFuel, HEU235)
-                .chancedOutput(dust, Plutonium239, 235, 0)
-                .chancedOutput(dust, Plutonium240, 110, 0)
-                .chancedOutput(dust, Plutonium241, 70, 0)
-                .chancedOutput(dust, Neptunium239, 15, 0)
-                .buildAndRegister();
-
-        CENTRIFUGE_RECIPES.recipeBuilder().duration(200).EUt(VA[LV])
-                .input(dustBredFuel, LowGradeMOX)
-                .chancedOutput(dust, Plutonium240, 165, 0)
-                .chancedOutput(dust, Plutonium241, 5, 0)
-                .chancedOutput(dust, Neptunium239, 15, 0)
-                .buildAndRegister();
-
-        CENTRIFUGE_RECIPES.recipeBuilder().duration(200).EUt(VA[LV])
-                .input(dustBredFuel, HighGradeMOX)
-                .chancedOutput(dust, Plutonium240, 724, 0)
-                .chancedOutput(dust, Plutonium241, 192, 0)
-                .chancedOutput(dust, Plutonium242, 59, 0)
-                .chancedOutput(dust, Neptunium239, 3, 0)
-                .buildAndRegister();
-
-        CENTRIFUGE_RECIPES.recipeBuilder().duration(200).EUt(VA[LV])
-                .input(dustFissionByproduct, LEU235)
-                .chancedOutput(dust, Zirconium, 1645, 0)
-                .chancedOutput(dust, Molybdenum, 1169, 0)
-                .chancedOutput(dust, Neodymium, 1030, 0)
-                .chancedOutput(dust, Lead, 659, 0)
-                .chancedOutput(dust, Ruthenium, 609, 0)
-                .chancedOutput(dust, Technetium, 297, 0)
-                .fluidOutputs(Krypton.getFluid(16), Xenon.getFluid(111), Radon.getFluid(125))
-                .buildAndRegister();
-
-        CENTRIFUGE_RECIPES.recipeBuilder().duration(200).EUt(VA[LV])
-                .input(dustFissionByproduct, HEU235)
-                .chancedOutput(dust, Zirconium, 1645, 0)
-                .chancedOutput(dust, Molybdenum, 1182, 0)
-                .chancedOutput(dust, Neodymium, 1031, 0)
-                .chancedOutput(dust, Ruthenium, 600, 0)
-                .chancedOutput(dust, Technetium, 300, 0)
-                .chancedOutput(dust, Yttrium, 211, 0)
-                .fluidOutputs(Krypton.getFluid(16), Xenon.getFluid(110), Radon.getFluid(129))
-                .buildAndRegister();
-
-        CENTRIFUGE_RECIPES.recipeBuilder().duration(200).EUt(VA[LV])
-                .input(dustFissionByproduct, LowGradeMOX)
-                .chancedOutput(dust, Neodymium, 1015, 0)
-                .chancedOutput(dust, Molybdenum, 937, 0)
-                .chancedOutput(dust, Zirconium, 863, 0)
-                .chancedOutput(dust, Palladium, 738, 0)
-                .chancedOutput(dust, Bismuth, 300, 0)
-                .chancedOutput(dust, Tellurium, 188, 0)
-                .fluidOutputs(Krypton.getFluid(6), Xenon.getFluid(126), Radon.getFluid(118))
-                .buildAndRegister();
-
-        CENTRIFUGE_RECIPES.recipeBuilder().duration(200).EUt(VA[LV])
-                .input(dustFissionByproduct, HighGradeMOX)
-                .chancedOutput(dust, Neodymium, 1020, 0)
-                .chancedOutput(dust, Molybdenum, 937, 0)
-                .chancedOutput(dust, Zirconium, 863, 0)
-                .chancedOutput(dust, Samarium, 319, 0)
-                .chancedOutput(dust, Tellurium, 187, 0)
-                .chancedOutput(dust, Promethium, 119, 0)
-                .fluidOutputs(Krypton.getFluid(6), Xenon.getFluid(126), Radon.getFluid(114))
-                .buildAndRegister();
-
-        // Radon from uranium bearing ores
-
-        CHEMICAL_BATH_RECIPES.recipeBuilder().duration(200).EUt(VA[LV])
-                .input(crushed, Uraninite)
-                .fluidInputs(DilutedHydrochloricAcid.getFluid(100))
-                .output(crushedPurified, Uraninite)
-                .fluidOutputs(RadonRichGasMixture.getFluid(1000))
-                .buildAndRegister();
-
-        CHEMICAL_BATH_RECIPES.recipeBuilder().duration(200).EUt(VA[LV])
-                .input(crushed, Pitchblende)
-                .fluidInputs(DilutedHydrochloricAcid.getFluid(150))
-                .output(crushedPurified, Pitchblende)
-                .fluidOutputs(RadonRichGasMixture.getFluid(1500))
-                .buildAndRegister();
-
-        DISTILLATION_RECIPES.recipeBuilder().duration(1000).EUt(VHA[HV])
-                .fluidInputs(RadonRichGasMixture.getFluid(3000))
-                .fluidOutputs(Radon.getFluid(1000))
-                .fluidOutputs(Helium.getFluid(2000))
-                .buildAndRegister();
-
-        ASSEMBLER_RECIPES.recipeBuilder().duration(200).EUt(VA[MV])
-                .input(plate, Zircaloy, 4)
-                .input(spring, Inconel, 1)
-                .input(round, StainlessSteel, 2)
-                .output(SCMetaItems.FUEL_CLADDING)
-                .buildAndRegister();
+        addRecipe(GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("fuel_cladding")
+                .inputItems(TagPrefix.plate, SCMaterials.Zircaloy, 4)
+                .inputItems(TagPrefix.spring, SCMaterials.Inconel)
+                .inputItems(TagPrefix.round, GTMaterials.StainlessSteel, 2)
+                .outputItems(SCItems.FUEL_CLADDING.get())
+                .duration(200).EUt(GTValues.VA[GTValues.MV])
+                .buildRawRecipe());
     }
 }

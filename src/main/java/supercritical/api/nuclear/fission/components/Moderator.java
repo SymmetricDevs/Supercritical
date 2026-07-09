@@ -1,20 +1,22 @@
 package supercritical.api.nuclear.fission.components;
 
-import lombok.Getter;
 import supercritical.api.nuclear.fission.IModeratorStats;
 
 public class Moderator extends ReactorComponent {
 
-    @Getter
-    private IModeratorStats moderatorStats;
+    private final IModeratorStats moderator;
 
-    public Moderator(IModeratorStats moderatorStats, double thermalConductivity, double mass) {
-        super(moderatorStats.getModerationFactor(), moderatorStats.getMaxTemperature(), thermalConductivity, mass,
-                true);
-        this.moderatorStats = moderatorStats;
+    public Moderator(double thermalConductivity, double mass, IModeratorStats moderator) {
+        super(moderator.getModerationFactor(), moderator.getMaxTemperature(), thermalConductivity, mass, true);
+        this.moderator = moderator;
     }
 
-    public double getAbsorptionFactor(boolean controlsInserted, boolean isThermal) {
-        return moderatorStats.getAbsorptionFactor();
+    @Override
+    public double getAbsorptionFactor(boolean controlsInserted, boolean thermal) {
+        return thermal ? moderator.getAbsorptionFactor() : 0;
+    }
+
+    public IModeratorStats getModerator() {
+        return moderator;
     }
 }

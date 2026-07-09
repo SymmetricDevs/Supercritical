@@ -1,0 +1,16 @@
+{
+  "package": "supercritical.mixins.gregtech",
+  "refmap": "mixins.supercritical.refmap.json",
+  "target": "@env(DEFAULT)",
+  "minVersion": "0.8",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "MixinElement",
+    "MixinEnergyDetectorCover",
+    "MixinGTRecipeType",
+    "MixinIArmorLogic",
+    "MixinMaterial",
+    "MixinTagPrefix",
+    "MixinTagPrefixItem"
+  ]
+}

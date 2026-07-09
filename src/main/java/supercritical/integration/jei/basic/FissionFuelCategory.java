@@ -1,70 +1,100 @@
 package supercritical.integration.jei.basic;
 
+import com.gregtechceu.gtceu.api.gui.GuiTextures;
+import com.lowdragmc.lowdraglib.jei.IGui2IDrawable;
+import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.drawable.IDrawable;
+import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
+import mezz.jei.api.helpers.IJeiHelpers;
+import mezz.jei.api.recipe.IFocusGroup;
+import mezz.jei.api.recipe.RecipeIngredientRole;
+import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.api.registration.IRecipeCatalystRegistration;
+import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.client.Minecraft;
-
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import gregtech.api.gui.GuiTextures;
-import gregtech.integration.jei.basic.BasicRecipeCategory;
-import mezz.jei.api.IGuiHelper;
-import mezz.jei.api.gui.IDrawable;
-import mezz.jei.api.gui.IGuiItemStackGroup;
-import mezz.jei.api.gui.IRecipeLayout;
-import mezz.jei.api.ingredients.IIngredients;
-import mezz.jei.api.recipe.IRecipeWrapper;
 import supercritical.SCValues;
-import supercritical.common.metatileentities.SCMetaTileEntities;
+import supercritical.api.nuclear.fission.FissionFuelRegistry;
+import supercritical.common.registry.SCMachines;
 
-public class FissionFuelCategory extends BasicRecipeCategory<FissionFuelInfo, FissionFuelInfo> {
+import java.util.ArrayList;
+import java.util.List;
+
+public final class FissionFuelCategory implements IRecipeCategory<FissionFuelInfo> {
+
+    public static final RecipeType<FissionFuelInfo> RECIPE_TYPE =
+            new RecipeType<>(new ResourceLocation(SCValues.MODID, "fission_fuel"), FissionFuelInfo.class);
 
     private final IDrawable icon;
-    protected final IDrawable slot;
+    private final IDrawable slot;
     private final IDrawable arrow;
 
-    public FissionFuelCategory(IGuiHelper guiHelper) {
-        super("fission_fuel", "fission.fuel.name", guiHelper.createBlankDrawable(176, 90), guiHelper);
+    public FissionFuelCategory(IJeiHelpers helpers) {
+        var guiHelper = helpers.getGuiHelper();
+        this.icon = guiHelper.createDrawableItemStack(SCMachines.FISSION_REACTOR.asStack());
+        this.slot = IGui2IDrawable.toDrawable(GuiTextures.SLOT, 18, 18);
+        this.arrow = IGui2IDrawable.toDrawable(GuiTextures.PROGRESS_BAR_ARROW, 20, 20);
+    }
 
-        this.icon = guiHelper.createDrawableIngredient(SCMetaTileEntities.FISSION_REACTOR.getStackForm());
-        this.slot = guiHelper.drawableBuilder(GuiTextures.SLOT.imageLocation, 0, 0, 18, 18).setTextureSize(18, 18)
-                .build();
-        this.arrow = guiHelper.drawableBuilder(GuiTextures.PROGRESS_BAR_ARROW.imageLocation, 0, 20, 20, 20)
-                .setTextureSize(20, 40).build();
+    public static void registerRecipes(IRecipeRegistration registry) {
+        List<FissionFuelInfo> infos = new ArrayList<>();
+        for (ItemStack fuel : FissionFuelRegistry.getAllFissionableRods()) {
+            infos.add(new FissionFuelInfo(fuel));
+        }
+        registry.addRecipes(RECIPE_TYPE, infos);
+    }
+
+    public static void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
+        registration.addRecipeCatalyst(SCMachines.FISSION_REACTOR.asStack(), RECIPE_TYPE);
+    }
+
+    @Override
+    public void setRecipe(@NotNull IRecipeLayoutBuilder builder, @NotNull FissionFuelInfo recipe,
+                          @NotNull IFocusGroup focuses) {
+        builder.addSlot(RecipeIngredientRole.INPUT, 55, 9).addItemStack(recipe.rod);
+        builder.addSlot(RecipeIngredientRole.OUTPUT, 105, 9).addItemStacks(recipe.depletedRods);
+    }
+
+    @Override
+    public void draw(@NotNull FissionFuelInfo recipe, @NotNull IRecipeSlotsView recipeSlotsView,
+                     @NotNull GuiGraphics guiGraphics, double mouseX, double mouseY) {
+        slot.draw(guiGraphics, 54, 8);
+        slot.draw(guiGraphics, 104, 8);
+        arrow.draw(guiGraphics, 77, 6);
+        recipe.drawInfo(guiGraphics, Minecraft.getInstance());
+    }
+
+    @NotNull
+    @Override
+    public RecipeType<FissionFuelInfo> getRecipeType() {
+        return RECIPE_TYPE;
+    }
+
+    @NotNull
+    @Override
+    public Component getTitle() {
+        return Component.translatable("fission.fuel.name");
+    }
+
+    @Override
+    public int getWidth() {
+        return 176;
+    }
+
+    @Override
+    public int getHeight() {
+        return 90;
     }
 
     @Nullable
     @Override
     public IDrawable getIcon() {
-        return this.icon;
-    }
-
-    @Override
-    public void setRecipe(IRecipeLayout recipeLayout, FissionFuelInfo recipeWrapper,
-                          @NotNull IIngredients ingredients) {
-        IGuiItemStackGroup itemStackGroup = recipeLayout.getItemStacks();
-
-        itemStackGroup.init(0, true, 54, 8);
-        itemStackGroup.set(0, recipeWrapper.rod);
-        itemStackGroup.init(1, true, 104, 8);
-        itemStackGroup.set(1, recipeWrapper.depletedRods.get(0));
-    }
-
-    @Override
-    public void drawExtras(@NotNull Minecraft minecraft) {
-        slot.draw(minecraft, 54, 8);
-        slot.draw(minecraft, 104, 8);
-        arrow.draw(minecraft, 77, 6);
-    }
-
-    @NotNull
-    @Override
-    public IRecipeWrapper getRecipeWrapper(@NotNull FissionFuelInfo recipe) {
-        return recipe;
-    }
-
-    @NotNull
-    @Override
-    public String getModName() {
-        return SCValues.MODID;
+        return icon;
     }
 }

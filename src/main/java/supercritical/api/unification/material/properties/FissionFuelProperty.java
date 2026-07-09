@@ -1,82 +1,127 @@
 package supercritical.api.unification.material.properties;
 
+import com.gregtechceu.gtceu.api.data.chemical.material.properties.IMaterialProperty;
+import com.gregtechceu.gtceu.api.data.chemical.material.properties.MaterialProperties;
+import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import supercritical.api.nuclear.fission.IFissionFuelStats;
+
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import net.minecraft.item.ItemStack;
+public final class FissionFuelProperty implements IMaterialProperty, IFissionFuelStats {
 
-import gregtech.api.unification.material.properties.IMaterialProperty;
-import gregtech.api.unification.material.properties.MaterialProperties;
-import gregtech.api.unification.material.properties.PropertyKey;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import supercritical.api.nuclear.fission.IFissionFuelStats;
-
-@Builder
-public class FissionFuelProperty implements IMaterialProperty, IFissionFuelStats {
-
-    // The max temperature the fuel can handle before it liquefies.
-    @Getter
     private int maxTemperature;
-    // Scales how long the fuel rod lasts in the reactor.
-    @Getter
     private int duration;
-    // How likely it is to absorb a neutron that had touched a moderator.
-    @Getter
     private double slowNeutronCaptureCrossSection;
-    // How likely it is to absorb a neutron that has not yet touched a moderator.
-    @Getter
     private double fastNeutronCaptureCrossSection;
-    // How likely it is for a moderated neutron to cause fission in this fuel.
-    @Getter
     private double slowNeutronFissionCrossSection;
-    // How likely it is for a not-yet-moderated neutron to cause fission in this fuel.
-    @Getter
     private double fastNeutronFissionCrossSection;
-    // The average time for a neutron to be emitted during a fission event. Do not make this accurate.
-    @Getter
     private double neutronGenerationTime;
-    @Getter
     private double releasedNeutrons;
-    @Builder.Default()
-    @Getter
     private double requiredNeutrons = 1;
-    @Getter
     private double releasedHeatEnergy;
-    @Getter
     private double decayRate;
-    @Getter
-    private String id;
-
-    @Getter
-    @Setter
-    private Function<Double, ItemStack> depletedFuelSupplier;
-    @Setter
-    private Supplier<List<ItemStack>> allDepletedFuels;
+    private ResourceLocation id;
+    private Function<Double, ItemStack> depletedFuelSupplier = thermalRatio -> ItemStack.EMPTY;
+    private Supplier<List<ItemStack>> allDepletedFuels = List::of;
 
     @Override
     public void verifyProperty(MaterialProperties properties) {
         properties.ensureSet(PropertyKey.DUST, true);
     }
 
-    @Override
+    public static Builder builder(ResourceLocation id, int maxTemperature, int duration, double neutronGenerationTime) {
+        return new Builder().id(id).maxTemperature(maxTemperature).duration(duration).neutronGenerationTime(neutronGenerationTime);
+    }
+
+    public int getMaxTemperature() {
+        return maxTemperature;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public double getSlowNeutronCaptureCrossSection() {
+        return slowNeutronCaptureCrossSection;
+    }
+
+    public double getFastNeutronCaptureCrossSection() {
+        return fastNeutronCaptureCrossSection;
+    }
+
+    public double getSlowNeutronFissionCrossSection() {
+        return slowNeutronFissionCrossSection;
+    }
+
+    public double getFastNeutronFissionCrossSection() {
+        return fastNeutronFissionCrossSection;
+    }
+
+    public double getNeutronGenerationTime() {
+        return neutronGenerationTime;
+    }
+
+    public double getReleasedNeutrons() {
+        return releasedNeutrons;
+    }
+
+    public double getRequiredNeutrons() {
+        return requiredNeutrons;
+    }
+
+    public double getReleasedHeatEnergy() {
+        return releasedHeatEnergy;
+    }
+
+    public double getDecayRate() {
+        return decayRate;
+    }
+
+    public String getId() {
+        return id.toString();
+    }
+
+    public ResourceLocation getResourceLocation() {
+        return id;
+    }
+
     public List<ItemStack> getDepletedFuels() {
         return allDepletedFuels.get();
     }
 
-    @Override
     public ItemStack getDepletedFuel(double thermalRatio) {
         return depletedFuelSupplier.apply(thermalRatio);
     }
 
-    public static FissionFuelPropertyBuilder builder(String id, int maxTemperature, int duration,
-                                                     double neutronGenerationTime) {
-        return new FissionFuelPropertyBuilder()
-                .id(id)
-                .maxTemperature(maxTemperature)
-                .duration(duration)
-                .neutronGenerationTime(neutronGenerationTime);
+    public FissionFuelProperty setDepletedFuelSupplier(Function<Double, ItemStack> depletedFuelSupplier) {
+        this.depletedFuelSupplier = depletedFuelSupplier;
+        return this;
+    }
+
+    public FissionFuelProperty setAllDepletedFuels(Supplier<List<ItemStack>> allDepletedFuels) {
+        this.allDepletedFuels = allDepletedFuels;
+        return this;
+    }
+
+    public static final class Builder {
+        private final FissionFuelProperty property = new FissionFuelProperty();
+
+        public Builder id(ResourceLocation id) { property.id = id; return this; }
+        public Builder maxTemperature(int maxTemperature) { property.maxTemperature = maxTemperature; return this; }
+        public Builder duration(int duration) { property.duration = duration; return this; }
+        public Builder slowNeutronCaptureCrossSection(double value) { property.slowNeutronCaptureCrossSection = value; return this; }
+        public Builder fastNeutronCaptureCrossSection(double value) { property.fastNeutronCaptureCrossSection = value; return this; }
+        public Builder slowNeutronFissionCrossSection(double value) { property.slowNeutronFissionCrossSection = value; return this; }
+        public Builder fastNeutronFissionCrossSection(double value) { property.fastNeutronFissionCrossSection = value; return this; }
+        public Builder neutronGenerationTime(double value) { property.neutronGenerationTime = value; return this; }
+        public Builder releasedNeutrons(double value) { property.releasedNeutrons = value; return this; }
+        public Builder requiredNeutrons(double value) { property.requiredNeutrons = value; return this; }
+        public Builder releasedHeatEnergy(double value) { property.releasedHeatEnergy = value; return this; }
+        public Builder decayRate(double value) { property.decayRate = value; return this; }
+        public FissionFuelProperty build() { return property; }
     }
 }

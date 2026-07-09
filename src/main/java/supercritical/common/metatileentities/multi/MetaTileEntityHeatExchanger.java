@@ -1,63 +1,117 @@
 package supercritical.common.metatileentities.multi;
 
-import net.minecraft.util.ResourceLocation;
-
+import com.gregtechceu.gtceu.api.capability.IControllable;
+import com.gregtechceu.gtceu.api.data.RotationState;
+import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
+import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
+import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
+import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern;
+import com.gregtechceu.gtceu.api.pattern.Predicates;
+import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.common.data.GTBlocks;
+import com.gregtechceu.gtceu.common.data.GTMaterials;
+import com.gregtechceu.gtceu.common.data.GTRecipeModifiers;
+import com.gregtechceu.gtceu.config.ConfigHolder;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
-
-import gregtech.api.metatileentity.MetaTileEntity;
-import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
-import gregtech.api.metatileentity.multiblock.IMultiblockPart;
-import gregtech.api.metatileentity.multiblock.RecipeMapMultiblockController;
-import gregtech.api.pattern.BlockPattern;
-import gregtech.api.pattern.FactoryBlockPattern;
-import gregtech.api.unification.material.Materials;
-import gregtech.client.renderer.ICubeRenderer;
-import gregtech.client.renderer.texture.Textures;
-import gregtech.common.blocks.BlockBoilerCasing.BoilerCasingType;
-import gregtech.common.blocks.BlockMetalCasing.MetalCasingType;
-import gregtech.common.blocks.MetaBlocks;
-import supercritical.api.capability.impl.NoEnergyRecipeLogic;
 import supercritical.api.recipes.SCRecipeMaps;
-import supercritical.client.renderer.textures.SCTextures;
+import supercritical.common.registry.SCRegistrate;
 
-public class MetaTileEntityHeatExchanger extends RecipeMapMultiblockController {
+import static supercritical.api.util.SCUtility.scId;
 
-    public MetaTileEntityHeatExchanger(ResourceLocation metaTileEntityId) {
-        super(metaTileEntityId, SCRecipeMaps.HEAT_EXCHANGER_RECIPES);
-        this.recipeMapWorkable = new NoEnergyRecipeLogic(this);
+/**
+ * Heat exchanger multiblock. Converts a hot coolant into a cooled coolant while producing power.
+ * Does not require external energy input.
+ */
+@MethodsReturnNonnullByDefault
+public class MetaTileEntityHeatExchanger extends WorkableMultiblockMachine implements IControllable {
+
+    private boolean workingEnabled = true;
+
+    public MetaTileEntityHeatExchanger(IMachineBlockEntity holder, Object... args) {
+        super(holder, args);
     }
 
     @Override
-    public MetaTileEntity createMetaTileEntity(IGregTechTileEntity iGregTechTileEntity) {
-        return new MetaTileEntityHeatExchanger(metaTileEntityId);
+    public boolean isWorkingEnabled() {
+        return workingEnabled;
     }
 
     @Override
-    protected @NotNull BlockPattern createStructurePattern() {
-        return FactoryBlockPattern.start()
-                .aisle("CCC", "BCB", "ACA")
-                .aisle("CCC", "CDC", "ACA").setRepeatable(7)
-                .aisle("CCC", "BSB", "AEA")
-                .where('S', selfPredicate())
-                .where('A', frames(Materials.Steel))
-                .where('B', autoAbilities(false, false, false, false, false, true, false).setMinGlobalLimited(2)
-                        .or(autoAbilities(false, false, false, false, true, false, false).setMinGlobalLimited(2)))
-                .where('C', states(MetaBlocks.METAL_CASING.getState(MetalCasingType.STEEL_SOLID))
-                        .or(autoAbilities(false, true, false, false, false, false, false)))
-                .where('D', states(MetaBlocks.BOILER_CASING.getState(BoilerCasingType.STEEL_PIPE)))
-                .where('E', states(MetaBlocks.METAL_CASING.getState(MetalCasingType.STEEL_SOLID))
-                        .or(autoAbilities(false, false, true, false, false, false, false)))
-                .build();
+    public void setWorkingEnabled(boolean workingEnabled) {
+        this.workingEnabled = workingEnabled;
     }
 
     @Override
-    public ICubeRenderer getBaseTexture(IMultiblockPart iMultiblockPart) {
-        return Textures.SOLID_STEEL_CASING;
+    protected @NotNull RecipeLogic createRecipeLogic(Object... args) {
+        return new HeatExchangerRecipeLogic(this);
     }
 
-    @NotNull
     @Override
-    protected ICubeRenderer getFrontOverlay() {
-        return SCTextures.HEAT_EXCHANGER_OVERLAY;
+    public @NotNull HeatExchangerRecipeLogic getRecipeLogic() {
+        return (HeatExchangerRecipeLogic) super.getRecipeLogic();
+    }
+
+    public static MultiblockMachineDefinition register() {
+        return SCRegistrate.REGISTRATE
+                .multiblock("heat_exchanger", MetaTileEntityHeatExchanger::new)
+                .rotationState(RotationState.NON_Y_AXIS)
+                .recipeType(SCRecipeMaps.HEAT_EXCHANGER_RECIPES)
+                .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH)
+                .pattern(definition -> FactoryBlockPattern.start()
+                        .aisle("CCC", "BCB", "ACA")
+                        .aisle("CCC", "CDC", "ACA").setRepeatable(1, 7)
+                        .aisle("CCC", "BSB", "AEA")
+                        .where('S', Predicates.controller(Predicates.blocks(definition.getBlock())))
+                        .where('A', Predicates.frames(GTMaterials.Steel))
+                        .where('B', Predicates.abilities(PartAbility.IMPORT_FLUIDS).setMinGlobalLimited(2)
+                                .or(Predicates.abilities(PartAbility.EXPORT_FLUIDS).setMinGlobalLimited(2)))
+                        .where('C', Predicates.blocks(GTBlocks.CASING_STEEL_SOLID.get())
+                                .or(Predicates.abilities(PartAbility.MAINTENANCE)
+                                        .setMinGlobalLimited(ConfigHolder.INSTANCE.machines.enableMaintenance ? 1 : 0)
+                                        .setMaxGlobalLimited(1)))
+                        .where('D', Predicates.blocks(GTBlocks.CASING_STEEL_PIPE.get()))
+                        .where('E', Predicates.blocks(GTBlocks.CASING_STEEL_SOLID.get())
+                                .or(Predicates.abilities(PartAbility.MUFFLER).setMinGlobalLimited(1).setMaxGlobalLimited(1)))
+                        .build())
+                .workableCasingModel(new ResourceLocation("gtceu", "block/casings/solid/machine_casing_solid_steel"),
+                        scId("block/multiblock/heat_exchanger"))
+                .register();
+    }
+
+    public static class HeatExchangerRecipeLogic extends RecipeLogic {
+
+        public HeatExchangerRecipeLogic(IRecipeLogicMachine machine) {
+            super(machine);
+        }
+
+        @Override
+        public void serverTick() {
+            if (!machine.isWorkingEnabled()) {
+                return;
+            }
+            super.serverTick();
+        }
+
+        @Override
+        public boolean checkMatchedRecipeAvailable(GTRecipe match) {
+            var modified = machine.fullModifyRecipe(match);
+            if (modified != null) {
+                var recipeMatch = checkRecipe(modified);
+                if (recipeMatch.isSuccess()) {
+                    setupRecipe(modified);
+                }
+                if (lastRecipe != null && getStatus() == Status.WORKING) {
+                    lastOriginRecipe = match;
+                    lastFailedMatches = null;
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

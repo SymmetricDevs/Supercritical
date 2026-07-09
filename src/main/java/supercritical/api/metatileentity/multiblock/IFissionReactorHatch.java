@@ -1,8 +1,10 @@
 package supercritical.api.metatileentity.multiblock;
 
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 
 import org.jetbrains.annotations.Nullable;
+
+import supercritical.common.metatileentities.multi.MetaTileEntityFissionReactor;
 
 public interface IFissionReactorHatch {
 
@@ -18,4 +20,27 @@ public interface IFissionReactorHatch {
 
     @Nullable
     BlockPos getPos();
+
+    /**
+     * Called by the controller when it forms so the hatch can store a weak reference.
+     */
+    default void setController(MetaTileEntityFissionReactor controller) {}
+
+    @Nullable
+    default MetaTileEntityFissionReactor getController() {
+        return null;
+    }
+
+    /**
+     * @return the stored controller reference, or null if none is stored.
+     */
+    default boolean hasController() {
+        return getController() != null;
+    }
+
+    default boolean isLocked() {
+        return false;
+    }
+
+    default void setLocked(boolean locked) {}
 }

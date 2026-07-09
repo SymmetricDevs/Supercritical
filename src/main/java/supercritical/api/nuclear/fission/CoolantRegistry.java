@@ -1,37 +1,37 @@
 package supercritical.api.nuclear.fission;
 
+import net.minecraft.world.level.material.Fluid;
+
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
-import net.minecraftforge.fluids.Fluid;
+public final class CoolantRegistry {
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+    private static final Map<Fluid, ICoolantStats> COOLANTS = new LinkedHashMap<>();
+    private static final Map<ICoolantStats, Fluid> COOLANTS_INVERSE = new LinkedHashMap<>();
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+    private CoolantRegistry() {}
 
-public class CoolantRegistry {
-
-    private static final Map<Fluid, ICoolantStats> COOLANTS = new Object2ObjectOpenHashMap<>();
-    private static final Map<ICoolantStats, Fluid> COOLANTS_INVERSE = new Object2ObjectOpenHashMap<>();
-
-    public static void registerCoolant(@NotNull Fluid fluid, @NotNull ICoolantStats coolant) {
+    public static void registerCoolant(Fluid fluid, ICoolantStats coolant) {
         COOLANTS.put(fluid, coolant);
         COOLANTS_INVERSE.put(coolant, fluid);
     }
 
-    @Nullable
     public static ICoolantStats getCoolant(Fluid fluid) {
         return COOLANTS.get(fluid);
     }
 
-    @NotNull
     public static Collection<Fluid> getAllCoolants() {
-        return COOLANTS.keySet();
+        return Collections.unmodifiableSet(COOLANTS.keySet());
     }
 
-    @Nullable
     public static Fluid originalFluid(ICoolantStats stats) {
         return COOLANTS_INVERSE.get(stats);
+    }
+
+    public static Collection<ICoolantStats> getAllCoolantStats() {
+        return Collections.unmodifiableCollection(COOLANTS.values());
     }
 }

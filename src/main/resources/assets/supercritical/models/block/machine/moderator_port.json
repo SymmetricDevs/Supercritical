@@ -1,0 +1,18 @@
+{
+  "parent": "minecraft:block/block",
+  "loader": "gtceu:machine",
+  "machine": "supercritical:moderator_port",
+  "replaceable_textures": [
+    "all"
+  ],
+  "variants": {
+    "": {
+      "model": {
+        "parent": "supercritical:block/overlay/machine/moderator_port",
+        "textures": {
+          "all": "supercritical:block/reactor_vessel"
+        }
+      }
+    }
+  }
+}

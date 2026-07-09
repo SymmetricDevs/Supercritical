@@ -1,72 +1,70 @@
 package supercritical.loaders.recipe;
 
-import static gregtech.api.recipes.RecipeMaps.ASSEMBLER_RECIPES;
-import static gregtech.api.unification.material.Materials.Nichrome;
-import static gregtech.api.unification.material.Materials.Steel;
-import static gregtech.api.unification.ore.OrePrefix.*;
-import static supercritical.api.unification.material.SCMaterials.*;
+import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
+import com.gregtechceu.gtceu.common.data.GTMaterials;
+import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
+import supercritical.api.unification.material.SCMaterials;
+import supercritical.common.registry.SCBlocks;
 
-import gregtech.common.ConfigHolder;
-import gregtech.common.blocks.BlockBoilerCasing;
-import gregtech.common.blocks.MetaBlocks;
-import supercritical.common.blocks.BlockFissionCasing;
-import supercritical.common.blocks.BlockGasCentrifugeCasing;
-import supercritical.common.blocks.BlockNuclearCasing;
-import supercritical.common.blocks.SCMetaBlocks;
+import net.minecraft.world.item.ItemStack;
 
-public class SCMachineRecipeLoader {
+import static supercritical.loaders.recipe.SCRecipeUtils.addRecipe;
+
+public final class SCMachineRecipeLoader {
+
+    private SCMachineRecipeLoader() {}
 
     public static void init() {
-        ASSEMBLER_RECIPES.recipeBuilder().EUt(48).duration(280)
-                .input(plateDouble, Inconel)
-                .input(plate, Steel, 5)
-                .input(frameGt, Steel)
-                .outputs(SCMetaBlocks.FISSION_CASING.getItemVariant(
-                        BlockFissionCasing.FissionCasingType.REACTOR_VESSEL, ConfigHolder.recipes.casingsPerCraft))
-                .buildAndRegister();
+        addRecipe(GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("reactor_vessel")
+                .inputItems(TagPrefix.plateDouble, SCMaterials.Inconel)
+                .inputItems(TagPrefix.plate, GTMaterials.Steel, 5)
+                .inputItems(TagPrefix.frameGt, GTMaterials.Steel)
+                .outputItems(new ItemStack(SCBlocks.REACTOR_VESSEL.get(), 2))
+                .EUt(48).duration(280)
+                .buildRawRecipe());
 
-        ASSEMBLER_RECIPES.recipeBuilder().EUt(48).duration(280)
-                .input(pipeLargeFluid, Inconel)
-                .input(frameGt, Steel)
-                .outputs(SCMetaBlocks.FISSION_CASING.getItemVariant(
-                        BlockFissionCasing.FissionCasingType.COOLANT_CHANNEL))
-                .buildAndRegister();
+        addRecipe(GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("coolant_channel")
+                .inputItems(TagPrefix.pipeLargeFluid, SCMaterials.Inconel)
+                .inputItems(TagPrefix.frameGt, GTMaterials.Steel)
+                .outputItems(new ItemStack(SCBlocks.COOLANT_CHANNEL.get()))
+                .EUt(48).duration(280)
+                .buildRawRecipe());
 
-        ASSEMBLER_RECIPES.recipeBuilder().EUt(48).duration(280)
-                .input(stick, Zircaloy, 6)
-                .input(ring, Zircaloy, 1)
+        addRecipe(GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("fuel_channel")
+                .inputItems(TagPrefix.rod, SCMaterials.Zircaloy, 6)
+                .inputItems(TagPrefix.ring, SCMaterials.Zircaloy)
                 .circuitMeta(1)
-                .outputs(SCMetaBlocks.FISSION_CASING.getItemVariant(
-                        BlockFissionCasing.FissionCasingType.FUEL_CHANNEL))
-                .buildAndRegister();
+                .outputItems(new ItemStack(SCBlocks.FUEL_CHANNEL.get()))
+                .EUt(48).duration(280)
+                .buildRawRecipe());
 
-        ASSEMBLER_RECIPES.recipeBuilder().EUt(48).duration(280)
-                .input(stick, Zircaloy, 3)
-                .input(ring, Zircaloy, 1)
+        addRecipe(GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("control_rod_channel")
+                .inputItems(TagPrefix.rod, SCMaterials.Zircaloy, 3)
+                .inputItems(TagPrefix.ring, SCMaterials.Zircaloy)
                 .circuitMeta(2)
-                .outputs(SCMetaBlocks.FISSION_CASING.getItemVariant(
-                        BlockFissionCasing.FissionCasingType.CONTROL_ROD_CHANNEL))
-                .buildAndRegister();
+                .outputItems(new ItemStack(SCBlocks.CONTROL_ROD_CHANNEL.get()))
+                .EUt(48).duration(280)
+                .buildRawRecipe());
 
-        ASSEMBLER_RECIPES.recipeBuilder().EUt(48).duration(200)
-                .inputs(MetaBlocks.BOILER_CASING.getItemVariant(
-                        BlockBoilerCasing.BoilerCasingType.POLYTETRAFLUOROETHYLENE_PIPE))
-                .input(wireGtSingle, Nichrome, 4)
-                .outputs(SCMetaBlocks.NUCLEAR_CASING.getItemVariant(
-                        BlockNuclearCasing.NuclearCasingType.GAS_CENTRIFUGE_HEATER))
-                .buildAndRegister();
+        addRecipe(GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("gas_centrifuge_heater")
+                .inputItems(TagPrefix.pipeLargeFluid, GTMaterials.Polytetrafluoroethylene)
+                .inputItems(TagPrefix.wireGtSingle, GTMaterials.Nichrome, 4)
+                .outputItems(new ItemStack(SCBlocks.GAS_CENTRIFUGE_HEATER.get()))
+                .EUt(48).duration(200)
+                .buildRawRecipe());
 
-        ASSEMBLER_RECIPES.recipeBuilder().EUt(48).duration(200)
-                .input(pipeNormalFluid, Steel)
-                .input(pipeTinyFluid, Steel, 3)
-                .outputs(SCMetaBlocks.GAS_CENTRIFUGE_CASING.getItemVariant(
-                        BlockGasCentrifugeCasing.GasCentrifugeCasingType.GAS_CENTRIFUGE_COLUMN))
-                .buildAndRegister();
+        addRecipe(GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("gas_centrifuge_column")
+                .inputItems(TagPrefix.pipeNormalFluid, GTMaterials.Steel)
+                .inputItems(TagPrefix.pipeTinyFluid, GTMaterials.Steel, 3)
+                .outputItems(new ItemStack(SCBlocks.GAS_CENTRIFUGE_COLUMN.get()))
+                .EUt(48).duration(200)
+                .buildRawRecipe());
 
-        ASSEMBLER_RECIPES.recipeBuilder().EUt(64).duration(200)
-                .input(stick, BoronCarbide, 8)
-                .outputs(SCMetaBlocks.NUCLEAR_CASING.getItemVariant(
-                        BlockNuclearCasing.NuclearCasingType.SPENT_FUEL_CASING, ConfigHolder.recipes.casingsPerCraft))
-                .buildAndRegister();
+        addRecipe(GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("spent_fuel_casing")
+                .inputItems(TagPrefix.rod, SCMaterials.BoronCarbide, 8)
+                .outputItems(new ItemStack(SCBlocks.SPENT_FUEL_CASING.get(), 2))
+                .EUt(64).duration(200)
+                .buildRawRecipe());
     }
 }

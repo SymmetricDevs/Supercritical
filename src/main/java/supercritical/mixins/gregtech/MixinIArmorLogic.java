@@ -1,15 +1,12 @@
 package supercritical.mixins.gregtech;
 
+import com.gregtechceu.gtceu.api.item.armor.IArmorLogic;
 import org.spongepowered.asm.mixin.Mixin;
-
-import gregtech.api.items.armor.IArmorLogic;
 import supercritical.api.items.armor.ArmorLogicExtension;
 
 /**
- * No additional functionality is added here.
- * Used solely to inject the parent interface {@link ArmorLogicExtension}.
+ * Injects {@link ArmorLogicExtension} into GTCEu's armor logic interface.
  */
 @Mixin(value = IArmorLogic.class, remap = false)
 public interface MixinIArmorLogic extends ArmorLogicExtension {
-
 }

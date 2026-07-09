@@ -1,0 +1,18 @@
+{
+  "parent": "minecraft:block/block",
+  "loader": "gtceu:machine",
+  "machine": "supercritical:fuel_rod_input",
+  "replaceable_textures": [
+    "all"
+  ],
+  "variants": {
+    "": {
+      "model": {
+        "parent": "supercritical:block/overlay/machine/fuel_rod_input",
+        "textures": {
+          "all": "supercritical:block/reactor_vessel"
+        }
+      }
+    }
+  }
+}

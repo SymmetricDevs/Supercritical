@@ -1,38 +1,41 @@
 package supercritical.loaders.recipe;
 
-import static gregtech.api.GTValues.LV;
-import static gregtech.api.GTValues.VH;
-import static gregtech.api.recipes.RecipeMaps.*;
-import static gregtech.api.unification.material.Materials.*;
-import static gregtech.api.unification.ore.OrePrefix.plate;
-import static supercritical.api.unification.material.SCMaterials.HeavyWater;
+import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
+import com.gregtechceu.gtceu.common.data.GTMaterials;
+import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
+import supercritical.api.unification.material.SCMaterials;
+import supercritical.common.registry.SCBlocks;
 
-import supercritical.common.blocks.BlockPanelling;
-import supercritical.common.blocks.SCMetaBlocks;
+import static supercritical.loaders.recipe.SCRecipeUtils.addRecipe;
 
-public class SCMiscRecipes {
+public final class SCMiscRecipes {
+
+    private SCMiscRecipes() {}
 
     public static void init() {
-        ASSEMBLER_RECIPES.recipeBuilder().EUt(16).duration(120)
-                .input(plate, Steel, 4)
+        addRecipe(GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("gray_panelling")
+                .inputItems(TagPrefix.plate, GTMaterials.Steel, 4)
                 .circuitMeta(16)
-                .outputs(SCMetaBlocks.PANELLING.getItemVariant(
-                        BlockPanelling.PanellingType.GRAY))
-                .buildAndRegister();
+                .outputItems(new ItemStack(SCBlocks.GRAY_PANELLING.get()))
+                .EUt(16).duration(120)
+                .buildRawRecipe());
 
-        for (int i = 0; i < CHEMICAL_DYES.length; i++) {
-            CHEMICAL_BATH_RECIPES.recipeBuilder()
-                    .inputs(SCMetaBlocks.PANELLING.getItemVariant(BlockPanelling.PanellingType.GRAY))
-                    .fluidInputs(CHEMICAL_DYES[i].getFluid(9))
-                    .outputs(SCMetaBlocks.PANELLING.getItemVariant(BlockPanelling.PanellingType.values()[i]))
+        for (DyeColor color : DyeColor.values()) {
+            addRecipe(GTRecipeTypes.CHEMICAL_BATH_RECIPES, GTRecipeTypes.CHEMICAL_BATH_RECIPES.recipeBuilder(color.getName() + "_panelling")
+                    .inputItems(new ItemStack(SCBlocks.GRAY_PANELLING.get()))
+                    .inputFluids(GTMaterials.CHEMICAL_DYES[color.ordinal()].getFluid(9))
+                    .outputItems(new ItemStack(SCBlocks.PANELLING.get(color).get()))
                     .EUt(2).duration(10)
-                    .buildAndRegister();
+                    .buildRawRecipe());
         }
 
-        CHEMICAL_RECIPES.recipeBuilder()
-                .fluidInputs(Deuterium.getFluid(2000))
-                .fluidInputs(Oxygen.getFluid(1000))
-                .fluidOutputs(HeavyWater.getFluid(1000))
-                .duration(200).EUt(VH[LV]).buildAndRegister();
+        addRecipe(GTRecipeTypes.CHEMICAL_RECIPES, GTRecipeTypes.CHEMICAL_RECIPES.recipeBuilder("heavy_water")
+                .inputFluids(GTMaterials.Deuterium.getFluid(2000), GTMaterials.Oxygen.getFluid(1000))
+                .outputFluids(SCMaterials.HeavyWater.getFluid(1000))
+                .duration(200).EUt(GTValues.VH[GTValues.LV])
+                .buildRawRecipe());
     }
 }

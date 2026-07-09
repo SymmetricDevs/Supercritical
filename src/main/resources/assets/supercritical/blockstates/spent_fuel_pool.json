@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "supercritical:block/machine/spent_fuel_pool"
+    },
+    "facing=east": {
+      "model": "supercritical:block/machine/spent_fuel_pool",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "supercritical:block/machine/spent_fuel_pool",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "supercritical:block/machine/spent_fuel_pool",
+      "y": 270
+    }
+  }
+}

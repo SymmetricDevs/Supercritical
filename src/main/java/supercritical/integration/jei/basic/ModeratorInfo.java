@@ -1,55 +1,50 @@
 package supercritical.integration.jei.basic;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-
-import mezz.jei.api.ingredients.IIngredients;
-import mezz.jei.api.ingredients.VanillaTypes;
-import mezz.jei.api.recipe.IRecipeWrapper;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import supercritical.api.nuclear.fission.IModeratorStats;
 import supercritical.api.nuclear.fission.ModeratorRegistry;
 
-public class ModeratorInfo implements IRecipeWrapper {
+public final class ModeratorInfo {
 
-    public IBlockState block;
-    public ItemStack stack;
+    public final BlockState blockState;
+    public final ItemStack stack;
 
-    private final String maxTemp;
-    private final String moderationFactor;
-    private final String absorptionFactor;
+    private final Component maxTemp;
+    private final Component moderationFactor;
+    private final Component absorptionFactor;
 
-    public ModeratorInfo(ResourceLocation name, int meta) {
-        Block blockFull = Block.REGISTRY.getObject(name);
-        this.block = blockFull.getStateFromMeta(meta);
-        stack = new ItemStack(blockFull, 1, meta);
-        IModeratorStats prop = ModeratorRegistry.getModerator(this.block);
+    public ModeratorInfo(Block block) {
+        this.blockState = block.defaultBlockState();
+        this.stack = new ItemStack(block);
 
-        maxTemp = I18n.format("metaitem.nuclear.tooltip.temperature", prop.getMaxTemperature());
-        moderationFactor = I18n.format("metaitem.nuclear.tooltip.moderation_factor", prop.getModerationFactor());
-        absorptionFactor = I18n.format("metaitem.nuclear.tooltip.absorption_factor", prop.getAbsorptionFactor());
+        IModeratorStats prop = ModeratorRegistry.getModerator(block);
+        if (prop != null) {
+            this.maxTemp = Component.translatable("metaitem.nuclear.tooltip.temperature", prop.getMaxTemperature());
+            this.moderationFactor = Component.translatable("metaitem.nuclear.tooltip.moderation_factor",
+                    (int) prop.getModerationFactor());
+            this.absorptionFactor = Component.translatable("metaitem.nuclear.tooltip.absorption_factor",
+                    (int) prop.getAbsorptionFactor());
+        } else {
+            this.maxTemp = Component.empty();
+            this.moderationFactor = Component.empty();
+            this.absorptionFactor = Component.empty();
+        }
     }
 
-    @Override
-    public void getIngredients(IIngredients ingredients) {
-        ItemStack blockItem = new ItemStack(block.getBlock(), 1, block.getBlock().getMetaFromState(block));
-        ingredients.setInput(VanillaTypes.ITEM, blockItem);
-        ingredients.setOutput(VanillaTypes.ITEM, blockItem);
-    }
-
-    @Override
-    public void drawInfo(Minecraft minecraft, int recipeWidth, int recipeHeight, int mouseX, int mouseY) {
-        int fontHeight = Minecraft.getMinecraft().fontRenderer.FONT_HEIGHT;
-
+    public void drawInfo(GuiGraphics graphics, Minecraft minecraft) {
+        Font font = minecraft.font;
         int start = 40;
-        int linesDrawn = 0;
-        minecraft.fontRenderer.drawString(maxTemp, 0, fontHeight * linesDrawn + start, 0x111111);
-        linesDrawn++;
-        minecraft.fontRenderer.drawString(moderationFactor, 0, fontHeight * linesDrawn + start, 0x111111);
-        linesDrawn++;
-        minecraft.fontRenderer.drawString(absorptionFactor, 0, fontHeight * linesDrawn + start, 0x111111);
+        int lineHeight = font.lineHeight + 1;
+        int color = 0xFF111111;
+
+        graphics.drawString(font, maxTemp, 0, start, color, false);
+        graphics.drawString(font, moderationFactor, 0, start + lineHeight, color, false);
+        graphics.drawString(font, absorptionFactor, 0, start + 2 * lineHeight, color, false);
     }
 }

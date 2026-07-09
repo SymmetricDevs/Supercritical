@@ -1,63 +1,56 @@
 package supercritical.common.metatileentities.multi.multiblockpart;
 
-import static supercritical.SCValues.FISSION_LOCK_UPDATE;
-
-import java.io.IOException;
-import java.util.List;
-
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.world.World;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemStackHandler;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemStack;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import codechicken.lib.render.CCRenderState;
-import codechicken.lib.render.pipeline.IVertexOperation;
-import codechicken.lib.vec.Matrix4;
-import gregtech.api.capability.IControllable;
-import gregtech.api.gui.GuiTextures;
-import gregtech.api.gui.ModularUI;
-import gregtech.api.gui.widgets.*;
-import gregtech.api.metatileentity.MetaTileEntity;
-import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
-import gregtech.api.metatileentity.multiblock.IMultiblockAbilityPart;
-import gregtech.api.metatileentity.multiblock.MultiblockAbility;
-import gregtech.client.renderer.texture.Textures;
-import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityMultiblockNotifiablePart;
+import com.gregtechceu.gtceu.api.capability.IControllable;
+import com.gregtechceu.gtceu.api.capability.recipe.IO;
+import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
+import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
+import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
+
 import supercritical.api.capability.IFuelRodHandler;
 import supercritical.api.items.itemhandlers.LockableItemStackHandler;
 import supercritical.api.metatileentity.multiblock.IFissionReactorHatch;
-import supercritical.api.metatileentity.multiblock.SCMultiblockAbility;
 import supercritical.api.nuclear.fission.FissionFuelRegistry;
 import supercritical.api.nuclear.fission.IFissionFuelStats;
 import supercritical.api.nuclear.fission.components.FuelRod;
-import supercritical.common.blocks.BlockFissionCasing;
-import supercritical.common.blocks.SCMetaBlocks;
+import supercritical.common.registry.SCBlocks;
 import supercritical.common.metatileentities.multi.MetaTileEntityFissionReactor;
 
-public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNotifiablePart
-                                            implements IMultiblockAbilityPart<IFuelRodHandler>, IFuelRodHandler,
-                                            IControllable, IFissionReactorHatch {
+public class MetaTileEntityFuelRodImportBus extends TieredIOPartMachine
+        implements IFuelRodHandler, IControllable, IFissionReactorHatch {
 
+    @Persisted
+    @DescSynced
+    @RequireRerender
     private boolean workingEnabled;
+    @Nullable
+    private MetaTileEntityFissionReactor controller;
     private IFissionFuelStats fuelProperty;
-    public MetaTileEntityFuelRodExportBus pairedHatch;
+    private MetaTileEntityFuelRodExportBus pairedHatch;
     private IFissionFuelStats partialFuel;
     private FuelRod internalFuelRod;
     private double depletionPoint;
-    private IItemHandlerModifiable partialFuelDisplay;
 
-    public MetaTileEntityFuelRodImportBus(ResourceLocation metaTileEntityId) {
-        super(metaTileEntityId, 4, false);
+    private final LockableItemStackHandler lockableInventory;
+
+    public MetaTileEntityFuelRodImportBus(IMachineBlockEntity holder, int tier) {
+        super(holder, tier, IO.IN);
+        this.workingEnabled = true;
+        this.lockableInventory = new LockableItemStackHandler(this, IO.IN);
+    }
+
+    public NotifiableItemStackHandler getInventory() {
+        return lockableInventory;
     }
 
     @Override
@@ -66,114 +59,8 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
     }
 
     @Override
-    public void setWorkingEnabled(boolean isWorkingAllowed) {
-        this.workingEnabled = isWorkingAllowed;
-    }
-
-    @Override
-    public MetaTileEntity createMetaTileEntity(IGregTechTileEntity tileEntity) {
-        return new MetaTileEntityFuelRodImportBus(metaTileEntityId);
-    }
-
-    @Override
-    protected IItemHandlerModifiable createExportItemHandler() {
-        return new ItemStackHandler(1);
-    }
-
-    @Override
-    protected IItemHandlerModifiable createImportItemHandler() {
-        return new LockableItemStackHandler(this, false);
-    }
-
-    private ModularUI.Builder createUITemplate(EntityPlayer player) {
-        ModularUI.Builder builder = ModularUI.builder(GuiTextures.BACKGROUND, 176, 163).label(10, 5, getMetaFullName());
-
-        builder.widget(new BlockableSlotWidget(importItems, 0, 40, 18, true, true)
-                .setIsBlocked(this::isLocked).setBackgroundTexture(GuiTextures.SLOT));
-
-        builder.widget(new SlotWidget(partialFuelDisplay, 0, 118, 18, false, false)
-                .setBackgroundTexture(GuiTextures.MAINTENANCE_ICON));
-
-        builder.widget(new ClickButtonWidget(140, 18, 18, 18, "", (d) -> voidPartialFuel())
-                .setTooltipText("supercritical.gui.void_fuel")
-                .setButtonTexture(GuiTextures.BUTTON_VOID_NONE)
-                .setShouldClientCallback(true));
-
-        builder.widget(new AdvancedTextWidget(10, 43, (list) -> {
-            list.add(new TextComponentTranslation("supercritical.gui.fission.depletion",
-                    String.format("%.2f", getCurrentDepletionRatio() * 100)));
-        }, 0));
-        builder.widget(new AdvancedTextWidget(10, 60, (list) -> {
-            ItemStack depleted = getDepletedFuel();
-            String translation = depleted.getItem().getItemStackDisplayName(depleted);
-            list.add(new TextComponentTranslation("supercritical.gui.fission.depleted_rod",
-                    translation.substring(0, Math.min(translation.length(), 18)) + "..."));
-        }, 0));
-
-        return builder.bindPlayerInventory(player.inventory, GuiTextures.SLOT, 7, 80);
-    }
-
-    public double getCurrentDepletionRatio() {
-        if (this.partialFuel == null)
-            return 0;
-        if (this.getController() == null || !(this.getController() instanceof MetaTileEntityFissionReactor reactor) ||
-                !reactor.isLocked())
-            return 1 - (depletionPoint / partialFuel.getDuration());
-        return 1 - ((depletionPoint - (reactor.getTotalDepletion() * internalFuelRod.getWeight())) /
-                partialFuel.getDuration());
-    }
-
-    public void voidPartialFuel() {
-        if (this.getController() != null &&
-                ((MetaTileEntityFissionReactor) this.getController()).isLocked())
-            return;
-        setPartialFuel(null);
-        depletionPoint = 0;
-        setLock(false);
-    }
-
-    @Override
-    protected void initializeInventory() {
-        super.initializeInventory();
-        partialFuelDisplay = new ItemStackHandler(1) {
-
-            @Override
-            public @NotNull ItemStack getStackInSlot(int slot) {
-                return getLockedObject();
-            }
-        };
-    }
-
-    @Override
-    public void update() {
-        super.update();
-        if (!getWorld().isRemote && getOffsetTimer() % 5 == 0) {
-            pullItemsFromNearbyHandlers(getFrontFacing());
-        }
-    }
-
-    @Override
-    protected ModularUI createUI(EntityPlayer entityPlayer) {
-        return createUITemplate(entityPlayer).build(getHolder(), entityPlayer);
-    }
-
-    @Override
-    public void renderMetaTileEntity(CCRenderState renderState, Matrix4 translation, IVertexOperation[] pipeline) {
-        super.renderMetaTileEntity(renderState, translation, pipeline);
-        if (shouldRenderOverlay()) {
-            Textures.PIPE_IN_OVERLAY.renderSided(getFrontFacing(), renderState, translation, pipeline);
-            Textures.ITEM_HATCH_INPUT_OVERLAY.renderSided(getFrontFacing(), renderState, translation, pipeline);
-        }
-    }
-
-    @Override
-    public MultiblockAbility<IFuelRodHandler> getAbility() {
-        return SCMultiblockAbility.IMPORT_FUEL_ROD;
-    }
-
-    @Override
-    public void registerAbilities(List<IFuelRodHandler> abilityList) {
-        abilityList.add(this);
+    public void setWorkingEnabled(boolean workingEnabled) {
+        this.workingEnabled = workingEnabled;
     }
 
     @Override
@@ -182,77 +69,37 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
         return pairedHatch != null;
     }
 
-    @Override
-    public void readFromNBT(NBTTagCompound data) {
-        super.readFromNBT(data);
-        if (data.hasKey("locked")) {
-            getLockedImport().setLock(data.getBoolean("locked"));
-        } else if (data.hasKey("locked_import")) {
-            getLockedImport().deserializeNBT(data.getCompoundTag("locked_import"));
+    public MetaTileEntityFuelRodExportBus getExportHatch(int depth) {
+        BlockPos.MutableBlockPos pos = getPos().mutable();
+        Direction back = getFrontFacing().getOpposite();
+        for (int i = 1; i < depth; i++) {
+            pos.move(back);
+            if (getLevel().getBlockState(pos).getBlock() != SCBlocks.FUEL_CHANNEL.get()) {
+                return null;
+            }
         }
-
-        if (data.hasKey("partialFuel")) {
-            this.partialFuel = FissionFuelRegistry.getFissionFuel(data.getString("partialFuel"));
+        pos.move(back);
+        if (MetaMachine.getMachine(getLevel(), pos) instanceof MetaTileEntityFuelRodExportBus export) {
+            return export;
         }
-        depletionPoint = data.getDouble("depletionPoint");
-    }
-
-    @Override
-    public NBTTagCompound writeToNBT(NBTTagCompound data) {
-        data.setTag("locked_import", getLockedImport().serializeNBT());
-
-        if (partialFuel != null) data.setString("partialFuel", this.partialFuel.getId());
-        data.setDouble("depletionPoint", depletionPoint);
-        return super.writeToNBT(data);
-    }
-
-    @Override
-    public void writeInitialSyncData(PacketBuffer buf) {
-        super.writeInitialSyncData(buf);
-        buf.writeItemStack(getLockedImport().getStackInSlot(0));
-        buf.writeBoolean(getLockedImport().isLocked());
-    }
-
-    @Override
-    public void receiveInitialSyncData(PacketBuffer buf) {
-        super.receiveInitialSyncData(buf);
-        try {
-            getLockedImport().setStackInSlot(0, buf.readItemStack());
-        } catch (IOException e) { // ignored
-        }
-        getLockedImport().setLock(buf.readBoolean());
-    }
-
-    private LockableItemStackHandler getLockedImport() {
-        return (LockableItemStackHandler) importItems;
+        return null;
     }
 
     @Override
     public void setLock(boolean isLocked) {
         if (depletionPoint == 0) {
-            getLockedImport().setLock(isLocked);
-            writeCustomData(FISSION_LOCK_UPDATE, (packetBuffer -> {
-                packetBuffer.writeBoolean(isLocked);
-            }));
-        }
-    }
-
-    @Override
-    public void receiveCustomData(int dataId, PacketBuffer buf) {
-        super.receiveCustomData(dataId, buf);
-        if (dataId == FISSION_LOCK_UPDATE) {
-            getLockedImport().setLock(buf.readBoolean());
+            lockableInventory.setLock(isLocked);
         }
     }
 
     @Override
     public boolean isLocked() {
-        return getLockedImport().isLocked();
+        return lockableInventory.isLocked();
     }
 
     @Override
     public ItemStack getLockedObject() {
-        return getLockedImport().getLockedObject();
+        return lockableInventory.getLockedObject();
     }
 
     @Override
@@ -272,9 +119,7 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
 
     @Override
     public boolean setPartialFuel(IFissionFuelStats prop) {
-        if (prop == this.partialFuel) {
-            return false;
-        }
+        if (prop == this.partialFuel) return false;
         this.partialFuel = prop;
         if (prop == null) {
             this.internalFuelRod = null;
@@ -296,32 +141,31 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
 
     @Override
     public void markUndepleted() {
-        this.depletionPoint += this.partialFuel.getDuration();
+        if (this.partialFuel != null) {
+            this.depletionPoint += this.partialFuel.getDuration();
+        }
     }
 
     @Override
     public LockableItemStackHandler getInputStackHandler() {
-        return this.getLockedImport();
+        return this.lockableInventory;
     }
 
-    public IItemHandlerModifiable getOutputStackHandler(int depth) {
-        return this.getExportHatch(depth).getExportItems();
+    @Override
+    public NotifiableItemStackHandler getOutputStackHandler(int depth) {
+        MetaTileEntityFuelRodExportBus export = getExportHatch(depth);
+        return export == null ? null : export.getInventory();
     }
 
     @Override
     public void resetDepletion(double fuelDepletion) {
-        if (this.internalFuelRod == null) {
-            // Only happens when the reactor fails to form
-            return;
-        }
+        if (this.internalFuelRod == null) return;
         this.depletionPoint -= fuelDepletion * this.internalFuelRod.getWeight();
     }
 
     @Override
     public ItemStack getDepletedFuel() {
-        if (this.internalFuelRod == null) {
-            return ItemStack.EMPTY;
-        }
+        if (this.internalFuelRod == null) return ItemStack.EMPTY;
         return this.internalFuelRod.getDepletedFuel();
     }
 
@@ -330,27 +174,59 @@ public class MetaTileEntityFuelRodImportBus extends MetaTileEntityMultiblockNoti
         return this.depletionPoint;
     }
 
-    public MetaTileEntityFuelRodExportBus getExportHatch(int depth) {
-        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(this.getPos());
-        for (int i = 1; i < depth; i++) {
-            if (getWorld().getBlockState(pos.move(this.frontFacing.getOpposite())) !=
-                    SCMetaBlocks.FISSION_CASING.getState(BlockFissionCasing.FissionCasingType.FUEL_CHANNEL)) {
-                return null;
-            }
+    public double getCurrentDepletionRatio() {
+        if (this.partialFuel == null) return 0;
+        MetaTileEntityFissionReactor controller = getController();
+        if (controller == null || !controller.isLocked() || controller.getReactor() == null) {
+            return 1 - (depletionPoint / partialFuel.getDuration());
         }
-        if (getWorld().getTileEntity(pos.move(this.frontFacing.getOpposite())) instanceof IGregTechTileEntity gtTe) {
-            MetaTileEntity mte = gtTe.getMetaTileEntity();
-            if (mte instanceof MetaTileEntityFuelRodExportBus) {
-                return (MetaTileEntityFuelRodExportBus) mte;
-            }
+        return 1 - ((depletionPoint - (controller.getReactor().fuelDepletion * internalFuelRod.getWeight()))
+                / partialFuel.getDuration());
+    }
+
+    public void voidPartialFuel() {
+        MetaTileEntityFissionReactor controller = getController();
+        if (controller != null && controller.isLocked()) return;
+        setPartialFuel(null);
+        depletionPoint = 0;
+        setLock(false);
+    }
+
+    @Override
+    public MetaTileEntityFissionReactor getController() {
+        var controllers = getControllers();
+        if (controllers.isEmpty()) return null;
+        if (controllers.first() instanceof MetaTileEntityFissionReactor reactor) {
+            return reactor;
         }
         return null;
     }
 
     @Override
-    public void addInformation(ItemStack stack, @Nullable World world, @NotNull List<String> tooltip,
-                               boolean advanced) {
-        super.addInformation(stack, world, tooltip, advanced);
-        tooltip.add(I18n.format("supercritical.machine.nuclear.locking.item"));
+    public void onLoad() {
+        super.onLoad();
+        subscribeServerTick(() -> {
+            if (getOffsetTimer() % 5 == 0 && isWorkingEnabled()) {
+                lockableInventory.importFromNearby(getFrontFacing());
+            }
+        });
+    }
+
+    @Override
+    public void saveCustomPersistedData(net.minecraft.nbt.CompoundTag tag, boolean forDrop) {
+        super.saveCustomPersistedData(tag, forDrop);
+        tag.putBoolean("Locked", lockableInventory.isLocked());
+        if (partialFuel != null) tag.putString("PartialFuel", partialFuel.getId());
+        tag.putDouble("DepletionPoint", depletionPoint);
+    }
+
+    @Override
+    public void loadCustomPersistedData(net.minecraft.nbt.CompoundTag tag) {
+        super.loadCustomPersistedData(tag);
+        lockableInventory.setLock(tag.getBoolean("Locked"));
+        if (tag.contains("PartialFuel")) {
+            this.partialFuel = FissionFuelRegistry.getFissionFuel(tag.getString("PartialFuel"));
+        }
+        this.depletionPoint = tag.getDouble("DepletionPoint");
     }
 }

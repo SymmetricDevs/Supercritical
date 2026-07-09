@@ -1,23 +1,42 @@
 package supercritical.api.items.itemhandlers;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.item.ItemStack;
 
 import org.jetbrains.annotations.NotNull;
 
-import gregtech.api.capability.impl.NotifiableItemStackHandler;
-import gregtech.api.metatileentity.MetaTileEntity;
-import lombok.Getter;
+import com.gregtechceu.gtceu.api.capability.recipe.IO;
+import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
+import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
+import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
+
 import supercritical.api.capability.ILockableHandler;
 
 public class LockableItemStackHandler extends NotifiableItemStackHandler implements ILockableHandler<ItemStack> {
 
-    @Getter
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
+            LockableItemStackHandler.class, NotifiableItemStackHandler.MANAGED_FIELD_HOLDER);
+
+    @Persisted
+    @DescSynced
     protected boolean locked;
+    @Persisted
+    @DescSynced
     protected ItemStack lockedItemStack = ItemStack.EMPTY;
 
-    public LockableItemStackHandler(MetaTileEntity entityToNotify, boolean isExport) {
-        super(entityToNotify, 1, entityToNotify, isExport);
+    public LockableItemStackHandler(MetaMachine machine, IO io) {
+        super(machine, 1, io, io.support(IO.IN) ? IO.BOTH : io);
+    }
+
+    @Override
+    public ManagedFieldHolder getFieldHolder() {
+        return MANAGED_FIELD_HOLDER;
+    }
+
+    @Override
+    public boolean isLocked() {
+        return locked;
     }
 
     @Override
@@ -34,29 +53,22 @@ public class LockableItemStackHandler extends NotifiableItemStackHandler impleme
     @NotNull
     @Override
     public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
-        if (this.locked && !this.lockedItemStack.isItemEqual(stack)) {
+        if (this.locked && !this.lockedItemStack.isEmpty() && !ItemStack.isSameItem(this.lockedItemStack, stack)) {
             return stack;
         }
         return super.insertItem(slot, stack, simulate);
     }
 
     @Override
+    public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+        if (this.locked && !this.lockedItemStack.isEmpty() && !ItemStack.isSameItem(this.lockedItemStack, stack)) {
+            return false;
+        }
+        return super.isItemValid(slot, stack);
+    }
+
+    @Override
     public ItemStack getLockedObject() {
         return lockedItemStack;
-    }
-
-    @Override
-    public NBTTagCompound serializeNBT() {
-        NBTTagCompound comp = super.serializeNBT();
-        comp.setBoolean("locked", locked);
-        comp.setTag("locked_stack", this.lockedItemStack.serializeNBT());
-        return comp;
-    }
-
-    @Override
-    public void deserializeNBT(NBTTagCompound nbt) {
-        super.deserializeNBT(nbt);
-        this.locked = nbt.getBoolean("locked");
-        this.lockedItemStack = new ItemStack(nbt.getCompoundTag("locked_stack"));
     }
 }

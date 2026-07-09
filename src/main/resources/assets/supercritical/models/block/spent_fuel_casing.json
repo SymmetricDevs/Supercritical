@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "supercritical:block/spent_fuel_casing_top",
+    "side": "supercritical:block/spent_fuel_casing_side"
+  }
+}

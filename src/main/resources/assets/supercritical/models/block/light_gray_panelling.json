@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "supercritical:block/light_gray_panelling"
+  }
+}

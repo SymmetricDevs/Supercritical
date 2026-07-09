@@ -1,105 +1,60 @@
 package supercritical.common.metatileentities.multi.electric;
 
-import static gregtech.api.util.RelativeDirection.*;
+import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
+import com.gregtechceu.gtceu.api.pattern.BlockPattern;
+import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
+import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
 
-import java.util.List;
+public class MetaTileEntityGasCentrifuge extends WorkableElectricMultiblockMachine {
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
+    private int columnCount;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import gregtech.api.capability.impl.MultiblockRecipeLogic;
-import gregtech.api.metatileentity.MetaTileEntity;
-import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
-import gregtech.api.metatileentity.multiblock.IMultiblockPart;
-import gregtech.api.metatileentity.multiblock.RecipeMapMultiblockController;
-import gregtech.api.pattern.BlockPattern;
-import gregtech.api.pattern.FactoryBlockPattern;
-import gregtech.api.pattern.PatternMatchContext;
-import gregtech.client.renderer.ICubeRenderer;
-import gregtech.common.blocks.BlockBoilerCasing;
-import gregtech.common.blocks.MetaBlocks;
-import supercritical.api.recipes.SCRecipeMaps;
-import supercritical.client.renderer.textures.SCTextures;
-import supercritical.common.blocks.BlockGasCentrifugeCasing;
-import supercritical.common.blocks.BlockNuclearCasing;
-import supercritical.common.blocks.SCMetaBlocks;
-
-public class MetaTileEntityGasCentrifuge extends RecipeMapMultiblockController {
-
-    public MetaTileEntityGasCentrifuge(ResourceLocation metaTileEntityId) {
-        super(metaTileEntityId, SCRecipeMaps.GAS_CENTRIFUGE_RECIPES);
-        this.recipeMapWorkable = new MultiblockRecipeLogic(this);
+    public MetaTileEntityGasCentrifuge(IMachineBlockEntity holder) {
+        super(holder);
     }
 
-    @NotNull
+    public int getColumnCount() {
+        return columnCount;
+    }
+
     @Override
-    protected BlockPattern createStructurePattern() {
-        return FactoryBlockPattern.start(FRONT, UP, RIGHT)
-                .aisle("SI", "HH", "CC", "CC", "CC", "CC", "CC")
-                .aisle("EE", "HH", "CC", "CC", "CC", "CC", "CC").setRepeatable(1, 14)
-                .aisle("OO", "HH", "CC", "CC", "CC", "CC", "CC")
-                .where('S', selfPredicate())
-                .where('P', states(getPipeState()))
-                .where('H', states(getHeaterState()))
-                .where('C', states(getCentrifugeState()))
-                .where('I', states(getPipeState()).or(autoAbilities(false, false, false, false, true, false, false)))
-                .where('E', states(getPipeState()).or(autoAbilities(true, true, false, false, false, false, false)))
-                .where('O', states(getPipeState()).or(autoAbilities(false, false, false, false, false, true, false)))
+    public BlockPattern getPattern() {
+        return super.getPattern();
+    }
+
+    @Override
+    public void onStructureFormed() {
+        super.onStructureFormed();
+        BlockPattern pattern = getPattern();
+        int[] repetitions = pattern == null ? null : pattern.getFormedRepetitionCount();
+        if (repetitions != null && repetitions.length > 1) {
+            this.columnCount = Math.max(0, repetitions[1]);
+        } else {
+            this.columnCount = 0;
+        }
+    }
+
+    @Override
+    public void onStructureInvalid() {
+        super.onStructureInvalid();
+        this.columnCount = 0;
+    }
+
+    public static ModifierFunction recipeModifier(MetaMachine machine, GTRecipe recipe) {
+        if (!(machine instanceof MetaTileEntityGasCentrifuge centrifuge) || !centrifuge.isFormed()) {
+            return ModifierFunction.IDENTITY;
+        }
+        int parallel = centrifuge.getColumnCount();
+        if (parallel <= 1) {
+            return ModifierFunction.IDENTITY;
+        }
+        return ModifierFunction.builder()
+                .modifyAllContents(ContentModifier.multiplier(parallel))
+                .eutMultiplier(parallel)
+                .parallels(parallel)
                 .build();
-    }
-
-    private static IBlockState getPipeState() {
-        return MetaBlocks.BOILER_CASING.getState(BlockBoilerCasing.BoilerCasingType.POLYTETRAFLUOROETHYLENE_PIPE);
-    }
-
-    private static IBlockState getHeaterState() {
-        return SCMetaBlocks.NUCLEAR_CASING.getState(
-                BlockNuclearCasing.NuclearCasingType.GAS_CENTRIFUGE_HEATER);
-    }
-
-    private static IBlockState getCentrifugeState() {
-        return SCMetaBlocks.GAS_CENTRIFUGE_CASING
-                .getState(BlockGasCentrifugeCasing.GasCentrifugeCasingType.GAS_CENTRIFUGE_COLUMN);
-    }
-
-    @Override
-    public ICubeRenderer getBaseTexture(IMultiblockPart sourcePart) {
-        return SCTextures.PTFE_PIPE;
-    }
-
-    @Override
-    public MetaTileEntity createMetaTileEntity(IGregTechTileEntity tileEntity) {
-        return new MetaTileEntityGasCentrifuge(metaTileEntityId);
-    }
-
-    @SuppressWarnings("DataFlowIssue")
-    @Override
-    protected void formStructure(PatternMatchContext context) {
-        super.formStructure(context);
-        this.recipeMapWorkable.setParallelLimit(structurePattern.formedRepetitionCount[1]);
-    }
-
-    @Override
-    public void addInformation(ItemStack stack, @Nullable World player, @NotNull List<String> tooltip,
-                               boolean advanced) {
-        super.addInformation(stack, player, tooltip, advanced);
-        tooltip.add(I18n.format("supercritical.machine.gas_centrifuge.tooltip.parallel"));
-    }
-
-    @NotNull
-    @Override
-    protected ICubeRenderer getFrontOverlay() {
-        return SCTextures.GAS_CENTRIFUGE_OVERLAY;
-    }
-
-    @Override
-    public boolean allowsExtendedFacing() {
-        return false;
     }
 }

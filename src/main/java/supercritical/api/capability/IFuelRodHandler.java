@@ -1,6 +1,6 @@
 package supercritical.api.capability;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 import supercritical.api.items.itemhandlers.LockableItemStackHandler;
@@ -16,9 +16,6 @@ public interface IFuelRodHandler extends ILockableHandler<ItemStack> {
     IFissionFuelStats getPartialFuel();
 
     /**
-     * Set the fuel type that's currently being processed by this specific handler.
-     * 
-     * @param prop The new fuel type.
      * @return true if the partial fuel changed.
      */
     boolean setPartialFuel(IFissionFuelStats prop);

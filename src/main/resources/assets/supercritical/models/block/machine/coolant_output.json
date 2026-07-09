@@ -1,0 +1,18 @@
+{
+  "parent": "minecraft:block/block",
+  "loader": "gtceu:machine",
+  "machine": "supercritical:coolant_output",
+  "replaceable_textures": [
+    "all"
+  ],
+  "variants": {
+    "": {
+      "model": {
+        "parent": "supercritical:block/overlay/machine/coolant_output",
+        "textures": {
+          "all": "supercritical:block/reactor_vessel"
+        }
+      }
+    }
+  }
+}

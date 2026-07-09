@@ -1,8 +1,9 @@
+
 package supercritical.api.unification.material.info;
 
-import gregtech.api.unification.material.info.MaterialIconType;
+import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconType;
 
-public class SCMaterialIconType {
+public final class SCMaterialIconType {
 
     // Nuclear MaterialIconTypes
     public static final MaterialIconType fuelRod = new MaterialIconType("fuelRod");
@@ -15,4 +16,6 @@ public class SCMaterialIconType {
     public static final MaterialIconType dustSpentFuel = new MaterialIconType("dustSpentFuel");
     public static final MaterialIconType dustBredFuel = new MaterialIconType("dustBredFuel");
     public static final MaterialIconType dustFissionByproduct = new MaterialIconType("dustFissionByproduct");
+
+    private SCMaterialIconType() {}
 }

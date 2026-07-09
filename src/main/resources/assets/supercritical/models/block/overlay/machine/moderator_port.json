@@ -1,0 +1,6 @@
+{
+  "parent": "gtceu:block/overlay/front",
+  "textures": {
+    "overlay": "supercritical:block/overlay/machine/overlay_moderator_port"
+  }
+}

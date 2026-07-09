@@ -1,29 +1,26 @@
 package supercritical.api.pattern;
 
+import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
+import com.gregtechceu.gtceu.api.capability.recipe.IO;
+import com.gregtechceu.gtceu.api.capability.recipe.IRecipeCapabilityHolder;
+import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
+import com.lowdragmc.lowdraglib.utils.BlockInfo;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidType;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.init.Blocks;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.Constants.BlockFlags;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidStack;
-
-import gregtech.api.capability.IMultipleTankHandler;
-import gregtech.api.capability.impl.AbstractRecipeLogic;
-import gregtech.api.metatileentity.multiblock.MultiblockControllerBase;
-import gregtech.api.pattern.TraceabilityPredicate;
-import gregtech.api.util.BlockInfo;
-import supercritical.common.SCConfigHolder;
-import supercritical.mixins.gregtech.AbstractRecipeLogicAccessor;
-
-@SuppressWarnings("unused")
-@ParametersAreNonnullByDefault
+/**
+ * Supercritical-specific pattern predicates and helpers.
+ */
 public class SCPredicates {
 
     public static final String FLUID_BLOCKS_KEY = "FluidBlocks";
@@ -33,62 +30,54 @@ public class SCPredicates {
     }
 
     public static TraceabilityPredicate fluid(Fluid fluid) {
-        Block fluidBlock = fluid.getBlock();
-        String fluidName = fluid.getName();
-        if (fluidBlock == null) {
-            throw new IllegalArgumentException("Fluid \"" + fluidName + "\" has no associated block!");
-        }
-        IBlockState stillState = fluidBlock.getDefaultState();
+        Block fluidBlock = fluid.defaultFluidState().createLegacyBlock().getBlock();
+        BlockState stillState = fluidBlock.defaultBlockState();
 
         return new TraceabilityPredicate(
-                bws -> {
-                    IBlockState blockState = bws.getBlockState();
+                state -> {
+                    BlockState blockState = state.getBlockState();
                     if (blockState == stillState) return true;
-                    if (bws.getWorld().isAirBlock(bws.getPos()) || blockState.getBlock() == fluidBlock) {
-                        bws.getMatchContext()
-                                /// This can be a [Map] for multiple types of fluids,
-                                /// but this should be enough for now.
-                                /// Using an [ArrayList] here since we need to sort this later.
-                                /// [LinkedList] would be horrible for that
+                    Level world = state.getWorld();
+                    BlockPos pos = state.getPos();
+                    if (world.isEmptyBlock(pos) || blockState.getBlock() == fluidBlock) {
+                        state.getMatchContext()
                                 .getOrPut(FLUID_BLOCKS_KEY, new ArrayList<>())
-                                .add(bws.getPos());
+                                .add(pos);
                         return true;
                     }
                     return false;
                 },
-                () -> new BlockInfo[] {
-                        SCConfigHolder.misc.showFluidsForAutoFillingMultiblocks ?
-                                new BlockInfo(stillState) : new BlockInfo(Blocks.AIR)
-                });
+                () -> new BlockInfo[] { BlockInfo.fromBlockState(stillState) });
     }
 
-    public static void fillFluid(MultiblockControllerBase multi, List<BlockPos> toFill, FluidStack fluidStack) {
+    public static void fillFluid(MetaMachine multi, List<BlockPos> toFill, FluidStack fluidStack) {
         fillFluid(multi, toFill, fluidStack.getFluid());
     }
 
-    public static void fillFluid(MultiblockControllerBase multi, List<BlockPos> toFill, Fluid fluid) {
+    public static void fillFluid(MetaMachine multi, List<BlockPos> toFill, Fluid fluid) {
         if (toFill.isEmpty()) return;
 
-        // TODO: is it necessary for a multi to have a recipe logic for this?
-        AbstractRecipeLogic recipeLogic = multi.getRecipeLogic();
-        if (recipeLogic == null) return;
+        Level world = multi.getLevel();
+        if (world == null || world.isClientSide) return;
+        if (!(multi instanceof IRecipeCapabilityHolder holder)) return;
 
-        IMultipleTankHandler fluidInputs = ((AbstractRecipeLogicAccessor) recipeLogic).inputTank();
-        if (fluidInputs == null) return;
+        List<com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler<?>> inputTanks = new ArrayList<>();
+        inputTanks.addAll(holder.getCapabilitiesFlat(IO.IN, FluidRecipeCapability.CAP));
+        inputTanks.addAll(holder.getCapabilitiesFlat(IO.BOTH, FluidRecipeCapability.CAP));
 
-        FluidStack toDrain = new FluidStack(fluid, Fluid.BUCKET_VOLUME);
-        FluidStack drained = fluidInputs.drain(toDrain, false);
-        if (drained == null || drained.amount == 0) return;
-
-        if (drained.amount == Fluid.BUCKET_VOLUME) {
-            World world = multi.getWorld();
-            BlockPos pos = toFill.get(0);
-
-            if (world.isBlockLoaded(pos) &&
-                    (world.isAirBlock(pos) || world.getBlockState(pos).getBlock() == fluid.getBlock())) {
-                world.setBlockState(pos, fluid.getBlock().getDefaultState(), BlockFlags.SEND_TO_CLIENTS);
-                fluidInputs.drain(drained, true);
+        FluidStack toDrain = new FluidStack(fluid, FluidType.BUCKET_VOLUME);
+        for (var handler : inputTanks) {
+            if (!(handler instanceof IFluidHandler fluidHandler)) continue;
+            FluidStack drained = fluidHandler.drain(toDrain, IFluidHandler.FluidAction.SIMULATE);
+            if (drained.getAmount() == FluidType.BUCKET_VOLUME) {
+                fluidHandler.drain(toDrain, IFluidHandler.FluidAction.EXECUTE);
+                BlockPos pos = toFill.get(0);
+                if (world.isLoaded(pos) &&
+                        (world.isEmptyBlock(pos) || world.getBlockState(pos).getFluidState().getType() == fluid)) {
+                    world.setBlock(pos, fluid.defaultFluidState().createLegacyBlock(), Block.UPDATE_ALL);
+                }
                 toFill.remove(0);
+                return;
             }
         }
     }

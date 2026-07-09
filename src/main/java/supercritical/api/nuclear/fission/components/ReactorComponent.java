@@ -1,38 +1,23 @@
 package supercritical.api.nuclear.fission.components;
 
-import lombok.Getter;
-import lombok.Setter;
-
 public class ReactorComponent {
 
-    @Getter
     private final double moderationFactor;
-    @Getter
     protected double maxTemperature;
-    @Getter
     private final double thermalConductivity;
-    @Getter
     private final double mass;
-
-    @Getter
     private int x;
-    @Getter
     private int y;
-
-    private final boolean isValid;
-
-    // The index of the reactor component, which is -1 if unset
-    @Setter
-    @Getter
+    private final boolean valid;
     private int index = -1;
 
     public ReactorComponent(double moderationFactor, double maxTemperature, double thermalConductivity, double mass,
-                            boolean isValid) {
+                            boolean valid) {
         this.moderationFactor = moderationFactor;
         this.maxTemperature = maxTemperature;
         this.thermalConductivity = thermalConductivity;
         this.mass = mass;
-        this.isValid = isValid;
+        this.valid = valid;
     }
 
     public void setPos(int x, int y) {
@@ -40,21 +25,28 @@ public class ReactorComponent {
         this.y = y;
     }
 
-    public double getAbsorptionFactor(boolean controlsInserted, boolean isThermal) {
+    public double getAbsorptionFactor(boolean controlsInserted, boolean thermal) {
         return 0;
     }
 
     public boolean isValid() {
-        return isValid;
+        return valid;
     }
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean samePositionAs(ReactorComponent component) {
-        return this.getX() == component.getX() && this.getY() == component.getY();
+        return x == component.x && y == component.y;
     }
 
     public double getDistance(ReactorComponent component) {
-        return Math.sqrt(Math.pow(this.getX() - component.getX(), 2) +
-                Math.pow(this.getY() - component.getY(), 2));
+        return Math.sqrt(Math.pow(x - component.x, 2) + Math.pow(y - component.y, 2));
     }
+
+    public double getModerationFactor() { return moderationFactor; }
+    public double getMaxTemperature() { return maxTemperature; }
+    public double getThermalConductivity() { return thermalConductivity; }
+    public double getMass() { return mass; }
+    public int getX() { return x; }
+    public int getY() { return y; }
+    public int getIndex() { return index; }
+    public void setIndex(int index) { this.index = index; }
 }

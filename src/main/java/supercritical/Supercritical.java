@@ -1,44 +1,66 @@
 package supercritical;
 
+import com.gregtechceu.gtceu.api.GTCEuAPI;
+import com.gregtechceu.gtceu.api.machine.MachineDefinition;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.common.Tags;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.SidedProxy;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import supercritical.api.recipes.SCRecipeMaps;
+import supercritical.api.unification.material.SCMaterials;
+import supercritical.api.unification.ore.SCOrePrefix;
+import supercritical.common.SCConfigHolder;
+import supercritical.common.registry.SCBlocks;
+import supercritical.common.registry.SCItems;
+import supercritical.common.registry.SCMachines;
+import supercritical.common.registry.SCRegistrate;
+import supercritical.data.SCDatagen;
+import supercritical.loaders.recipe.SCRecipeManager;
 
-import org.jetbrains.annotations.NotNull;
+@Mod(SCValues.MODID)
+public final class Supercritical {
 
-import supercritical.common.CommonProxy;
-import supercritical.common.blocks.SCMetaBlocks;
-import supercritical.common.item.SCMetaItems;
-import supercritical.common.metatileentities.SCMetaTileEntities;
+    public static final Logger LOGGER = LogManager.getLogger(SCValues.MODID);
 
-@Mod(modid = SCInternalTags.MODID,
-     version = SCInternalTags.VERSION,
-     name = SCInternalTags.MODNAME,
-     dependencies = "required-after:gregtech@[2.8.10-beta,);" +
-             "required-after:mixinbooter@[9.0,);",
-     acceptedMinecraftVersions = "[1.12.2]")
-public class Supercritical {
+    public Supercritical() {
+        init();
 
-    @SidedProxy(modId = SCValues.MODID,
-                clientSide = "supercritical.client.ClientProxy",
-                serverSide = "supercritical.common.CommonProxy")
-    public static CommonProxy proxy;
+        var modBus = FMLJavaModLoadingContext.get().getModEventBus();
+        SCRegistrate.REGISTRATE.registerEventListeners(modBus);
+        SCItems.register(modBus);
+        SCBlocks.register(modBus);
+        modBus.addGenericListener(GTRecipeType.class, this::registerRecipeTypes);
+        modBus.addGenericListener(MachineDefinition.class, this::registerMachines);
+        modBus.addListener(this::commonSetup);
 
-    @Mod.Instance(SCValues.MODID)
-    public static Supercritical instance;
-
-    @Mod.EventHandler
-    public void onPreInit(@NotNull FMLPreInitializationEvent event) {
-        SCMetaItems.initMetaItems();
-        SCMetaBlocks.init();
-        SCMetaTileEntities.init();
-
-        proxy.preLoad();
+        modBus.register(SCMaterials.class);
     }
 
-    @Mod.EventHandler
-    public void onPostInit(FMLPostInitializationEvent event) {
-        proxy.postLoad();
+    public static void init() {
+        SCConfigHolder.register();
+        SCOrePrefix.init();
+        SCDatagen.init();
+    }
+
+    private void registerRecipeTypes(GTCEuAPI.RegisterEvent<ResourceLocation, GTRecipeType> event) {
+        SCRecipeMaps.init();
+    }
+
+    private void registerMachines(GTCEuAPI.RegisterEvent<ResourceLocation, MachineDefinition> event) {
+        SCMachines.ensureInitialized();
+    }
+
+    private void commonSetup(final FMLCommonSetupEvent event) {
+        event.enqueueWork(SCRecipeManager::load);
+        event.enqueueWork(SCMaterials::registerFuelItems);
+        event.enqueueWork(() -> {
+            SCMaterials.registerCoolants();
+            SCRecipeManager.loadLatest();
+        });
+        LOGGER.info("{} common setup.", SCValues.MODNAME);
     }
 }

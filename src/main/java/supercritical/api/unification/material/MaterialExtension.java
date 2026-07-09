@@ -1,18 +1,22 @@
 package supercritical.api.unification.material;
 
-import gregtech.api.unification.material.Material;
-import lombok.experimental.UtilityClass;
+import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 
+/**
+ * Provides Supercritical's decay-per-second calculation on top of GTCEu materials.
+ */
 public interface MaterialExtension {
 
-    // Assumes one mole per item and that it's always "starting to decay"
+    /**
+     * Returns the number of radioactive decays per second for one mole of this material,
+     * assuming the material is "starting to decay".
+     */
     double getDecaysPerSecond();
 
-    @UtilityClass
-    class Handler {
-
-        public double getDecaysPerSecond(Material material) {
-            return ((MaterialExtension) material).getDecaysPerSecond();
-        }
+    /**
+     * Helper for callers that prefer a static-style method.
+     */
+    static double getDecaysPerSecond(Material material) {
+        return ((MaterialExtension) (Object) material).getDecaysPerSecond();
     }
 }

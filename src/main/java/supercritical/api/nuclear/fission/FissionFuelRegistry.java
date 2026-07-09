@@ -1,40 +1,49 @@
 package supercritical.api.nuclear.fission;
 
+import net.minecraft.world.item.ItemStack;
+
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
-import net.minecraft.item.ItemStack;
+public final class FissionFuelRegistry {
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+    private static final Map<String, IFissionFuelStats> IDENTIFIED_FUELS = new LinkedHashMap<>();
+    private static final Map<ItemStack, IFissionFuelStats> FUELS = new LinkedHashMap<>();
 
-import gregtech.api.util.ItemStackHashStrategy;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+    private FissionFuelRegistry() {}
 
-public class FissionFuelRegistry {
-
-    private static final Map<String, IFissionFuelStats> IDENTIFIED_FUELS = new Object2ObjectOpenHashMap<>();
-    private static final Map<ItemStack, IFissionFuelStats> FUELS = new Object2ObjectOpenCustomHashMap<>(
-            ItemStackHashStrategy.comparingAllButCount());
-
-    public static void registerFuel(@NotNull ItemStack item, @NotNull IFissionFuelStats fuel) {
+    public static void registerFuel(ItemStack item, IFissionFuelStats fuel) {
         IDENTIFIED_FUELS.put(fuel.getId(), fuel);
-        FUELS.put(item, fuel);
+        if (!item.isEmpty()) {
+            FUELS.put(item.copyWithCount(1), fuel);
+        }
     }
 
-    @Nullable
+    public static void registerFuel(IFissionFuelStats fuel) {
+        IDENTIFIED_FUELS.put(fuel.getId(), fuel);
+    }
+
     public static IFissionFuelStats getFissionFuel(ItemStack stack) {
-        return FUELS.get(stack);
+        if (stack.isEmpty()) return null;
+        for (var entry : FUELS.entrySet()) {
+            if (ItemStack.isSameItemSameTags(entry.getKey(), stack)) {
+                return entry.getValue();
+            }
+        }
+        return null;
     }
 
-    @NotNull
     public static Collection<ItemStack> getAllFissionableRods() {
-        return FUELS.keySet();
+        return Collections.unmodifiableSet(FUELS.keySet());
     }
 
-    @Nullable
     public static IFissionFuelStats getFissionFuel(String name) {
         return IDENTIFIED_FUELS.get(name);
+    }
+
+    public static Collection<IFissionFuelStats> getAllFuelStats() {
+        return Collections.unmodifiableCollection(IDENTIFIED_FUELS.values());
     }
 }

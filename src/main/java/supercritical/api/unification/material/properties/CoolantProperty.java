@@ -1,59 +1,29 @@
 package supercritical.api.unification.material.properties;
 
-import net.minecraftforge.fluids.Fluid;
-
-import gregtech.api.fluids.store.FluidStorageKey;
-import gregtech.api.unification.material.Material;
-import gregtech.api.unification.material.properties.IMaterialProperty;
-import gregtech.api.unification.material.properties.MaterialProperties;
-import gregtech.api.unification.material.properties.PropertyKey;
-import lombok.Getter;
-import lombok.Setter;
+import com.gregtechceu.gtceu.api.data.chemical.material.Material;
+import com.gregtechceu.gtceu.api.data.chemical.material.properties.IMaterialProperty;
+import com.gregtechceu.gtceu.api.data.chemical.material.properties.MaterialProperties;
+import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
+import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKey;
+import net.minecraft.world.level.material.Fluid;
 import supercritical.api.nuclear.fission.ICoolantStats;
 
-public class CoolantProperty implements IMaterialProperty, ICoolantStats {
+public final class CoolantProperty implements IMaterialProperty, ICoolantStats {
 
-    @Setter
-    @Getter
     private Material hotHPCoolant;
-    @Setter
-    @Getter
     private double moderatorFactor;
-    /**
-     * Roughly the heat transfer coefficient Do not put too much thought into this
-     */
-    @Setter
-    @Getter
     private double coolingFactor;
-    // in kelvin at standard conditions
-    @Setter
-    @Getter
     private double boilingPoint;
-    // neutron absorption rate
-    // in J/L
-    @Setter
-    @Getter
     private double heatOfVaporization;
-    // in J/(kg*K)
-    @Setter
-    @Getter
     private double specificHeatCapacity;
-    private boolean accumulatesHydrogen = false;
-
-    @Getter
-    private double slowAbsorptionFactor = 0;
-
-    @Getter
-    private double fastAbsorptionFactor = 0;
-    // To store the specific key
+    private boolean accumulatesHydrogen;
+    private double slowAbsorptionFactor;
+    private double fastAbsorptionFactor;
     private final FluidStorageKey key;
-
-    @Getter
     private final double mass;
 
-    public CoolantProperty(Material mat, Material hotHPCoolant, FluidStorageKey key, double moderatorFactor,
-                           double coolingFactor,
-                           double boilingPoint, double heatOfVaporization,
+    public CoolantProperty(Material material, Material hotHPCoolant, FluidStorageKey key, double moderatorFactor,
+                           double coolingFactor, double boilingPoint, double heatOfVaporization,
                            double specificHeatCapacity) {
         this.hotHPCoolant = hotHPCoolant;
         this.moderatorFactor = moderatorFactor;
@@ -62,12 +32,66 @@ public class CoolantProperty implements IMaterialProperty, ICoolantStats {
         this.heatOfVaporization = heatOfVaporization;
         this.specificHeatCapacity = specificHeatCapacity;
         this.key = key;
-        this.mass = mat.getMass();
+        this.mass = material.getMass();
     }
 
     @Override
     public void verifyProperty(MaterialProperties properties) {
         properties.ensureSet(PropertyKey.FLUID, true);
+    }
+
+    public Material getHotHPCoolant() {
+        return hotHPCoolant;
+    }
+
+    public CoolantProperty setHotHPCoolant(Material hotHPCoolant) {
+        this.hotHPCoolant = hotHPCoolant;
+        return this;
+    }
+
+    public double getModeratorFactor() {
+        return moderatorFactor;
+    }
+
+    public CoolantProperty setModeratorFactor(double moderatorFactor) {
+        this.moderatorFactor = moderatorFactor;
+        return this;
+    }
+
+    public double getCoolingFactor() {
+        return coolingFactor;
+    }
+
+    public CoolantProperty setCoolingFactor(double coolingFactor) {
+        this.coolingFactor = coolingFactor;
+        return this;
+    }
+
+    public double getBoilingPoint() {
+        return boilingPoint;
+    }
+
+    public CoolantProperty setBoilingPoint(double boilingPoint) {
+        this.boilingPoint = boilingPoint;
+        return this;
+    }
+
+    public double getHeatOfVaporization() {
+        return heatOfVaporization;
+    }
+
+    public CoolantProperty setHeatOfVaporization(double heatOfVaporization) {
+        this.heatOfVaporization = heatOfVaporization;
+        return this;
+    }
+
+    public double getSpecificHeatCapacity() {
+        return specificHeatCapacity;
+    }
+
+    public CoolantProperty setSpecificHeatCapacity(double specificHeatCapacity) {
+        this.specificHeatCapacity = specificHeatCapacity;
+        return this;
     }
 
     public boolean accumulatesHydrogen() {
@@ -79,13 +103,8 @@ public class CoolantProperty implements IMaterialProperty, ICoolantStats {
         return this;
     }
 
-    public Fluid getHotCoolant() {
-        return hotHPCoolant.getFluid();
-    }
-
-    public CoolantProperty setFastAbsorptionFactor(double fastAbsorptionFactor) {
-        this.fastAbsorptionFactor = fastAbsorptionFactor;
-        return this;
+    public double getSlowAbsorptionFactor() {
+        return slowAbsorptionFactor;
     }
 
     public CoolantProperty setSlowAbsorptionFactor(double slowAbsorptionFactor) {
@@ -93,7 +112,24 @@ public class CoolantProperty implements IMaterialProperty, ICoolantStats {
         return this;
     }
 
+    public double getFastAbsorptionFactor() {
+        return fastAbsorptionFactor;
+    }
+
+    public CoolantProperty setFastAbsorptionFactor(double fastAbsorptionFactor) {
+        this.fastAbsorptionFactor = fastAbsorptionFactor;
+        return this;
+    }
+
     public FluidStorageKey getCoolantKey() {
         return key;
+    }
+
+    public double getMass() {
+        return mass;
+    }
+
+    public Fluid getHotCoolant() {
+        return hotHPCoolant.getFluid();
     }
 }

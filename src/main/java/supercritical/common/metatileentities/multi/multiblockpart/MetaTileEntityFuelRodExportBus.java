@@ -1,36 +1,33 @@
 package supercritical.common.metatileentities.multi.multiblockpart;
 
-import java.util.List;
+import com.gregtechceu.gtceu.api.capability.IControllable;
+import com.gregtechceu.gtceu.api.capability.recipe.IO;
+import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
+import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
+import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemStackHandler;
-
-import codechicken.lib.render.CCRenderState;
-import codechicken.lib.render.pipeline.IVertexOperation;
-import codechicken.lib.vec.Matrix4;
-import gregtech.api.capability.IControllable;
-import gregtech.api.gui.GuiTextures;
-import gregtech.api.gui.ModularUI;
-import gregtech.api.gui.widgets.SlotWidget;
-import gregtech.api.metatileentity.MetaTileEntity;
-import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
-import gregtech.api.metatileentity.multiblock.IMultiblockAbilityPart;
-import gregtech.api.metatileentity.multiblock.MultiblockAbility;
-import gregtech.client.renderer.texture.Textures;
-import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityMultiblockNotifiablePart;
 import supercritical.api.metatileentity.multiblock.IFissionReactorHatch;
-import supercritical.api.metatileentity.multiblock.SCMultiblockAbility;
 
-public class MetaTileEntityFuelRodExportBus extends MetaTileEntityMultiblockNotifiablePart
-                                            implements IMultiblockAbilityPart<IItemHandlerModifiable>, IControllable,
-                                            IFissionReactorHatch {
+public class MetaTileEntityFuelRodExportBus extends TieredIOPartMachine
+        implements IControllable, IFissionReactorHatch {
 
+    @Persisted
+    @DescSynced
+    @RequireRerender
     private boolean workingEnabled;
+    private final NotifiableItemStackHandler inventory;
 
-    public MetaTileEntityFuelRodExportBus(ResourceLocation metaTileEntityId) {
-        super(metaTileEntityId, 4, true);
+    public MetaTileEntityFuelRodExportBus(IMachineBlockEntity holder, int tier) {
+        super(holder, tier, IO.OUT);
+        this.workingEnabled = true;
+        this.inventory = new NotifiableItemStackHandler(this, 1, IO.OUT);
+    }
+
+    public NotifiableItemStackHandler getInventory() {
+        return inventory;
     }
 
     @Override
@@ -39,69 +36,22 @@ public class MetaTileEntityFuelRodExportBus extends MetaTileEntityMultiblockNoti
     }
 
     @Override
-    public void setWorkingEnabled(boolean isWorkingAllowed) {
-        this.workingEnabled = isWorkingAllowed;
-    }
-
-    @Override
-    public MetaTileEntity createMetaTileEntity(IGregTechTileEntity tileEntity) {
-        return new MetaTileEntityFuelRodExportBus(metaTileEntityId);
-    }
-
-    @Override
-    public void update() {
-        super.update();
-        if (!getWorld().isRemote && getOffsetTimer() % 5 == 0) {
-            pushItemsIntoNearbyHandlers(getFrontFacing());
-        }
-    }
-
-    @Override
-    protected IItemHandlerModifiable createExportItemHandler() {
-        return new ItemStackHandler(1);
-    }
-
-    @Override
-    protected IItemHandlerModifiable createImportItemHandler() {
-        return new ItemStackHandler(1);
-    }
-
-    private ModularUI.Builder createUITemplate(EntityPlayer player) {
-        ModularUI.Builder builder = ModularUI.builder(GuiTextures.BACKGROUND, 176, 143)
-                .label(10, 5, getMetaFullName());
-
-        builder.widget(new SlotWidget(exportItems, 0, 79, 18, true, false)
-                .setBackgroundTexture(GuiTextures.SLOT));
-
-        return builder.bindPlayerInventory(player.inventory, GuiTextures.SLOT, 7, 60);
-    }
-
-    @Override
-    protected ModularUI createUI(EntityPlayer entityPlayer) {
-        return createUITemplate(entityPlayer).build(getHolder(), entityPlayer);
-    }
-
-    @Override
-    public void renderMetaTileEntity(CCRenderState renderState, Matrix4 translation, IVertexOperation[] pipeline) {
-        super.renderMetaTileEntity(renderState, translation, pipeline);
-        if (shouldRenderOverlay()) {
-            Textures.PIPE_OUT_OVERLAY.renderSided(getFrontFacing(), renderState, translation, pipeline);
-            Textures.ITEM_HATCH_OUTPUT_OVERLAY.renderSided(getFrontFacing(), renderState, translation, pipeline);
-        }
-    }
-
-    @Override
-    public MultiblockAbility<IItemHandlerModifiable> getAbility() {
-        return SCMultiblockAbility.EXPORT_FUEL_ROD;
-    }
-
-    @Override
-    public void registerAbilities(List<IItemHandlerModifiable> abilityList) {
-        abilityList.add(this.exportItems);
+    public void setWorkingEnabled(boolean workingEnabled) {
+        this.workingEnabled = workingEnabled;
     }
 
     @Override
     public boolean checkValidity(int depth) {
         return true;
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        subscribeServerTick(() -> {
+            if (getOffsetTimer() % 5 == 0 && isWorkingEnabled()) {
+                inventory.exportToNearby(getFrontFacing());
+            }
+        });
     }
 }

@@ -1,18 +1,17 @@
 package supercritical.api.cover;
 
 /**
- * Simple interface specifying that an attached energy detector(advanced or not) cover reads custom EU values from the
- * MTE
+ * Allows a MetaTileEntity to report custom EU capacity/stored values to energy detector covers.
  */
 public interface ICustomEnergyCover {
 
     /**
-     * @return The total EU capacity
+     * @return the total EU capacity visible to detector covers
      */
     long getCoverCapacity();
 
     /**
-     * @return The stored EU capacity
+     * @return the stored EU visible to detector covers
      */
     long getCoverStored();
 }

@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "supercritical:block/machine/control_rod_moderated",
+      "x": 90
+    },
+    "facing=east": {
+      "model": "supercritical:block/machine/control_rod_moderated",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "supercritical:block/machine/control_rod_moderated"
+    },
+    "facing=south": {
+      "model": "supercritical:block/machine/control_rod_moderated",
+      "y": 180
+    },
+    "facing=up": {
+      "model": "supercritical:block/machine/control_rod_moderated",
+      "x": 270,
+      "gtceu:z": 180
+    },
+    "facing=west": {
+      "model": "supercritical:block/machine/control_rod_moderated",
+      "y": 270
+    }
+  }
+}

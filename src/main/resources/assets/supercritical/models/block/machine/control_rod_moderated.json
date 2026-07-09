@@ -1,0 +1,18 @@
+{
+  "parent": "minecraft:block/block",
+  "loader": "gtceu:machine",
+  "machine": "supercritical:control_rod_moderated",
+  "replaceable_textures": [
+    "all"
+  ],
+  "variants": {
+    "": {
+      "model": {
+        "parent": "supercritical:block/overlay/machine/control_rod_moderated",
+        "textures": {
+          "all": "supercritical:block/reactor_vessel"
+        }
+      }
+    }
+  }
+}

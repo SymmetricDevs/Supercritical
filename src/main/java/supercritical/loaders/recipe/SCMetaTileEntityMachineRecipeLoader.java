@@ -1,71 +1,75 @@
 package supercritical.loaders.recipe;
 
-import static gregtech.api.GTValues.EV;
-import static gregtech.api.GTValues.VA;
-import static gregtech.api.recipes.RecipeMaps.ASSEMBLER_RECIPES;
-import static gregtech.api.unification.material.Materials.*;
-import static gregtech.api.unification.ore.OrePrefix.*;
-import static gregtech.common.metatileentities.MetaTileEntities.HULL;
-import static supercritical.api.unification.material.SCMaterials.Inconel;
-import static supercritical.api.unification.material.SCMaterials.Zircaloy;
-import static supercritical.common.metatileentities.SCMetaTileEntities.*;
+import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
+import com.gregtechceu.gtceu.common.data.GTMaterials;
+import com.gregtechceu.gtceu.common.data.GTMachines;
+import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
+import supercritical.api.unification.material.SCMaterials;
+import supercritical.common.registry.SCMachines;
 
-import gregtech.api.unification.material.MarkerMaterials;
+import static supercritical.loaders.recipe.SCRecipeUtils.addRecipe;
 
-public class SCMetaTileEntityMachineRecipeLoader {
+public final class SCMetaTileEntityMachineRecipeLoader {
+
+    private SCMetaTileEntityMachineRecipeLoader() {}
 
     public static void init() {
-        // Nuclear Technology
-
-        ASSEMBLER_RECIPES.recipeBuilder()
-                .input(pipeLargeFluid, Inconel)
-                .input(HULL[EV])
-                .fluidInputs(Polyethylene.getFluid(144))
+        addRecipe(GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("coolant_input")
+                .inputItems(TagPrefix.pipeLargeFluid, SCMaterials.Inconel)
+                .inputItems(GTMachines.HULL[GTValues.EV].asStack())
+                .inputFluids(GTMaterials.Polyethylene.getFluid(144))
                 .circuitMeta(1)
-                .outputs(COOLANT_INPUT.getStackForm())
-                .duration(300).EUt(VA[EV]).buildAndRegister();
+                .outputItems(SCMachines.COOLANT_INPUT.asStack())
+                .duration(300).EUt(GTValues.VA[GTValues.EV])
+                .buildRawRecipe());
 
-        ASSEMBLER_RECIPES.recipeBuilder()
-                .input(pipeLargeFluid, Inconel)
-                .input(HULL[EV])
-                .fluidInputs(Polyethylene.getFluid(144))
+        addRecipe(GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("coolant_output")
+                .inputItems(TagPrefix.pipeLargeFluid, SCMaterials.Inconel)
+                .inputItems(GTMachines.HULL[GTValues.EV].asStack())
+                .inputFluids(GTMaterials.Polyethylene.getFluid(144))
                 .circuitMeta(2)
-                .outputs(COOLANT_OUTPUT.getStackForm())
-                .duration(300).EUt(VA[EV]).buildAndRegister();
+                .outputItems(SCMachines.COOLANT_OUTPUT.asStack())
+                .duration(300).EUt(GTValues.VA[GTValues.EV])
+                .buildRawRecipe());
 
-        ASSEMBLER_RECIPES.recipeBuilder()
-                .input(stick, Zircaloy, 6)
-                .input(HULL[EV])
-                .fluidInputs(Polyethylene.getFluid(144))
+        addRecipe(GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("fuel_rod_input")
+                .inputItems(TagPrefix.rod, SCMaterials.Zircaloy, 6)
+                .inputItems(GTMachines.HULL[GTValues.EV].asStack())
+                .inputFluids(GTMaterials.Polyethylene.getFluid(144))
                 .circuitMeta(1)
-                .outputs(FUEL_ROD_INPUT.getStackForm())
-                .duration(300).EUt(VA[EV]).buildAndRegister();
+                .outputItems(SCMachines.FUEL_ROD_INPUT.asStack())
+                .duration(300).EUt(GTValues.VA[GTValues.EV])
+                .buildRawRecipe());
 
-        ASSEMBLER_RECIPES.recipeBuilder()
-                .input(stick, Zircaloy, 6)
-                .input(HULL[EV])
-                .fluidInputs(Polyethylene.getFluid(144))
+        addRecipe(GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("fuel_rod_output")
+                .inputItems(TagPrefix.rod, SCMaterials.Zircaloy, 6)
+                .inputItems(GTMachines.HULL[GTValues.EV].asStack())
+                .inputFluids(GTMaterials.Polyethylene.getFluid(144))
                 .circuitMeta(2)
-                .outputs(FUEL_ROD_OUTPUT.getStackForm())
-                .duration(300).EUt(VA[EV]).buildAndRegister();
+                .outputItems(SCMachines.FUEL_ROD_OUTPUT.asStack())
+                .duration(300).EUt(GTValues.VA[GTValues.EV])
+                .buildRawRecipe());
 
-        ASSEMBLER_RECIPES.recipeBuilder()
-                .input(stickLong, Hafnium)
-                .input(circuit, MarkerMaterials.Tier.EV)
-                .input(HULL[EV])
+        addRecipe(GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("control_rod")
+                .inputItems(TagPrefix.rodLong, GTMaterials.Hafnium)
+                .inputItems(com.gregtechceu.gtceu.data.recipe.CustomTags.EV_CIRCUITS)
+                .inputItems(GTMachines.HULL[GTValues.EV].asStack())
+                .inputFluids(GTMaterials.Polyethylene.getFluid(144))
                 .circuitMeta(1)
-                .fluidInputs(Polyethylene.getFluid(144))
-                .outputs(CONTROL_ROD.getStackForm())
-                .duration(300).EUt(VA[EV]).buildAndRegister();
+                .outputItems(SCMachines.CONTROL_ROD.asStack())
+                .duration(300).EUt(GTValues.VA[GTValues.EV])
+                .buildRawRecipe());
 
-        ASSEMBLER_RECIPES.recipeBuilder()
-                .input(stickLong, Hafnium)
-                .input(dust, Graphite)
-                .input(circuit, MarkerMaterials.Tier.EV)
-                .input(HULL[EV])
+        addRecipe(GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("control_rod_moderated")
+                .inputItems(TagPrefix.rodLong, GTMaterials.Hafnium)
+                .inputItems(TagPrefix.dust, GTMaterials.Graphite)
+                .inputItems(com.gregtechceu.gtceu.data.recipe.CustomTags.EV_CIRCUITS)
+                .inputItems(GTMachines.HULL[GTValues.EV].asStack())
+                .inputFluids(GTMaterials.Polyethylene.getFluid(144))
                 .circuitMeta(2)
-                .fluidInputs(Polyethylene.getFluid(144))
-                .outputs(CONTROL_ROD_MODERATED.getStackForm())
-                .duration(300).EUt(VA[EV]).buildAndRegister();
+                .outputItems(SCMachines.CONTROL_ROD_MODERATED.asStack())
+                .duration(300).EUt(GTValues.VA[GTValues.EV])
+                .buildRawRecipe());
     }
 }

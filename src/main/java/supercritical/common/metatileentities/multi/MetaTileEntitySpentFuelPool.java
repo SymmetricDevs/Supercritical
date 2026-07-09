@@ -1,121 +1,157 @@
 package supercritical.common.metatileentities.multi;
 
-import static gregtech.api.util.RelativeDirection.*;
-import static supercritical.api.pattern.SCPredicates.*;
+import com.gregtechceu.gtceu.api.capability.IControllable;
+import com.gregtechceu.gtceu.api.data.RotationState;
+import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
+import com.gregtechceu.gtceu.api.machine.TickableSubscription;
+import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
+import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
+import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.api.pattern.BlockPattern;
+import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern;
+import com.gregtechceu.gtceu.api.pattern.Predicates;
+import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
+import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
+import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
+import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
+import com.gregtechceu.gtceu.common.data.GTBlocks;
+import com.gregtechceu.gtceu.config.ConfigHolder;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.material.Fluids;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import supercritical.api.pattern.SCPredicates;
+import supercritical.api.recipes.SCRecipeMaps;
+import supercritical.common.registry.SCBlocks;
+import supercritical.common.registry.SCRegistrate;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.World;
-import net.minecraftforge.fluids.FluidRegistry;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import static supercritical.api.util.SCUtility.scId;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import gregtech.api.metatileentity.MetaTileEntity;
-import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
-import gregtech.api.metatileentity.multiblock.IMultiblockPart;
-import gregtech.api.metatileentity.multiblock.MultiblockAbility;
-import gregtech.api.metatileentity.multiblock.RecipeMapMultiblockController;
-import gregtech.api.pattern.BlockPattern;
-import gregtech.api.pattern.FactoryBlockPattern;
-import gregtech.api.pattern.PatternMatchContext;
-import gregtech.api.util.TextComponentUtil;
-import gregtech.client.renderer.ICubeRenderer;
-import gregtech.client.renderer.texture.Textures;
-import gregtech.common.blocks.BlockMetalCasing;
-import gregtech.common.blocks.MetaBlocks;
-import supercritical.api.recipes.SCRecipeMaps;
-import supercritical.client.renderer.textures.SCTextures;
-import supercritical.common.blocks.BlockNuclearCasing;
-import supercritical.common.blocks.SCMetaBlocks;
-
-public class MetaTileEntitySpentFuelPool extends RecipeMapMultiblockController {
+/**
+ * Spent fuel pool multiblock. Slowly cools spent nuclear fuel by submerging it in water.
+ * Pool length is variable and determines maximum recipe parallelism.
+ */
+@MethodsReturnNonnullByDefault
+public class MetaTileEntitySpentFuelPool extends WorkableMultiblockMachine implements IControllable, IDisplayUIMachine {
 
     public static final int PARALLEL_PER_LENGTH = 32;
 
+    private boolean workingEnabled = true;
     private boolean waterFilled;
     private List<BlockPos> waterPositions;
+    @Nullable
+    private TickableSubscription waterFillSubscription;
+    private int poolLength = 1;
 
-    public MetaTileEntitySpentFuelPool(ResourceLocation metaTileEntityId) {
-        super(metaTileEntityId, SCRecipeMaps.SPENT_FUEL_POOL_RECIPES);
+    public MetaTileEntitySpentFuelPool(IMachineBlockEntity holder, Object... args) {
+        super(holder, args);
     }
 
     @Override
-    public MetaTileEntity createMetaTileEntity(IGregTechTileEntity tileEntity) {
-        return new MetaTileEntitySpentFuelPool(metaTileEntityId);
+    public boolean isWorkingEnabled() {
+        return workingEnabled;
     }
 
     @Override
-    public boolean hasMaintenanceMechanics() {
-        return false;
-    }
-
-    private static IBlockState getRodState() {
-        return SCMetaBlocks.NUCLEAR_CASING.getState(BlockNuclearCasing.NuclearCasingType.SPENT_FUEL_CASING);
-    }
-
-    private static IBlockState getMetalCasingState() {
-        return MetaBlocks.METAL_CASING.getState(BlockMetalCasing.MetalCasingType.STAINLESS_CLEAN);
+    public void setWorkingEnabled(boolean workingEnabled) {
+        this.workingEnabled = workingEnabled;
     }
 
     @Override
-    protected void formStructure(PatternMatchContext context) {
-        super.formStructure(context);
-        // noinspection DataFlowIssue
-        this.recipeMapWorkable.setParallelLimit(structurePattern.formedRepetitionCount[2] * PARALLEL_PER_LENGTH);
+    protected @NotNull RecipeLogic createRecipeLogic(Object... args) {
+        return new SpentFuelPoolRecipeLogic(this);
+    }
 
-        this.waterPositions = context.getOrDefault(FLUID_BLOCKS_KEY, new ArrayList<>());
+    @Override
+    public @NotNull SpentFuelPoolRecipeLogic getRecipeLogic() {
+        return (SpentFuelPoolRecipeLogic) super.getRecipeLogic();
+    }
+
+    @Override
+    public void onStructureFormed() {
+        super.onStructureFormed();
+        this.waterPositions = getMultiblockState().getMatchContext().getOrDefault(SCPredicates.FLUID_BLOCKS_KEY, new ArrayList<>());
         this.waterPositions.sort(Comparator.comparingInt(BlockPos::getY));
         this.waterFilled = waterPositions.isEmpty();
+        int[] repetitions = getPattern().getFormedRepetitionCount();
+        this.poolLength = repetitions != null && repetitions.length > 2 ? Math.max(1, repetitions[2]) : 1;
+        this.waterFillSubscription = subscribeServerTick(this::tryFillWater);
     }
 
     @Override
-    public void invalidateStructure() {
-        super.invalidateStructure();
-        this.waterPositions = null; // Clear water fill data when the structure is invalidated
+    public void onStructureInvalid() {
+        super.onStructureInvalid();
+        unsubscribe(this.waterFillSubscription);
+        this.waterFillSubscription = null;
+        this.waterPositions = null;
         this.waterFilled = false;
+        this.poolLength = 1;
     }
 
-    @Override
-    protected void updateFormedValid() {
-        super.updateFormedValid();
-        if (!waterFilled && getOffsetTimer() % 5 == 0) {
-            fillFluid(this, this.waterPositions, FluidRegistry.WATER);
-            if (this.waterPositions.isEmpty()) {
-                this.waterFilled = true;
-            }
+    private void tryFillWater() {
+        if (waterFilled || waterPositions == null || waterPositions.isEmpty()) return;
+        if (getOffsetTimer() % 5 != 0) return;
+
+        SCPredicates.fillFluid(this, this.waterPositions, Fluids.WATER);
+        if (this.waterPositions.isEmpty()) {
+            this.waterFilled = true;
         }
     }
 
     @Override
-    public boolean isStructureObstructed() {
-        return super.isStructureObstructed() || !waterFilled;
+    public boolean isRecipeLogicAvailable() {
+        return super.isRecipeLogicAvailable() && waterFilled;
     }
 
     public boolean isWaterFilled() {
         return waterFilled;
     }
 
+    public int getPoolLength() {
+        return poolLength;
+    }
+
+    public int getMaxParallel() {
+        return getPoolLength() * PARALLEL_PER_LENGTH;
+    }
+
     @Override
-    public ICubeRenderer getBaseTexture(IMultiblockPart sourcePart) {
-        return Textures.CLEAN_STAINLESS_STEEL_CASING;
+    public void addDisplayText(List<Component> textList) {
+        IDisplayUIMachine.super.addDisplayText(textList);
+        if (isFormed()) {
+            if (!waterFilled) {
+                textList.add(Component.translatable("supercritical.multiblock.spent_fuel_pool.obstructed"));
+            } else if (!isWorkingEnabled()) {
+                textList.add(Component.translatable("gtceu.multiblock.work_paused"));
+            } else if (recipeLogic.isActive()) {
+                textList.add(Component.translatable("gtceu.multiblock.running"));
+            } else {
+                textList.add(Component.translatable("gtceu.multiblock.idling"));
+            }
+            textList.add(Component.translatable("supercritical.multiblock.spent_fuel_pool.parallel", getMaxParallel()));
+        }
     }
 
     @NotNull
     @Override
-    protected BlockPattern createStructurePattern() {
-        return FactoryBlockPattern.start(FRONT, UP, RIGHT)
+    public BlockPattern getPattern() {
+        return buildPattern(getDefinition());
+    }
+
+    private static BlockPattern buildPattern(MultiblockMachineDefinition definition) {
+        return FactoryBlockPattern.start(RelativeDirection.FRONT, RelativeDirection.UP, RelativeDirection.RIGHT)
                 // spotless:off
                 .aisle("CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "TTTTTTTTTT")
                 .aisle("CCCCCCCCCC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "S........T")
@@ -124,55 +160,82 @@ public class MetaTileEntitySpentFuelPool extends RecipeMapMultiblockController {
                 .aisle("CCCCCCCCCC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "CWWWWWWWWC", "T........T")
                 .aisle("CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "CCCCCCCCCC", "TTTTTTTTTT")
                 //spotless:on
-                .where('S', selfPredicate())
-                .where('.', any())
-                .where('C', blocks(SCMetaBlocks.PANELLING))
-                .where('W', fluid(FluidRegistry.WATER))
-                .where('R', states(getRodState()))
-                .where('T',
-                        states(getMetalCasingState()).or(autoAbilities())
-                                .or(abilities(MultiblockAbility.IMPORT_FLUIDS)))
+                .where('S', Predicates.controller(Predicates.blocks(definition.getBlock())))
+                .where('.', Predicates.any())
+                .where('C', Predicates.blocks(SCBlocks.GRAY_PANELLING.get()))
+                .where('W', SCPredicates.fluid(Fluids.WATER))
+                .where('R', Predicates.blocks(SCBlocks.SPENT_FUEL_CASING.get()))
+                .where('T', Predicates.blocks(GTBlocks.CASING_STAINLESS_CLEAN.get())
+                        .or(Predicates.autoAbilities(SCRecipeMaps.SPENT_FUEL_POOL_RECIPES))
+                        .or(Predicates.autoAbilities(ConfigHolder.INSTANCE.machines.enableMaintenance, false, false))
+                        .or(Predicates.abilities(PartAbility.IMPORT_FLUIDS)))
                 .build();
     }
 
-    @NotNull
-    @Override
-    protected ICubeRenderer getFrontOverlay() {
-        return SCTextures.SPENT_FUEL_POOL_OVERLAY;
+    public static MultiblockMachineDefinition register() {
+        return SCRegistrate.REGISTRATE
+                .multiblock("spent_fuel_pool", MetaTileEntitySpentFuelPool::new)
+                .rotationState(RotationState.NON_Y_AXIS)
+                .allowExtendedFacing(false)
+                .recipeType(SCRecipeMaps.SPENT_FUEL_POOL_RECIPES)
+                .recipeModifiers(MetaTileEntitySpentFuelPool::poolParallel)
+                .pattern(MetaTileEntitySpentFuelPool::buildPattern)
+                .workableCasingModel(scId("block/gray_panelling"), scId("block/multiblock/spent_fuel_pool"))
+                .tooltipBuilder((stack, tooltip) -> {
+                    tooltip.add(Component.translatable("supercritical.machine.spent_fuel_pool.tooltip.parallel", PARALLEL_PER_LENGTH));
+                    tooltip.add(Component.translatable("supercritical.machine.fluid_auto_fill.tooltip"));
+                })
+                .register();
     }
 
-    @Override
-    protected void addErrorText(List<ITextComponent> textList) {
-        super.addErrorText(textList);
-        if (isStructureFormed() && !waterFilled) {
-            textList.add(TextComponentUtil.translationWithColor(TextFormatting.RED,
-                    "supercritical.multiblock.spent_fuel_pool.obstructed"));
-            textList.add(TextComponentUtil.translationWithColor(TextFormatting.GRAY,
-                    "supercritical.multiblock.spent_fuel_pool.obstructed.desc"));
+    public static class SpentFuelPoolRecipeLogic extends RecipeLogic {
+
+        public SpentFuelPoolRecipeLogic(IRecipeLogicMachine machine) {
+            super(machine);
+        }
+
+        @Override
+        public void serverTick() {
+            if (!machine.isWorkingEnabled()) {
+                return;
+            }
+            super.serverTick();
+        }
+
+        @Override
+        public boolean checkMatchedRecipeAvailable(GTRecipe match) {
+            if (!(machine instanceof MetaTileEntitySpentFuelPool pool) || !pool.isWaterFilled()) {
+                return false;
+            }
+            var modified = machine.fullModifyRecipe(match);
+            if (modified != null) {
+                var recipeMatch = checkRecipe(modified);
+                if (recipeMatch.isSuccess()) {
+                    setupRecipe(modified);
+                }
+                if (lastRecipe != null && getStatus() == Status.WORKING) {
+                    lastOriginRecipe = match;
+                    lastFailedMatches = null;
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
-    @Override
-    @SideOnly(Side.CLIENT)
-    public void addInformation(ItemStack stack, @Nullable World player, @NotNull List<String> tooltip,
-                               boolean advanced) {
-        super.addInformation(stack, player, tooltip, advanced);
-        tooltip.add(I18n.format("supercritical.machine.spent_fuel_pool.tooltip.parallel", PARALLEL_PER_LENGTH));
-        tooltip.add(I18n.format("supercritical.machine.fluid_auto_fill.tooltip"));
-    }
-
-    @Override
-    public boolean isMultiblockPartWeatherResistant(@NotNull IMultiblockPart part) {
-        return true;
-    }
-
-    @Override
-    public boolean getIsWeatherOrTerrainResistant() {
-        return true;
-    }
-
-    @Override
-    public boolean allowsExtendedFacing() {
-        return false;
+    /**
+     * Recipe modifier that applies pool-length based parallelism.
+     */
+    public static ModifierFunction poolParallel(MetaMachine machine, GTRecipe recipe) {
+        if (!(machine instanceof MetaTileEntitySpentFuelPool pool) || !pool.isFormed()) {
+            return ModifierFunction.IDENTITY;
+        }
+        int parallels = ParallelLogic.getParallelAmount(machine, recipe, pool.getMaxParallel());
+        if (parallels <= 1) return ModifierFunction.IDENTITY;
+        return ModifierFunction.builder()
+                .modifyAllContents(ContentModifier.multiplier(parallels))
+                .eutMultiplier(parallels)
+                .parallels(parallels)
+                .build();
     }
 }

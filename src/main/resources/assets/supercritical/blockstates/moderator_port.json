@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "supercritical:block/machine/moderator_port",
+      "x": 90
+    },
+    "facing=east": {
+      "model": "supercritical:block/machine/moderator_port",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "supercritical:block/machine/moderator_port"
+    },
+    "facing=south": {
+      "model": "supercritical:block/machine/moderator_port",
+      "y": 180
+    },
+    "facing=up": {
+      "model": "supercritical:block/machine/moderator_port",
+      "x": 270,
+      "gtceu:z": 180
+    },
+    "facing=west": {
+      "model": "supercritical:block/machine/moderator_port",
+      "y": 270
+    }
+  }
+}

@@ -1,24 +1,22 @@
 package supercritical.api.unification;
 
-import gregtech.api.unification.Element;
-import lombok.experimental.UtilityClass;
+import com.gregtechceu.gtceu.api.data.chemical.Element;
 
-/// See [MixinElement]
+/**
+ * Extends {@link Element} with a double-precision half-life in seconds.
+ * The modern Element class stores half-life as a long; this mixin converts
+ * to a double so Supercritical can represent sub-second isotope lifetimes.
+ */
 public interface ElementExtension {
 
-    double getHalfLiveSeconds();
+    double getHalfLifeSeconds();
 
-    void setHalfLiveSeconds(double halfLifeSeconds);
+    void setHalfLifeSeconds(double halfLifeSeconds);
 
-    @UtilityClass
-    class Handler {
-
-        public double getHalfLiveSeconds(Element element) {
-            return ((ElementExtension) element).getHalfLiveSeconds();
-        }
-
-        public void setHalfLiveSeconds(Element element, double halfLifeSeconds) {
-            ((ElementExtension) element).setHalfLiveSeconds(halfLifeSeconds);
-        }
+    /**
+     * Convenience helper for legacy callers that expect a long value.
+     */
+    default long getHalfLifeSecondsLong() {
+        return (long) getHalfLifeSeconds();
     }
 }

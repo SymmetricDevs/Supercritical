@@ -1,67 +1,65 @@
 package supercritical.integration.jei.basic;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.item.ItemStack;
-
-import mezz.jei.api.ingredients.IIngredients;
-import mezz.jei.api.ingredients.VanillaTypes;
-import mezz.jei.api.recipe.IRecipeWrapper;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
 import supercritical.api.nuclear.fission.FissionFuelRegistry;
 import supercritical.api.nuclear.fission.IFissionFuelStats;
 
-public class FissionFuelInfo implements IRecipeWrapper {
+import java.util.List;
 
-    public ItemStack rod;
-    public List<List<ItemStack>> depletedRods;
+/**
+ * JEI recipe wrapper for a fission fuel rod entry.
+ */
+public final class FissionFuelInfo {
 
-    private final String duration;
-    private final String maxTemp;
-    private final String crossSectionFast;
-    private final String crossSectionSlow;
-    private final String neutronGenerationTime;
+    public final ItemStack rod;
+    public final List<ItemStack> depletedRods;
+
+    private final Component duration;
+    private final Component maxTemp;
+    private final Component crossSectionFast;
+    private final Component crossSectionSlow;
+    private final Component neutronGenerationTime;
 
     public FissionFuelInfo(ItemStack rod) {
-        this.rod = rod;
+        this.rod = rod.copy();
 
         IFissionFuelStats prop = FissionFuelRegistry.getFissionFuel(rod);
-        this.depletedRods = new ArrayList<>();
-        this.depletedRods.add(prop.getDepletedFuels()); // Needed for the rotation
-
-        duration = I18n.format("metaitem.nuclear.tooltip.duration", prop.getDuration() * prop.getReleasedHeatEnergy());
-        maxTemp = I18n.format("metaitem.nuclear.tooltip.temperature", prop.getMaxTemperature());
-        crossSectionFast = I18n.format("metaitem.nuclear.tooltip.cross_section_fast",
-                prop.getFastNeutronFissionCrossSection());
-        crossSectionSlow = I18n.format("metaitem.nuclear.tooltip.cross_section_slow",
-                prop.getSlowNeutronFissionCrossSection());
-        neutronGenerationTime = I18n.format(
-                "metaitem.nuclear.tooltip.neutron_time." + prop.getNeutronGenerationTimeCategory(),
-                prop.getNeutronGenerationTime());
+        if (prop != null) {
+            this.depletedRods = prop.getDepletedFuels();
+            this.duration = Component.translatable("metaitem.nuclear.tooltip.duration",
+                    (int) (prop.getDuration() * prop.getReleasedHeatEnergy()));
+            this.maxTemp = Component.translatable("metaitem.nuclear.tooltip.temperature", prop.getMaxTemperature());
+            this.crossSectionFast = Component.translatable("metaitem.nuclear.tooltip.cross_section_fast",
+                    (int) prop.getFastNeutronFissionCrossSection());
+            this.crossSectionSlow = Component.translatable("metaitem.nuclear.tooltip.cross_section_slow",
+                    (int) prop.getSlowNeutronFissionCrossSection());
+            this.neutronGenerationTime = Component.translatable(
+                    "metaitem.nuclear.tooltip.neutron_time." + prop.getNeutronGenerationTimeCategory(),
+                    (int) prop.getNeutronGenerationTime());
+        } else {
+            this.depletedRods = List.of();
+            this.duration = Component.empty();
+            this.maxTemp = Component.empty();
+            this.crossSectionFast = Component.empty();
+            this.crossSectionSlow = Component.empty();
+            this.neutronGenerationTime = Component.empty();
+        }
     }
 
-    @Override
-    public void getIngredients(IIngredients ingredients) {
-        ingredients.setInput(VanillaTypes.ITEM, rod);
-        ingredients.setOutputLists(VanillaTypes.ITEM, depletedRods);
-    }
-
-    @Override
-    public void drawInfo(Minecraft minecraft, int recipeWidth, int recipeHeight, int mouseX, int mouseY) {
-        int fontHeight = Minecraft.getMinecraft().fontRenderer.FONT_HEIGHT;
-
+    public void drawInfo(GuiGraphics graphics, Minecraft minecraft) {
+        Font font = minecraft.font;
         int start = 40;
-        int linesDrawn = 0;
-        minecraft.fontRenderer.drawString(duration, 0, start, 0x111111);
-        linesDrawn++;
-        minecraft.fontRenderer.drawString(maxTemp, 0, fontHeight * linesDrawn + start, 0x111111);
-        linesDrawn++;
-        minecraft.fontRenderer.drawString(crossSectionFast, 0, fontHeight * linesDrawn + start, 0x111111);
-        linesDrawn++;
-        minecraft.fontRenderer.drawString(crossSectionSlow, 0, fontHeight * linesDrawn + start, 0x111111);
-        linesDrawn++;
-        minecraft.fontRenderer.drawString(neutronGenerationTime, 0, fontHeight * linesDrawn + start, 0x111111);
+        int lineHeight = font.lineHeight + 1;
+        int color = 0xFF111111;
+
+        graphics.drawString(font, duration, 0, start, color, false);
+        graphics.drawString(font, maxTemp, 0, start + lineHeight, color, false);
+        graphics.drawString(font, crossSectionFast, 0, start + 2 * lineHeight, color, false);
+        graphics.drawString(font, crossSectionSlow, 0, start + 3 * lineHeight, color, false);
+        graphics.drawString(font, neutronGenerationTime, 0, start + 4 * lineHeight, color, false);
     }
 }

@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "supercritical:block/machine/coolant_input",
+      "x": 90
+    },
+    "facing=east": {
+      "model": "supercritical:block/machine/coolant_input",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "supercritical:block/machine/coolant_input"
+    },
+    "facing=south": {
+      "model": "supercritical:block/machine/coolant_input",
+      "y": 180
+    },
+    "facing=up": {
+      "model": "supercritical:block/machine/coolant_input",
+      "x": 270,
+      "gtceu:z": 180
+    },
+    "facing=west": {
+      "model": "supercritical:block/machine/coolant_input",
+      "y": 270
+    }
+  }
+}
