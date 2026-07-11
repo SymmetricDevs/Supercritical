@@ -18,7 +18,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import supercritical.BuildConfig
 import supercritical.api.nuclear.fission.CoolantRegistry
-import supercritical.common.registry.SCMachines
+import supercritical.common.registry.ScritMachines
 
 class CoolantCategory(helpers: IJeiHelpers) : IRecipeCategory<CoolantInfo> {
     private val icon: IDrawable
@@ -27,7 +27,7 @@ class CoolantCategory(helpers: IJeiHelpers) : IRecipeCategory<CoolantInfo> {
 
     init {
         val guiHelper = helpers.guiHelper
-        this.icon = guiHelper.createDrawableItemStack(SCMachines.FISSION_REACTOR.asStack())
+        this.icon = guiHelper.createDrawableItemStack(ScritMachines.FISSION_REACTOR.asStack())
         this.slot = IGui2IDrawable.toDrawable(GuiTextures.SLOT, 18, 18)
         this.arrow = IGui2IDrawable.toDrawable(GuiTextures.PROGRESS_BAR_ARROW, 20, 20)
     }
@@ -88,7 +88,7 @@ class CoolantCategory(helpers: IJeiHelpers) : IRecipeCategory<CoolantInfo> {
         }
 
         fun registerRecipeCatalysts(registration: IRecipeCatalystRegistration) {
-            registration.addRecipeCatalyst(SCMachines.FISSION_REACTOR.asStack(), RECIPE_TYPE)
+            registration.addRecipeCatalyst(ScritMachines.FISSION_REACTOR.asStack(), RECIPE_TYPE)
         }
     }
 }

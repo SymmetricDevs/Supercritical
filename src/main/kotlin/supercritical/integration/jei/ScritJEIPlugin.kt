@@ -12,7 +12,7 @@ import supercritical.integration.jei.basic.FissionFuelCategory
 import supercritical.integration.jei.basic.ModeratorCategory
 
 @JeiPlugin
-class SCJEIPlugin : IModPlugin {
+class ScritJEIPlugin : IModPlugin {
     override fun getPluginUid(): ResourceLocation {
         return ResourceLocation(BuildConfig.MOD_ID, "jei_plugin")
     }

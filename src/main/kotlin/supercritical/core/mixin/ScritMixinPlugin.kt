@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo
 
 @NullMarked
-class SCMixinPlugin : IMixinConfigPlugin {
+class ScritMixinPlugin : IMixinConfigPlugin {
     override fun onLoad(mixinPackage: String) {
     }
 

@@ -3,22 +3,22 @@ package supercritical.api.recipe.handlers
 import com.gregtechceu.gtceu.api.GTCEuAPI
 import com.gregtechceu.gtceu.api.data.chemical.material.Material
 import com.gregtechceu.gtceu.common.data.GTMaterials
-import supercritical.api.recipes.SCRecipeMaps
+import supercritical.api.recipes.ScritRecipeMaps
 import supercritical.api.unification.material.properties.CoolantProperty
-import supercritical.api.unification.material.properties.SCPropertyKey
+import supercritical.api.unification.material.properties.ScritPropertyKey
 import supercritical.common.ScritConfig
-import supercritical.loaders.recipe.SCRecipeUtils
+import supercritical.loaders.recipe.ScritRecipeUtils
 import kotlin.math.ceil
 
 object FluidRecipeHandler {
     fun runRecipeGeneration() {
-        SCRecipeMaps.HEAT_EXCHANGER_RECIPES.beginStagingRecipes()
+        ScritRecipeMaps.HEAT_EXCHANGER_RECIPES.beginStagingRecipes()
         for (material in GTCEuAPI.materialManager.registeredMaterials) {
-            if (material.hasProperty<CoolantProperty?>(SCPropertyKey.COOLANT)) {
-                processCoolant(material, material.getProperty<CoolantProperty?>(SCPropertyKey.COOLANT))
+            if (material.hasProperty<CoolantProperty?>(ScritPropertyKey.COOLANT)) {
+                processCoolant(material, material.getProperty<CoolantProperty?>(ScritPropertyKey.COOLANT))
             }
         }
-        SCRecipeMaps.HEAT_EXCHANGER_RECIPES.additionHandler.completeStaging()
+        ScritRecipeMaps.HEAT_EXCHANGER_RECIPES.additionHandler.completeStaging()
     }
 
     fun processCoolant(material: Material, coolant: CoolantProperty) {
@@ -32,8 +32,8 @@ object FluidRecipeHandler {
         addHeatExchangerRecipe("large_" + material.name + "_water", 2, waterAmount, coolantAmount, false)
         addHeatExchangerRecipe("large_" + material.name + "_distilled_water", 2, waterAmount, coolantAmount, true)
 
-        SCRecipeUtils.addRecipe(
-            SCRecipeMaps.HEAT_EXCHANGER_RECIPES, SCRecipeMaps.HEAT_EXCHANGER_RECIPES
+        ScritRecipeUtils.addRecipe(
+            ScritRecipeMaps.HEAT_EXCHANGER_RECIPES, ScritRecipeMaps.HEAT_EXCHANGER_RECIPES
                 .recipeBuilder(material.name + "_radiator")
                 .duration(10)
                 .circuitMeta(3)
@@ -54,16 +54,16 @@ object FluidRecipeHandler {
         val materialName =
             id.substring(id.indexOf('_') + 1, id.lastIndexOf(if (distilled) "_distilled_water" else "_water"))
         for (material in GTCEuAPI.materialManager.registeredMaterials) {
-            if (material.name == materialName && material.hasProperty<CoolantProperty?>(SCPropertyKey.COOLANT)) {
+            if (material.name == materialName && material.hasProperty<CoolantProperty?>(ScritPropertyKey.COOLANT)) {
                 coolantMaterial = material
-                coolant = material.getProperty<CoolantProperty?>(SCPropertyKey.COOLANT)
+                coolant = material.getProperty<CoolantProperty?>(ScritPropertyKey.COOLANT)
                 break
             }
         }
         if (coolantMaterial == null || coolant == null) return
 
-        SCRecipeUtils.addRecipe(
-            SCRecipeMaps.HEAT_EXCHANGER_RECIPES, SCRecipeMaps.HEAT_EXCHANGER_RECIPES.recipeBuilder(id)
+        ScritRecipeUtils.addRecipe(
+            ScritRecipeMaps.HEAT_EXCHANGER_RECIPES, ScritRecipeMaps.HEAT_EXCHANGER_RECIPES.recipeBuilder(id)
                 .duration(1)
                 .circuitMeta(circuit)
                 .inputFluids(coolant.hotHPCoolant.getFluid(coolantAmount), water.getFluid(waterAmount))

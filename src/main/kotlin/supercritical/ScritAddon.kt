@@ -11,16 +11,16 @@ import com.gregtechceu.gtceu.common.data.GTElements
 import com.gregtechceu.gtceu.common.data.GTOres
 import net.minecraft.tags.BiomeTags
 import net.minecraft.util.valueproviders.UniformInt
-import supercritical.api.registries.SCRegistries
+import supercritical.api.registries.ScritRegistries
 import supercritical.api.unification.ElementExtension
-import supercritical.api.unification.material.SCMaterials
-import supercritical.api.unification.ore.SCOrePrefix
+import supercritical.api.unification.material.ScritMaterials
+import supercritical.api.unification.ore.ScritOrePrefix
 import supercritical.api.util.scId
 
 @GTAddon
-class SCGTAddon : IGTAddon {
+class ScritAddon : IGTAddon {
     override fun getRegistrate(): GTRegistrate {
-        return SCRegistries.REGISTRATE
+        return ScritRegistries.REGISTRATE
     }
 
     override fun initializeAddon() {}
@@ -30,7 +30,7 @@ class SCGTAddon : IGTAddon {
     }
 
     override fun registerTagPrefixes() {
-        SCOrePrefix.init()
+        ScritOrePrefix.init()
     }
 
     override fun registerOreVeins() {
@@ -46,13 +46,13 @@ class SCGTAddon : IGTAddon {
                 .biomes(BiomeTags.IS_OVERWORLD)
                 .classicVeinGenerator { generator ->
                     generator
-                        .primary { it.mat(SCMaterials.Zircon).size(3) }
-                        .secondary { it.mat(SCMaterials.Zircon).size(2) }
-                        .between { it.mat(SCMaterials.Zircon).size(2) }
-                        .sporadic { it.mat(SCMaterials.Zircon) }
+                        .primary { it.mat(ScritMaterials.Zircon).size(3) }
+                        .secondary { it.mat(ScritMaterials.Zircon).size(2) }
+                        .between { it.mat(ScritMaterials.Zircon).size(2) }
+                        .sporadic { it.mat(ScritMaterials.Zircon) }
                 }
                 .surfaceIndicatorGenerator {
-                    it.surfaceRock(SCMaterials.Zircon)
+                    it.surfaceRock(ScritMaterials.Zircon)
                         .placement(SurfaceIndicatorGenerator.IndicatorPlacement.ABOVE)
                 }
         }

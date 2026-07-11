@@ -27,7 +27,7 @@ import java.util.function.BiConsumer
  * addon cannot add). Building the table from the public Loot API and registering it
  * through the BiConsumer sink yields the same self-drop JSON that `dropSelf` produces.
  */
-object SCLootTableLoader {
+object ScritLootTableLoader {
     fun init(provider: RegistrateLootTableProvider?) {
         provider?.addLootAction(LootContextParamSets.BLOCK) { sink ->
             // Fission casing variants (legacy BlockFissionCasing).

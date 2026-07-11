@@ -6,68 +6,68 @@ import com.gregtechceu.gtceu.common.data.GTMachines
 import com.gregtechceu.gtceu.common.data.GTMaterials
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes
 import com.gregtechceu.gtceu.data.recipe.CustomTags
-import supercritical.api.unification.material.SCMaterials
-import supercritical.common.registry.SCMachines
+import supercritical.api.unification.material.ScritMaterials
+import supercritical.common.registry.ScritMachines
 
-object SCMetaTileEntityMachineRecipeLoader {
+object ScritMetaTileEntityMachineRecipeLoader {
     fun init() {
-        SCRecipeUtils.addRecipe(
+        ScritRecipeUtils.addRecipe(
             GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("coolant_input")
-                .inputItems(TagPrefix.pipeLargeFluid, SCMaterials.Inconel)
+                .inputItems(TagPrefix.pipeLargeFluid, ScritMaterials.Inconel)
                 .inputItems(GTMachines.HULL[GTValues.EV].asStack())
                 .inputFluids(GTMaterials.Polyethylene.getFluid(144))
                 .circuitMeta(1)
-                .outputItems(SCMachines.COOLANT_INPUT.asStack())
+                .outputItems(ScritMachines.COOLANT_INPUT.asStack())
                 .duration(300).EUt(GTValues.VA[GTValues.EV].toLong())
                 .buildRawRecipe()
         )
 
-        SCRecipeUtils.addRecipe(
+        ScritRecipeUtils.addRecipe(
             GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("coolant_output")
-                .inputItems(TagPrefix.pipeLargeFluid, SCMaterials.Inconel)
+                .inputItems(TagPrefix.pipeLargeFluid, ScritMaterials.Inconel)
                 .inputItems(GTMachines.HULL[GTValues.EV].asStack())
                 .inputFluids(GTMaterials.Polyethylene.getFluid(144))
                 .circuitMeta(2)
-                .outputItems(SCMachines.COOLANT_OUTPUT.asStack())
+                .outputItems(ScritMachines.COOLANT_OUTPUT.asStack())
                 .duration(300).EUt(GTValues.VA[GTValues.EV].toLong())
                 .buildRawRecipe()
         )
 
-        SCRecipeUtils.addRecipe(
+        ScritRecipeUtils.addRecipe(
             GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("fuel_rod_input")
-                .inputItems(TagPrefix.rod, SCMaterials.Zircaloy, 6)
+                .inputItems(TagPrefix.rod, ScritMaterials.Zircaloy, 6)
                 .inputItems(GTMachines.HULL[GTValues.EV].asStack())
                 .inputFluids(GTMaterials.Polyethylene.getFluid(144))
                 .circuitMeta(1)
-                .outputItems(SCMachines.FUEL_ROD_INPUT.asStack())
+                .outputItems(ScritMachines.FUEL_ROD_INPUT.asStack())
                 .duration(300).EUt(GTValues.VA[GTValues.EV].toLong())
                 .buildRawRecipe()
         )
 
-        SCRecipeUtils.addRecipe(
+        ScritRecipeUtils.addRecipe(
             GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("fuel_rod_output")
-                .inputItems(TagPrefix.rod, SCMaterials.Zircaloy, 6)
+                .inputItems(TagPrefix.rod, ScritMaterials.Zircaloy, 6)
                 .inputItems(GTMachines.HULL[GTValues.EV].asStack())
                 .inputFluids(GTMaterials.Polyethylene.getFluid(144))
                 .circuitMeta(2)
-                .outputItems(SCMachines.FUEL_ROD_OUTPUT.asStack())
+                .outputItems(ScritMachines.FUEL_ROD_OUTPUT.asStack())
                 .duration(300).EUt(GTValues.VA[GTValues.EV].toLong())
                 .buildRawRecipe()
         )
 
-        SCRecipeUtils.addRecipe(
+        ScritRecipeUtils.addRecipe(
             GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("control_rod")
                 .inputItems(TagPrefix.rodLong, GTMaterials.Hafnium)
                 .inputItems(CustomTags.EV_CIRCUITS)
                 .inputItems(GTMachines.HULL[GTValues.EV].asStack())
                 .inputFluids(GTMaterials.Polyethylene.getFluid(144))
                 .circuitMeta(1)
-                .outputItems(SCMachines.CONTROL_ROD.asStack())
+                .outputItems(ScritMachines.CONTROL_ROD.asStack())
                 .duration(300).EUt(GTValues.VA[GTValues.EV].toLong())
                 .buildRawRecipe()
         )
 
-        SCRecipeUtils.addRecipe(
+        ScritRecipeUtils.addRecipe(
             GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("control_rod_moderated")
                 .inputItems(TagPrefix.rodLong, GTMaterials.Hafnium)
                 .inputItems(TagPrefix.dust, GTMaterials.Graphite)
@@ -75,7 +75,7 @@ object SCMetaTileEntityMachineRecipeLoader {
                 .inputItems(GTMachines.HULL[GTValues.EV].asStack())
                 .inputFluids(GTMaterials.Polyethylene.getFluid(144))
                 .circuitMeta(2)
-                .outputItems(SCMachines.CONTROL_ROD_MODERATED.asStack())
+                .outputItems(ScritMachines.CONTROL_ROD_MODERATED.asStack())
                 .duration(300).EUt(GTValues.VA[GTValues.EV].toLong())
                 .buildRawRecipe()
         )

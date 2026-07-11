@@ -21,7 +21,7 @@ import supercritical.common.ScritConfig
 /**
  * Supercritical-specific pattern predicates and helpers.
  */
-object SCPredicates {
+object ScritPredicates {
     const val FLUID_BLOCKS_KEY: String = "FluidBlocks"
 
     fun fluid(fluidStack: FluidStack): TraceabilityPredicate {

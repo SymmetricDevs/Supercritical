@@ -18,7 +18,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import supercritical.BuildConfig
 import supercritical.api.nuclear.fission.ModeratorRegistry
-import supercritical.common.registry.SCMachines
+import supercritical.common.registry.ScritMachines
 
 class ModeratorCategory(helpers: IJeiHelpers) : IRecipeCategory<ModeratorInfo?> {
     private val icon: IDrawable
@@ -26,7 +26,7 @@ class ModeratorCategory(helpers: IJeiHelpers) : IRecipeCategory<ModeratorInfo?> 
 
     init {
         val guiHelper = helpers.guiHelper
-        this.icon = guiHelper.createDrawableItemStack(SCMachines.FISSION_REACTOR.asStack())
+        this.icon = guiHelper.createDrawableItemStack(ScritMachines.FISSION_REACTOR.asStack())
         this.slot = IGui2IDrawable.toDrawable(GuiTextures.SLOT, 18, 18)
     }
 
@@ -80,8 +80,8 @@ class ModeratorCategory(helpers: IJeiHelpers) : IRecipeCategory<ModeratorInfo?> 
         }
 
         fun registerRecipeCatalysts(registration: IRecipeCatalystRegistration) {
-            registration.addRecipeCatalyst(SCMachines.FISSION_REACTOR.asStack(), RECIPE_TYPE)
-            registration.addRecipeCatalyst(SCMachines.MODERATOR_PORT.asStack(), RECIPE_TYPE)
+            registration.addRecipeCatalyst(ScritMachines.FISSION_REACTOR.asStack(), RECIPE_TYPE)
+            registration.addRecipeCatalyst(ScritMachines.MODERATOR_PORT.asStack(), RECIPE_TYPE)
         }
     }
 }

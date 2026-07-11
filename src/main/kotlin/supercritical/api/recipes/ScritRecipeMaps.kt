@@ -9,7 +9,7 @@ import net.minecraftforge.registries.ForgeRegistries
 import supercritical.api.util.scId
 import java.util.*
 
-object SCRecipeMaps {
+object ScritRecipeMaps {
     const val HEAT_EXCHANGER_ID: String = "heat_exchanger"
     const val SPENT_FUEL_POOL_ID: String = "spent_fuel_pool"
     const val GAS_CENTRIFUGE_ID: String = "gas_centrifuge"

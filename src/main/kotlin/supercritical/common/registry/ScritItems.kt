@@ -10,8 +10,8 @@ import net.minecraftforge.registries.DeferredRegister
 import net.minecraftforge.registries.ForgeRegistries
 import net.minecraftforge.registries.RegistryObject
 import supercritical.BuildConfig
-import supercritical.api.unification.material.SCMaterials
-import supercritical.api.unification.ore.SCOrePrefix
+import supercritical.api.unification.material.ScritMaterials
+import supercritical.api.unification.ore.ScritOrePrefix
 import java.util.*
 import java.util.function.Supplier
 
@@ -30,10 +30,10 @@ object ScritItems {
     private fun registerNuclearFuelItems(): MutableMap<String, NuclearFuelItems> {
         val items = LinkedHashMap<String, NuclearFuelItems>()
         registerFuelItemSet(items, "uraninite") { GTMaterials.Uraninite }
-        registerFuelItemSet(items, "leu_235") { SCMaterials.LEU235 }
-        registerFuelItemSet(items, "heu_235") { SCMaterials.HEU235 }
-        registerFuelItemSet(items, "low_grade_mox") { SCMaterials.LowGradeMOX }
-        registerFuelItemSet(items, "high_grade_mox") { SCMaterials.HighGradeMOX }
+        registerFuelItemSet(items, "leu_235") { ScritMaterials.LEU235 }
+        registerFuelItemSet(items, "heu_235") { ScritMaterials.HEU235 }
+        registerFuelItemSet(items, "low_grade_mox") { ScritMaterials.LowGradeMOX }
+        registerFuelItemSet(items, "high_grade_mox") { ScritMaterials.HighGradeMOX }
         return Collections.unmodifiableMap(items)
     }
 
@@ -42,15 +42,15 @@ object ScritItems {
         materialSupplier: Supplier<Material>
     ) {
         items[materialName] = NuclearFuelItems(
-            itemSupplier(SCOrePrefix.fuelRod, materialSupplier),
-            itemSupplier(SCOrePrefix.fuelRodDepleted, materialSupplier),
-            itemSupplier(SCOrePrefix.fuelRodHotDepleted, materialSupplier),
-            itemSupplier(SCOrePrefix.fuelPelletRaw, materialSupplier),
-            itemSupplier(SCOrePrefix.fuelPellet, materialSupplier),
-            itemSupplier(SCOrePrefix.fuelPelletDepleted, materialSupplier),
-            itemSupplier(SCOrePrefix.dustSpentFuel, materialSupplier),
-            itemSupplier(SCOrePrefix.dustBredFuel, materialSupplier),
-            itemSupplier(SCOrePrefix.dustFissionByproduct, materialSupplier)
+            itemSupplier(ScritOrePrefix.fuelRod, materialSupplier),
+            itemSupplier(ScritOrePrefix.fuelRodDepleted, materialSupplier),
+            itemSupplier(ScritOrePrefix.fuelRodHotDepleted, materialSupplier),
+            itemSupplier(ScritOrePrefix.fuelPelletRaw, materialSupplier),
+            itemSupplier(ScritOrePrefix.fuelPellet, materialSupplier),
+            itemSupplier(ScritOrePrefix.fuelPelletDepleted, materialSupplier),
+            itemSupplier(ScritOrePrefix.dustSpentFuel, materialSupplier),
+            itemSupplier(ScritOrePrefix.dustBredFuel, materialSupplier),
+            itemSupplier(ScritOrePrefix.dustFissionByproduct, materialSupplier)
         )
     }
 

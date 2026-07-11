@@ -5,7 +5,7 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeType
 import net.minecraft.resources.ResourceLocation
 import supercritical.BuildConfig
 
-object SCRecipeUtils {
+object ScritRecipeUtils {
     private val DEFERRED_RECIPES: MutableMap<GTRecipeType, MutableMap<ResourceLocation, GTRecipe>> =
         linkedMapOf()
 

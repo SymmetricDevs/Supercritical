@@ -8,51 +8,51 @@ import com.gregtechceu.gtceu.common.data.GTMaterials
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes
 import com.gregtechceu.gtceu.data.recipe.CustomTags
 import net.minecraft.world.item.ItemStack
-import supercritical.api.unification.material.SCMaterials
+import supercritical.api.unification.material.ScritMaterials
 import supercritical.common.registry.ScritBlocks
-import supercritical.common.registry.SCMachines
+import supercritical.common.registry.ScritMachines
 
-object SCMetaTileEntityLoader {
+object ScritMetaTileEntityLoader {
     fun init() {
-        SCRecipeUtils.addRecipe(
+        ScritRecipeUtils.addRecipe(
             GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("fission_reactor")
                 .inputItems(CustomTags.EV_CIRCUITS, 4)
                 .inputItems(ItemStack(ScritBlocks.REACTOR_VESSEL.get()))
                 .inputItems(GTItems.SENSOR_EV.asStack())
                 .inputItems(TagPrefix.rotor, GTMaterials.Steel, 2)
                 .inputItems(TagPrefix.wireGtQuadruple, GTMaterials.AnnealedCopper)
-                .outputItems(SCMachines.FISSION_REACTOR.asStack())
+                .outputItems(ScritMachines.FISSION_REACTOR.asStack())
                 .duration(400).EUt(GTValues.VA[GTValues.EV].toLong())
                 .buildRawRecipe()
         )
 
-        SCRecipeUtils.addRecipe(
+        ScritRecipeUtils.addRecipe(
             GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("heat_exchanger")
                 .inputItems(CustomTags.HV_CIRCUITS)
-                .inputItems(TagPrefix.pipeLargeFluid, SCMaterials.Inconel, 2)
+                .inputItems(TagPrefix.pipeLargeFluid, ScritMaterials.Inconel, 2)
                 .inputItems(ItemStack(GTBlocks.CASING_STEEL_SOLID.get(), 6))
-                .outputItems(SCMachines.HEAT_EXCHANGER.asStack())
+                .outputItems(ScritMachines.HEAT_EXCHANGER.asStack())
                 .duration(400).EUt(GTValues.VA[GTValues.HV].toLong())
                 .buildRawRecipe()
         )
 
-        SCRecipeUtils.addRecipe(
+        ScritRecipeUtils.addRecipe(
             GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("gas_centrifuge")
                 .inputItems(CustomTags.EV_CIRCUITS, 3)
                 .inputItems(TagPrefix.rotor, GTMaterials.Titanium)
                 .inputItems(ItemStack(GTBlocks.CASING_POLYTETRAFLUOROETHYLENE_PIPE.get(), 3))
                 .inputItems(TagPrefix.wireGtQuadruple, GTMaterials.AnnealedCopper, 2)
-                .outputItems(SCMachines.GAS_CENTRIFUGE.asStack())
+                .outputItems(ScritMachines.GAS_CENTRIFUGE.asStack())
                 .duration(400).EUt(GTValues.VA[GTValues.EV].toLong())
                 .buildRawRecipe()
         )
 
-        SCRecipeUtils.addRecipe(
+        ScritRecipeUtils.addRecipe(
             GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("spent_fuel_pool")
                 .inputItems(CustomTags.LV_CIRCUITS)
                 .inputItems(ItemStack(GTBlocks.CASING_STAINLESS_CLEAN.get(), 2))
                 .inputItems(TagPrefix.plate, GTMaterials.StainlessSteel, 6)
-                .outputItems(SCMachines.SPENT_FUEL_POOL.asStack())
+                .outputItems(ScritMachines.SPENT_FUEL_POOL.asStack())
                 .duration(400).EUt(GTValues.VA[GTValues.LV].toLong())
                 .buildRawRecipe()
         )

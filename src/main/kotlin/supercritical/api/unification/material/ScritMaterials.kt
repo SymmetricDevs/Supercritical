@@ -19,20 +19,20 @@ import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys
 import com.gregtechceu.gtceu.common.data.GTMaterials
 import net.minecraft.world.item.ItemStack
 import net.minecraftforge.eventbus.api.SubscribeEvent
-import supercritical.SCGTAddon
+import supercritical.ScritAddon
 import supercritical.api.nuclear.fission.CoolantRegistry
 import supercritical.api.nuclear.fission.FissionFuelRegistry
 import supercritical.api.nuclear.fission.ModeratorRegistry
 import supercritical.api.unification.material.properties.CoolantProperty
 import supercritical.api.unification.material.properties.FissionFuelProperty
 import supercritical.api.unification.material.properties.ModeratorProperty
-import supercritical.api.unification.material.properties.SCPropertyKey
+import supercritical.api.unification.material.properties.ScritPropertyKey
 import supercritical.api.util.scId
 import supercritical.common.ScritConfig
 import supercritical.common.registry.ScritItems
 import java.util.List
 
-object SCMaterials {
+object ScritMaterials {
     private val FUEL_ITEM_ENTRIES: MutableList<FuelItemEntry> = arrayListOf()
 
     lateinit var Uranium239: Material
@@ -117,45 +117,45 @@ object SCMaterials {
     private fun registerElementMaterials() {
         Uranium239 = builder("uranium_239")
             .color(0x46FA46).iconSet(MaterialIconSet.SHINY)
-            .element(SCGTAddon.Uranium239)
+            .element(ScritAddon.Uranium239)
             .buildAndRegister()
 
         Neptunium235 = builder("neptunium_235")
             .color(0x284D7B).iconSet(MaterialIconSet.METALLIC)
-            .element(SCGTAddon.Neptunium235)
+            .element(ScritAddon.Neptunium235)
             .buildAndRegister()
         Neptunium236 = builder("neptunium_236")
             .color(0x284D7B).iconSet(MaterialIconSet.METALLIC)
-            .element(SCGTAddon.Neptunium236)
+            .element(ScritAddon.Neptunium236)
             .buildAndRegister()
         Neptunium237 = builder("neptunium_237")
             .color(0x284D7B).iconSet(MaterialIconSet.METALLIC)
-            .element(SCGTAddon.Neptunium237)
+            .element(ScritAddon.Neptunium237)
             .buildAndRegister()
         Neptunium239 = builder("neptunium_239")
             .color(0x284D7B).iconSet(MaterialIconSet.METALLIC)
-            .element(SCGTAddon.Neptunium239)
+            .element(ScritAddon.Neptunium239)
             .buildAndRegister()
 
         Plutonium238 = builder("plutonium_238")
             .liquid(FluidBuilder().temperature(913))
             .color(0xF03232).iconSet(MaterialIconSet.METALLIC)
-            .element(SCGTAddon.Plutonium238)
+            .element(ScritAddon.Plutonium238)
             .buildAndRegister()
         Plutonium240 = builder("plutonium_240")
             .liquid(FluidBuilder().temperature(913))
             .color(0xF03232).iconSet(MaterialIconSet.METALLIC)
-            .element(SCGTAddon.Plutonium240)
+            .element(ScritAddon.Plutonium240)
             .buildAndRegister()
         Plutonium242 = builder("plutonium_242")
             .liquid(FluidBuilder().temperature(913))
             .color(0xF03232).iconSet(MaterialIconSet.METALLIC)
-            .element(SCGTAddon.Plutonium242)
+            .element(ScritAddon.Plutonium242)
             .buildAndRegister()
         Plutonium244 = builder("plutonium_244")
             .liquid(FluidBuilder().temperature(913))
             .color(0xF03232).iconSet(MaterialIconSet.METALLIC)
-            .element(SCGTAddon.Plutonium244)
+            .element(ScritAddon.Plutonium244)
             .buildAndRegister()
     }
 
@@ -308,7 +308,7 @@ object SCMaterials {
             HeavyWater, HighPressureHeavyWater, FluidStorageKeys.LIQUID,
             4.0, 1000.0, 374.4, 2064000.0, 4228.0
         ).setAccumulatesHydrogen(true)
-        HeavyWater.setProperty<CoolantProperty?>(SCPropertyKey.COOLANT, heavyWaterCoolant)
+        HeavyWater.setProperty<CoolantProperty?>(ScritPropertyKey.COOLANT, heavyWaterCoolant)
     }
 
     private fun registerSecondDegreeMaterials() {
@@ -399,7 +399,7 @@ object SCMaterials {
                 .releasedHeatEnergy(0.01)
                 .decayRate(0.001)
                 .build()
-        GTMaterials.Uraninite.setProperty<FissionFuelProperty?>(SCPropertyKey.FISSION_FUEL, uraniniteFuel)
+        GTMaterials.Uraninite.setProperty<FissionFuelProperty?>(ScritPropertyKey.FISSION_FUEL, uraniniteFuel)
         FUEL_ITEM_ENTRIES.add(FuelItemEntry("uraninite", uraniniteFuel))
 
         if (includeDistilledWaterCoolant) {
@@ -410,11 +410,11 @@ object SCMaterials {
                 .setAccumulatesHydrogen(true)
                 .setSlowAbsorptionFactor(0.1875)
                 .setFastAbsorptionFactor(0.0625)
-            GTMaterials.DistilledWater.setProperty<CoolantProperty?>(SCPropertyKey.COOLANT, distilledWaterCoolant)
+            GTMaterials.DistilledWater.setProperty<CoolantProperty?>(ScritPropertyKey.COOLANT, distilledWaterCoolant)
         }
 
         GTMaterials.Graphite.setProperty<ModeratorProperty?>(
-            SCPropertyKey.MODERATOR, ModeratorProperty.builder()
+            ScritPropertyKey.MODERATOR, ModeratorProperty.builder()
                 .maxTemperature(3650)
                 .absorptionFactor(0.0625)
                 .moderationFactor(3.0)
@@ -423,7 +423,7 @@ object SCMaterials {
         GTMaterials.Graphite.addFlags(MaterialFlags.FORCE_GENERATE_BLOCK)
 
         GTMaterials.Beryllium.setProperty<ModeratorProperty?>(
-            SCPropertyKey.MODERATOR, ModeratorProperty.builder()
+            ScritPropertyKey.MODERATOR, ModeratorProperty.builder()
                 .maxTemperature(1500)
                 .absorptionFactor(0.015625)
                 .moderationFactor(5.0)
@@ -451,7 +451,7 @@ object SCMaterials {
             .decayRate(decayRate)
             .build()
         FUEL_ITEM_ENTRIES.add(FuelItemEntry(fuelItemKey, property))
-        material.setProperty<FissionFuelProperty?>(SCPropertyKey.FISSION_FUEL, property)
+        material.setProperty<FissionFuelProperty?>(ScritPropertyKey.FISSION_FUEL, property)
     }
 
     fun registerFuelItems() {
@@ -476,8 +476,8 @@ object SCMaterials {
 
     fun registerCoolants() {
         for (material in GTCEuAPI.materialManager.registeredMaterials) {
-            if (material.hasProperty<CoolantProperty?>(SCPropertyKey.COOLANT)) {
-                val property = material.getProperty<CoolantProperty>(SCPropertyKey.COOLANT)
+            if (material.hasProperty<CoolantProperty?>(ScritPropertyKey.COOLANT)) {
+                val property = material.getProperty<CoolantProperty>(ScritPropertyKey.COOLANT)
                 val fluid =
                     material.getFluid(requireNotNull(property.coolantKey) { "Coolant fluid key for ${material.name} is not initialized" })
                 if (fluid != null) {
@@ -489,14 +489,14 @@ object SCMaterials {
 
     fun registerModerators() {
         for (material in GTCEuAPI.materialManager.registeredMaterials) {
-            if (material.hasProperty<ModeratorProperty?>(SCPropertyKey.MODERATOR)) {
+            if (material.hasProperty<ModeratorProperty?>(ScritPropertyKey.MODERATOR)) {
                 registerModerator(material)
             }
         }
     }
 
     private fun registerModerator(material: Material) {
-        val property = requireNotNull(material.getProperty<ModeratorProperty?>(SCPropertyKey.MODERATOR)) {
+        val property = requireNotNull(material.getProperty<ModeratorProperty?>(ScritPropertyKey.MODERATOR)) {
             "${material.name} is missing its moderator property"
         }
         val block = requireNotNull(ChemicalHelper.getBlock(TagPrefix.block, material)) {

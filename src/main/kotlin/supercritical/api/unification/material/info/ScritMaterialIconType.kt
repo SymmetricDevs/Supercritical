@@ -2,7 +2,7 @@ package supercritical.api.unification.material.info
 
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconType
 
-object SCMaterialIconType {
+object ScritMaterialIconType {
     // Nuclear MaterialIconTypes
     val fuelRod: MaterialIconType = MaterialIconType("fuelRod")
     val fuelRodDepleted: MaterialIconType = MaterialIconType("fuelRodDepleted")

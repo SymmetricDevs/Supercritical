@@ -7,7 +7,7 @@ import net.minecraft.tags.TagKey
 import net.minecraft.world.level.block.Block
 import supercritical.common.registry.ScritBlocks
 
-object SCBlockTagLoader {
+object ScritBlockTagLoader {
     // Legacy VariantBlock casings declared a wrench harvest tool
     // (BlockFissionCasing used ToolClasses.WRENCH, BlockPanelling used setHarvestLevel("wrench", 2));
     // the modern GTCEu convention is forge:mineable/wrench (GTCEu CustomTags.MINEABLE_WITH_WRENCH).

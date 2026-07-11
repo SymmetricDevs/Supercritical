@@ -9,20 +9,20 @@ import com.gregtechceu.gtceu.common.data.GTItems
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
-import supercritical.api.recipes.SCRecipeMaps
+import supercritical.api.recipes.ScritRecipeMaps
 import supercritical.api.unification.material.properties.FissionFuelProperty
-import supercritical.api.unification.material.properties.SCPropertyKey
-import supercritical.api.unification.ore.SCOrePrefix
+import supercritical.api.unification.material.properties.ScritPropertyKey
+import supercritical.api.unification.ore.ScritOrePrefix
 import supercritical.common.registry.ScritItems
-import supercritical.loaders.recipe.SCRecipeUtils
+import supercritical.loaders.recipe.ScritRecipeUtils
 
 object NuclearRecipeHandler {
     fun register() {
         // GTCEu Modern no longer exposes the old CEu addProcessingHandler hook. Generate the same recipes eagerly for
         // every material that already carries Supercritical's fission-fuel property.
         for (material in GTCEuAPI.materialManager.registeredMaterials) {
-            if (material.hasProperty<FissionFuelProperty?>(SCPropertyKey.FISSION_FUEL)) {
-                processFuelRod(material, material.getProperty<FissionFuelProperty?>(SCPropertyKey.FISSION_FUEL))
+            if (material.hasProperty<FissionFuelProperty?>(ScritPropertyKey.FISSION_FUEL)) {
+                processFuelRod(material, material.getProperty<FissionFuelProperty?>(ScritPropertyKey.FISSION_FUEL))
             }
         }
     }
@@ -31,46 +31,46 @@ object NuclearRecipeHandler {
         val name = material.name
         val fuelItems = ScritItems.NUCLEAR_FUEL_ITEMS[name]
 
-        SCRecipeUtils.addRecipe(
-            SCRecipeMaps.SPENT_FUEL_POOL_RECIPES, SCRecipeMaps.SPENT_FUEL_POOL_RECIPES
+        ScritRecipeUtils.addRecipe(
+            ScritRecipeMaps.SPENT_FUEL_POOL_RECIPES, ScritRecipeMaps.SPENT_FUEL_POOL_RECIPES
                 .recipeBuilder(name + "_spent_fuel_pool_cooling")
                 .duration(10000).EUt(20)
                 .inputItems(
                     itemOrPrefix(
                         if (fuelItems == null) null else fuelItems.hotDepletedFuelRod.get(),
-                        SCOrePrefix.fuelRodHotDepleted, material
+                        ScritOrePrefix.fuelRodHotDepleted, material
                     )
                 )
                 .outputItems(
                     itemOrPrefix(
                         if (fuelItems == null) null else fuelItems.depletedFuelRod.get(),
-                        SCOrePrefix.fuelRodDepleted, material
+                        ScritOrePrefix.fuelRodDepleted, material
                     )
                 )
                 .buildRawRecipe()
         )
 
-        SCRecipeUtils.addRecipe(
+        ScritRecipeUtils.addRecipe(
             GTRecipeTypes.CANNER_RECIPES,
             GTRecipeTypes.CANNER_RECIPES.recipeBuilder(name + "_depleted_fuel_rod_unpacking")
                 .duration(200).EUt(GTValues.VA[GTValues.HV].toLong())
                 .inputItems(
                     itemOrPrefix(
                         if (fuelItems == null) null else fuelItems.depletedFuelRod.get(),
-                        SCOrePrefix.fuelRodDepleted, material
+                        ScritOrePrefix.fuelRodDepleted, material
                     )
                 )
                 .outputItems(ScritItems.FUEL_CLADDING.get())
                 .outputItems(
                     itemOrPrefix(
                         if (fuelItems == null) null else fuelItems.depletedFuelPellet.get(),
-                        SCOrePrefix.fuelPelletDepleted, material, 16
+                        ScritOrePrefix.fuelPelletDepleted, material, 16
                     )
                 )
                 .buildRawRecipe()
         )
 
-        SCRecipeUtils.addRecipe(
+        ScritRecipeUtils.addRecipe(
             GTRecipeTypes.FORMING_PRESS_RECIPES,
             GTRecipeTypes.FORMING_PRESS_RECIPES.recipeBuilder(name + "_raw_fuel_pellet")
                 .duration(25).EUt(GTValues.VA[GTValues.EV].toLong())
@@ -79,45 +79,45 @@ object NuclearRecipeHandler {
                 .outputItems(
                     itemOrPrefix(
                         if (fuelItems == null) null else fuelItems.rawFuelPellet.get(),
-                        SCOrePrefix.fuelPelletRaw, material
+                        ScritOrePrefix.fuelPelletRaw, material
                     )
                 )
                 .buildRawRecipe()
         )
 
-        SCRecipeUtils.addRecipe(
+        ScritRecipeUtils.addRecipe(
             GTRecipeTypes.BLAST_RECIPES, GTRecipeTypes.BLAST_RECIPES.recipeBuilder(name + "_fuel_pellet")
                 .duration(15).EUt(GTValues.VA[GTValues.HV].toLong())
                 .blastFurnaceTemp(2000)
                 .inputItems(
                     itemOrPrefix(
                         if (fuelItems == null) null else fuelItems.rawFuelPellet.get(),
-                        SCOrePrefix.fuelPelletRaw, material
+                        ScritOrePrefix.fuelPelletRaw, material
                     )
                 )
                 .outputItems(
                     itemOrPrefix(
                         if (fuelItems == null) null else fuelItems.fuelPellet.get(),
-                        SCOrePrefix.fuelPellet, material
+                        ScritOrePrefix.fuelPellet, material
                     )
                 )
                 .buildRawRecipe()
         )
 
-        SCRecipeUtils.addRecipe(
+        ScritRecipeUtils.addRecipe(
             GTRecipeTypes.CANNER_RECIPES, GTRecipeTypes.CANNER_RECIPES.recipeBuilder(name + "_fuel_rod")
                 .duration(300).EUt(GTValues.VA[GTValues.HV].toLong())
                 .inputItems(
                     itemOrPrefix(
                         if (fuelItems == null) null else fuelItems.fuelPellet.get(),
-                        SCOrePrefix.fuelPellet, material, 16
+                        ScritOrePrefix.fuelPellet, material, 16
                     )
                 )
                 .inputItems(ScritItems.FUEL_CLADDING.get())
                 .outputItems(
                     itemOrPrefix(
                         if (fuelItems == null) null else fuelItems.fuelRod.get(),
-                        SCOrePrefix.fuelRod, material
+                        ScritOrePrefix.fuelRod, material
                     )
                 )
                 .buildRawRecipe()

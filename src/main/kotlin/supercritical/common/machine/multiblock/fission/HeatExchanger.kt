@@ -15,8 +15,8 @@ import com.gregtechceu.gtceu.common.data.GTBlocks
 import com.gregtechceu.gtceu.common.data.GTMaterials
 import com.gregtechceu.gtceu.common.data.GTRecipeModifiers
 import net.minecraft.resources.ResourceLocation
-import supercritical.api.recipes.SCRecipeMaps
-import supercritical.api.registries.SCRegistries
+import supercritical.api.recipes.ScritRecipeMaps
+import supercritical.api.registries.ScritRegistries
 import supercritical.api.util.scId
 
 /**
@@ -70,10 +70,10 @@ class HeatExchanger(holder: IMachineBlockEntity, vararg args: Any?) :
 
     companion object {
         fun register(): MultiblockMachineDefinition {
-            return SCRegistries.REGISTRATE
+            return ScritRegistries.REGISTRATE
                 .multiblock("heat_exchanger") { holder: IMachineBlockEntity -> HeatExchanger(holder) }
                 .rotationState(RotationState.NON_Y_AXIS)
-                .recipeType(SCRecipeMaps.HEAT_EXCHANGER_RECIPES)
+                .recipeType(ScritRecipeMaps.HEAT_EXCHANGER_RECIPES)
                 .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH)
                 .pattern { definition: MultiblockMachineDefinition ->
                     FactoryBlockPattern.start()

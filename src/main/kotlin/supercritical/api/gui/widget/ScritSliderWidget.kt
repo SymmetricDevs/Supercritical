@@ -4,7 +4,7 @@ import com.lowdragmc.lowdraglib.gui.texture.TextTexture
 import com.lowdragmc.lowdraglib.gui.widget.SliderWidget
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.chat.Component
-import supercritical.api.gui.SCGuiTextures
+import supercritical.api.gui.ScritGuiTextures
 
 /**
  * Control-rod slider for the fission reactor, porting the 1.12.2 `UpdatedSliderWidget` behavior:
@@ -19,7 +19,7 @@ import supercritical.api.gui.SCGuiTextures
  * are only wired on the server-side instance built in `createUI`, which is the side that polls
  * the provider and reacts to `handleClientAction`.
  */
-class SCSliderWidget : SliderWidget {
+class ScritSliderWidget : SliderWidget {
     private var responder: ((Float) -> Unit)? = null
 
     constructor() : super() {
@@ -31,13 +31,13 @@ class SCSliderWidget : SliderWidget {
     }
 
     /** Polled each server tick so the thumb tracks the live control-rod insertion (0..1). */
-    fun setProvider(provider: () -> Float): SCSliderWidget {
+    fun setProvider(provider: () -> Float): ScritSliderWidget {
         setSliderValueProvider(provider)
         return this
     }
 
     /** Invoked server-side with the new insertion (0..1) when the player drags the slider. */
-    fun setResponder(responder: (Float) -> Unit): SCSliderWidget {
+    fun setResponder(responder: (Float) -> Unit): ScritSliderWidget {
         this.responder = responder
         return this
     }
@@ -59,9 +59,9 @@ class SCSliderWidget : SliderWidget {
     private fun applyFissionLook() {
         setMinAmount(0f)
         setMaxAmount(1f)
-        handleTexture = SCGuiTextures.DARK_SLIDER_ICON
-        handleHoverTexture = SCGuiTextures.DARK_SLIDER_ICON
-        setBackground(SCGuiTextures.DARK_SLIDER_BACKGROUND)
+        handleTexture = ScritGuiTextures.DARK_SLIDER_ICON
+        handleHoverTexture = ScritGuiTextures.DARK_SLIDER_ICON
+        setBackground(ScritGuiTextures.DARK_SLIDER_BACKGROUND)
         // The overlay label is resolved client-side each draw tick (TextTexture polls its
         // supplier). `%%` is escaped because TextTexture routes its text through String.format.
         setOverlay(

@@ -5,6 +5,6 @@ import org.jspecify.annotations.NullMarked
 import supercritical.BuildConfig
 
 @NullMarked
-object SCRegistries {
+object ScritRegistries {
     val REGISTRATE: GTRegistrate = GTRegistrate.create(BuildConfig.MOD_ID)
 }

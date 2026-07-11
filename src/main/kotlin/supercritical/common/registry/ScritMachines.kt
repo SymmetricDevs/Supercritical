@@ -12,9 +12,9 @@ import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection
 import com.gregtechceu.gtceu.common.data.GTBlocks
 import com.gregtechceu.gtceu.common.data.models.GTMachineModels
 import net.minecraft.network.chat.Component
-import supercritical.api.machine.multiblock.SCMultiblockAbility
-import supercritical.api.recipes.SCRecipeMaps
-import supercritical.api.registries.SCRegistries
+import supercritical.api.machine.multiblock.ScritMultiblockAbility
+import supercritical.api.recipes.ScritRecipeMaps
+import supercritical.api.registries.ScritRegistries
 import supercritical.api.util.scId
 import supercritical.common.machine.multiblock.FissionReactor
 import supercritical.common.machine.multiblock.HeatExchanger
@@ -22,12 +22,12 @@ import supercritical.common.machine.multiblock.SpentFuelPool
 import supercritical.common.machine.multiblock.electric.GasCentrifuge
 import supercritical.common.machine.multiblock.multiblockpart.*
 
-object SCMachines {
-    val FUEL_ROD_INPUT: MachineDefinition = SCRegistries.REGISTRATE
+object ScritMachines {
+    val FUEL_ROD_INPUT: MachineDefinition = ScritRegistries.REGISTRATE
         .machine("fuel_rod_input") { holder: IMachineBlockEntity -> FuelRodImportBus(holder, 4) }
         .rotationState(RotationState.ALL)
         .tier(GTValues.LV)
-        .abilities(SCMultiblockAbility.IMPORT_FUEL_ROD)
+        .abilities(ScritMultiblockAbility.IMPORT_FUEL_ROD)
         .model(
             GTMachineModels.createOverlayCasingMachineModel(
                 scId("block/reactor_vessel"),
@@ -36,11 +36,11 @@ object SCMachines {
         )
         .register()
 
-    val FUEL_ROD_OUTPUT: MachineDefinition = SCRegistries.REGISTRATE
+    val FUEL_ROD_OUTPUT: MachineDefinition = ScritRegistries.REGISTRATE
         .machine("fuel_rod_output") { holder: IMachineBlockEntity -> FuelRodExportBus(holder, 4) }
         .rotationState(RotationState.ALL)
         .tier(GTValues.LV)
-        .abilities(SCMultiblockAbility.EXPORT_FUEL_ROD)
+        .abilities(ScritMultiblockAbility.EXPORT_FUEL_ROD)
         .model(
             GTMachineModels.createOverlayCasingMachineModel(
                 scId("block/reactor_vessel"),
@@ -49,11 +49,11 @@ object SCMachines {
         )
         .register()
 
-    val COOLANT_INPUT: MachineDefinition = SCRegistries.REGISTRATE
+    val COOLANT_INPUT: MachineDefinition = ScritRegistries.REGISTRATE
         .machine("coolant_input") { holder: IMachineBlockEntity -> CoolantImportHatch(holder, 4) }
         .rotationState(RotationState.ALL)
         .tier(GTValues.LV)
-        .abilities(SCMultiblockAbility.IMPORT_COOLANT)
+        .abilities(ScritMultiblockAbility.IMPORT_COOLANT)
         .model(
             GTMachineModels.createOverlayCasingMachineModel(
                 scId("block/reactor_vessel"),
@@ -62,11 +62,11 @@ object SCMachines {
         )
         .register()
 
-    val COOLANT_OUTPUT: MachineDefinition = SCRegistries.REGISTRATE
+    val COOLANT_OUTPUT: MachineDefinition = ScritRegistries.REGISTRATE
         .machine("coolant_output") { holder: IMachineBlockEntity -> CoolantExportHatch(holder, 4) }
         .rotationState(RotationState.ALL)
         .tier(GTValues.LV)
-        .abilities(SCMultiblockAbility.EXPORT_COOLANT)
+        .abilities(ScritMultiblockAbility.EXPORT_COOLANT)
         .model(
             GTMachineModels.createOverlayCasingMachineModel(
                 scId("block/reactor_vessel"),
@@ -75,11 +75,11 @@ object SCMachines {
         )
         .register()
 
-    val CONTROL_ROD: MachineDefinition = SCRegistries.REGISTRATE
+    val CONTROL_ROD: MachineDefinition = ScritRegistries.REGISTRATE
         .machine("control_rod") { holder: IMachineBlockEntity -> ControlRodPort(holder, 4, false) }
         .rotationState(RotationState.ALL)
         .tier(GTValues.LV)
-        .abilities(SCMultiblockAbility.CONTROL_ROD_PORT)
+        .abilities(ScritMultiblockAbility.CONTROL_ROD_PORT)
         .model(
             GTMachineModels.createOverlayCasingMachineModel(
                 scId("block/reactor_vessel"),
@@ -88,7 +88,7 @@ object SCMachines {
         )
         .register()
 
-    val CONTROL_ROD_MODERATED: MachineDefinition = SCRegistries.REGISTRATE
+    val CONTROL_ROD_MODERATED: MachineDefinition = ScritRegistries.REGISTRATE
         .machine("control_rod_moderated") { holder: IMachineBlockEntity ->
             ControlRodPort(
                 holder,
@@ -98,7 +98,7 @@ object SCMachines {
         }
         .rotationState(RotationState.ALL)
         .tier(GTValues.LV)
-        .abilities(SCMultiblockAbility.CONTROL_ROD_PORT)
+        .abilities(ScritMultiblockAbility.CONTROL_ROD_PORT)
         .model(
             GTMachineModels.createOverlayCasingMachineModel(
                 scId("block/reactor_vessel"),
@@ -107,11 +107,11 @@ object SCMachines {
         )
         .register()
 
-    val MODERATOR_PORT: MachineDefinition = SCRegistries.REGISTRATE
+    val MODERATOR_PORT: MachineDefinition = ScritRegistries.REGISTRATE
         .machine("moderator_port") { holder: IMachineBlockEntity -> ModeratorPort(holder, 4) }
         .rotationState(RotationState.ALL)
         .tier(GTValues.LV)
-        .abilities(SCMultiblockAbility.MODERATOR_PORT)
+        .abilities(ScritMultiblockAbility.MODERATOR_PORT)
         .model(
             GTMachineModels.createOverlayCasingMachineModel(
                 scId("block/reactor_vessel"),
@@ -120,7 +120,7 @@ object SCMachines {
         )
         .register()
 
-    val FISSION_REACTOR: MultiblockMachineDefinition = SCRegistries.REGISTRATE
+    val FISSION_REACTOR: MultiblockMachineDefinition = ScritRegistries.REGISTRATE
         .multiblock("fission_reactor") { holder: IMachineBlockEntity -> FissionReactor(holder) }
         .rotationState(RotationState.NON_Y_AXIS)
         .allowExtendedFacing(true)
@@ -144,11 +144,11 @@ object SCMachines {
 
     val SPENT_FUEL_POOL: MultiblockMachineDefinition = SpentFuelPool.register()
 
-    val GAS_CENTRIFUGE: MultiblockMachineDefinition = SCRegistries.REGISTRATE
+    val GAS_CENTRIFUGE: MultiblockMachineDefinition = ScritRegistries.REGISTRATE
         .multiblock("gas_centrifuge") { holder: IMachineBlockEntity -> GasCentrifuge(holder) }
         .rotationState(RotationState.NON_Y_AXIS)
         .allowExtendedFacing(false)
-        .recipeType(SCRecipeMaps.GAS_CENTRIFUGE_RECIPES)
+        .recipeType(ScritRecipeMaps.GAS_CENTRIFUGE_RECIPES)
         .recipeModifiers(GasCentrifuge.RECIPE_MODIFIER)
         .pattern { definition: MultiblockMachineDefinition ->
             FactoryBlockPattern.start(RelativeDirection.LEFT, RelativeDirection.UP, RelativeDirection.BACK)

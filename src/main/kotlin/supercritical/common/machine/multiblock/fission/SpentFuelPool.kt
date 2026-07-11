@@ -24,9 +24,9 @@ import com.gregtechceu.gtceu.common.data.GTBlocks
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
 import net.minecraft.world.level.material.Fluids
-import supercritical.api.pattern.SCPredicates
-import supercritical.api.recipes.SCRecipeMaps
-import supercritical.api.registries.SCRegistries
+import supercritical.api.pattern.ScritPredicates
+import supercritical.api.recipes.ScritRecipeMaps
+import supercritical.api.registries.ScritRegistries
 import supercritical.api.util.scId
 import supercritical.common.registry.ScritBlocks
 import kotlin.math.max
@@ -65,7 +65,7 @@ class SpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?) :
     override fun onStructureFormed() {
         super.onStructureFormed()
         val wp = multiblockState.matchContext
-            .getOrDefault<ArrayList<BlockPos>>(SCPredicates.FLUID_BLOCKS_KEY, arrayListOf())
+            .getOrDefault<ArrayList<BlockPos>>(ScritPredicates.FLUID_BLOCKS_KEY, arrayListOf())
         this.waterPositions = wp
         wp.sortWith(compareBy { it.y })
         this.isWaterFilled = wp.isEmpty()
@@ -88,7 +88,7 @@ class SpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?) :
         val positions = this.waterPositions ?: return
         if (positions.isEmpty()) return
         if (offsetTimer % 5 != 0L) return
-        SCPredicates.fillFluid(this, positions, Fluids.WATER)
+        ScritPredicates.fillFluid(this, positions, Fluids.WATER)
         if (positions.isEmpty()) {
             this.isWaterFilled = true
         }
@@ -253,11 +253,11 @@ class SpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?) :
                 .where('S', Predicates.controller(Predicates.blocks(definition.block)))
                 .where('.', Predicates.any())
                 .where('C', Predicates.blocks(ScritBlocks.GRAY_PANELLING.get()))
-                .where('W', SCPredicates.fluid(Fluids.WATER))
+                .where('W', ScritPredicates.fluid(Fluids.WATER))
                 .where('R', Predicates.blocks(ScritBlocks.SPENT_FUEL_CASING.get()))
                 .where(
                     'T', Predicates.blocks(GTBlocks.CASING_STAINLESS_CLEAN.get())
-                        .or(Predicates.autoAbilities(SCRecipeMaps.SPENT_FUEL_POOL_RECIPES))
+                        .or(Predicates.autoAbilities(ScritRecipeMaps.SPENT_FUEL_POOL_RECIPES))
                         .or(Predicates.autoAbilities(false, false, false))
                         .or(Predicates.abilities(PartAbility.IMPORT_FLUIDS))
                 )
@@ -265,11 +265,11 @@ class SpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?) :
         }
 
         fun register(): MultiblockMachineDefinition {
-            return SCRegistries.REGISTRATE
+            return ScritRegistries.REGISTRATE
                 .multiblock("spent_fuel_pool") { holder: IMachineBlockEntity -> SpentFuelPool(holder) }
                 .rotationState(RotationState.NON_Y_AXIS)
                 .allowExtendedFacing(false)
-                .recipeType(SCRecipeMaps.SPENT_FUEL_POOL_RECIPES)
+                .recipeType(ScritRecipeMaps.SPENT_FUEL_POOL_RECIPES)
                 .recipeModifiers(RecipeModifier { machine: MetaMachine, recipe: GTRecipe ->
                     poolParallel(machine, recipe)
                 })

@@ -10,7 +10,6 @@ import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.LiquidBlock
-import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.material.FlowingFluid
 import java.util.function.Supplier
@@ -34,7 +33,7 @@ import java.util.function.Supplier
  * Register with `BlockBehaviour.Properties.copy(Blocks.LAVA).noLootTable().randomTicks().lightLevel { 15 }`
  * bound to the corium `FlowingFluid`.
  */
-class BlockMoltenCorium(
+class MoltenCorium(
     fluid: Supplier<out FlowingFluid>,
     properties: Properties,
 ) : LiquidBlock(fluid, properties) {

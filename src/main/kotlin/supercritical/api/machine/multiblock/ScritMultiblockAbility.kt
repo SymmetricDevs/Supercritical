@@ -2,7 +2,7 @@ package supercritical.api.machine.multiblock
 
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility
 
-object SCMultiblockAbility {
+object ScritMultiblockAbility {
     val IMPORT_FUEL_ROD: PartAbility = PartAbility("import_fuel_rod")
     val EXPORT_FUEL_ROD: PartAbility = PartAbility("export_fuel_rod")
     val IMPORT_COOLANT: PartAbility = PartAbility("import_coolant")

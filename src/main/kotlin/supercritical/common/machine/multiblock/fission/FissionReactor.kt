@@ -34,10 +34,10 @@ import net.minecraftforge.event.ForgeEventFactory
 import supercritical.api.capability.ICoolantHandler
 import supercritical.api.capability.IFuelRodHandler
 import supercritical.api.cover.ICustomEnergyCover
-import supercritical.api.gui.SCGuiTextures
-import supercritical.api.gui.widget.SCSliderWidget
+import supercritical.api.gui.ScritGuiTextures
+import supercritical.api.gui.widget.ScritSliderWidget
 import supercritical.api.machine.multiblock.IFissionReactorHatch
-import supercritical.api.machine.multiblock.SCMultiblockAbility
+import supercritical.api.machine.multiblock.ScritMultiblockAbility
 import supercritical.api.nuclear.fission.CoolantRegistry
 import supercritical.api.nuclear.fission.FissionFuelRegistry
 import supercritical.api.nuclear.fission.FissionReactor
@@ -46,7 +46,7 @@ import supercritical.api.nuclear.fission.components.ControlRod
 import supercritical.api.nuclear.fission.components.CoolantChannel
 import supercritical.api.nuclear.fission.components.FuelRod
 import supercritical.api.nuclear.fission.components.Moderator
-import supercritical.api.unification.material.SCMaterials
+import supercritical.api.unification.material.ScritMaterials
 import supercritical.api.util.replace
 import supercritical.common.ScritConfig
 import supercritical.common.machine.multiblock.multiblockpart.ControlRodPort
@@ -302,12 +302,12 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
                 )
                     .or(Predicates.air())
                     .or(moderatorPredicate())
-                    .or(Predicates.abilities(SCMultiblockAbility.MODERATOR_PORT))
+                    .or(Predicates.abilities(ScritMultiblockAbility.MODERATOR_PORT))
             )
             .where('I', Predicates.blocks(ScritBlocks.REACTOR_VESSEL.get()).or(this.importPredicate))
             .where(
                 'O', Predicates.blocks(ScritBlocks.REACTOR_VESSEL.get())
-                    .or(Predicates.abilities(SCMultiblockAbility.EXPORT_COOLANT, SCMultiblockAbility.EXPORT_FUEL_ROD))
+                    .or(Predicates.abilities(ScritMultiblockAbility.EXPORT_COOLANT, ScritMultiblockAbility.EXPORT_FUEL_ROD))
             )
             .where(
                 'B', Predicates.blocks(ScritBlocks.REACTOR_VESSEL.get())
@@ -320,10 +320,10 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
     private val importPredicate: TraceabilityPredicate
         get() {
             val allowedAbilities = arrayOf(
-                SCMultiblockAbility.IMPORT_COOLANT,
-                SCMultiblockAbility.IMPORT_FUEL_ROD,
-                SCMultiblockAbility.CONTROL_ROD_PORT,
-                SCMultiblockAbility.MODERATOR_PORT
+                ScritMultiblockAbility.IMPORT_COOLANT,
+                ScritMultiblockAbility.IMPORT_FUEL_ROD,
+                ScritMultiblockAbility.CONTROL_ROD_PORT,
+                ScritMultiblockAbility.MODERATOR_PORT
             )
             return Predicates.custom({ state: MultiblockState ->
                 val machine = getMachine(state.getWorld(), state.pos)
@@ -675,7 +675,7 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
     private fun performMeltdownEffects() {
         val level = level ?: return
         unlockAll()
-        val coriumFluid = SCMaterials.Corium.fluid
+        val coriumFluid = ScritMaterials.Corium.fluid
         val coriumState = coriumFluid?.defaultFluidState()?.createLegacyBlock() ?: return
         val controllerPos = pos
         val radius = diameter / 2
@@ -1006,7 +1006,7 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
         )
         panel.addWidget(statusText)
         panel.addWidget(
-            SCSliderWidget(3, 56, 220, 18)
+            ScritSliderWidget(3, 56, 220, 18)
                 .setProvider { controlRodInsertion.toFloat() }
                 .setResponder { value -> setControlRodInsertion(value.toDouble()) }
         )
@@ -1017,7 +1017,7 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
             .widget(
                 ExtendedProgressWidget(
                     { this.heatFillPercentage }, 4, 115, 76, 7,
-                    SCGuiTextures.PROGRESS_BAR_FISSION_HEAT
+                    ScritGuiTextures.PROGRESS_BAR_FISSION_HEAT
                 )
                     .setServerTooltipSupplier { list ->
                         list.add(Component.translatable("supercritical.gui.fission.temperature", temperature))
@@ -1027,7 +1027,7 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
             .widget(
                 ExtendedProgressWidget(
                     { this.pressureFillPercentage }, 82, 115, 76, 7,
-                    SCGuiTextures.PROGRESS_BAR_FISSION_PRESSURE
+                    ScritGuiTextures.PROGRESS_BAR_FISSION_PRESSURE
                 )
                     .setServerTooltipSupplier { list ->
                         list.add(Component.translatable("supercritical.gui.fission.pressure", pressure))
@@ -1037,7 +1037,7 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
             .widget(
                 ExtendedProgressWidget(
                     { this.powerFillPercentage }, 160, 115, 76, 7,
-                    SCGuiTextures.PROGRESS_BAR_FISSION_ENERGY
+                    ScritGuiTextures.PROGRESS_BAR_FISSION_ENERGY
                 )
                     .setServerTooltipSupplier { list ->
                         list.add(Component.translatable("supercritical.gui.fission.power", power, maxPower))
@@ -1047,7 +1047,7 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
             .widget(
                 ToggleButtonWidget(
                     215, 125, 18, 18,
-                    SCGuiTextures.BUTTON_CONTROL_ROD_HELPER,
+                    ScritGuiTextures.BUTTON_CONTROL_ROD_HELPER,
                     { reactor?.controlRodRegulationOn == true },
                     { enabled: Boolean -> reactor?.let { it.controlRodRegulationOn = enabled } }
                 )
@@ -1148,8 +1148,8 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
                     'I', Predicates.blocks(ScritBlocks.REACTOR_VESSEL.get())
                         .or(
                             Predicates.abilities(
-                                SCMultiblockAbility.IMPORT_COOLANT, SCMultiblockAbility.IMPORT_FUEL_ROD,
-                                SCMultiblockAbility.CONTROL_ROD_PORT, SCMultiblockAbility.MODERATOR_PORT
+                                ScritMultiblockAbility.IMPORT_COOLANT, ScritMultiblockAbility.IMPORT_FUEL_ROD,
+                                ScritMultiblockAbility.CONTROL_ROD_PORT, ScritMultiblockAbility.MODERATOR_PORT
                             )
                         )
                 )
@@ -1157,8 +1157,8 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
                     'O', Predicates.blocks(ScritBlocks.REACTOR_VESSEL.get())
                         .or(
                             Predicates.abilities(
-                                SCMultiblockAbility.EXPORT_COOLANT,
-                                SCMultiblockAbility.EXPORT_FUEL_ROD
+                                ScritMultiblockAbility.EXPORT_COOLANT,
+                                ScritMultiblockAbility.EXPORT_FUEL_ROD
                             )
                         )
                 )

@@ -6,7 +6,7 @@ import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture
  * Supercritical GUI textures, shipped under this mod's own `supercritical` resource namespace
  * (`assets/supercritical/textures/gui/...`).
  */
-object SCGuiTextures {
+object ScritGuiTextures {
     val BUTTON_CONTROL_ROD_HELPER: ResourceTexture =
         ResourceTexture("supercritical:textures/gui/widget/button_control_rod_helper.png")
     val DARK_SLIDER_BACKGROUND: ResourceTexture =

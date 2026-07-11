@@ -9,16 +9,16 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import supercritical.api.recipes.SCRecipeMaps
-import supercritical.api.registries.SCRegistries
-import supercritical.api.unification.material.SCMaterials
+import supercritical.api.recipes.ScritRecipeMaps
+import supercritical.api.registries.ScritRegistries
+import supercritical.api.unification.material.ScritMaterials
 import supercritical.api.util.addGenericListener
 import supercritical.common.ScritConfig
 import supercritical.common.registry.ScritBlocks
 import supercritical.common.registry.ScritItems
-import supercritical.common.registry.SCMachines
-import supercritical.data.SCDatagen
-import supercritical.loaders.recipe.SCRecipeManager
+import supercritical.common.registry.ScritMachines
+import supercritical.data.ScritDatagen
+import supercritical.loaders.recipe.ScritRecipeManager
 
 typealias GTRecipeEvent = GTCEuAPI.RegisterEvent<ResourceLocation, GTRecipeType>
 typealias GTMachineEvent = GTCEuAPI.RegisterEvent<ResourceLocation, MachineDefinition>
@@ -28,34 +28,34 @@ class Supercritical {
 
     init {
         ScritConfig.init()
-        SCDatagen.init()
+        ScritDatagen.init()
 
         val modBus = FMLJavaModLoadingContext.get().modEventBus
-        SCRegistries.REGISTRATE.registerEventListeners(modBus)
+        ScritRegistries.REGISTRATE.registerEventListeners(modBus)
         ScritItems.register(modBus)
         ScritBlocks.register(modBus)
         modBus.addGenericListener<GTRecipeEvent, GTRecipeType> { registerRecipeTypes(it) }
         modBus.addGenericListener<GTMachineEvent, MachineDefinition> { registerMachines(it) }
         modBus.addListener<FMLCommonSetupEvent> { commonSetup(it) }
 
-        modBus.register(SCMaterials)
+        modBus.register(ScritMaterials)
     }
 
     private fun registerRecipeTypes(event: GTRecipeEvent) {
-        SCRecipeMaps.init()
+        ScritRecipeMaps.init()
     }
 
     private fun registerMachines(event: GTMachineEvent) {
-        SCMachines.ensureInitialized()
+        ScritMachines.ensureInitialized()
     }
 
     private fun commonSetup(event: FMLCommonSetupEvent) {
-        event.enqueueWork { SCRecipeManager.load() }
-        event.enqueueWork { SCMaterials.registerFuelItems() }
+        event.enqueueWork { ScritRecipeManager.load() }
+        event.enqueueWork { ScritMaterials.registerFuelItems() }
         event.enqueueWork {
-            SCMaterials.registerModerators()
-            SCMaterials.registerCoolants()
-            SCRecipeManager.loadLatest()
+            ScritMaterials.registerModerators()
+            ScritMaterials.registerCoolants()
+            ScritRecipeManager.loadLatest()
         }
         LOGGER.info("{} common setup.", BuildConfig.MOD_NAME)
     }
