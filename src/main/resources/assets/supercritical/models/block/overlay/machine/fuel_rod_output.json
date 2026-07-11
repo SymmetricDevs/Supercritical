@@ -1,5 +1,5 @@
 {
-  "parent": "gtceu:block/overlay/front",
+  "parent": "gtceu:block/overlay/front_all",
   "textures": {
     "overlay": "gtceu:block/overlay/machine/overlay_item_hatch_output"
   }

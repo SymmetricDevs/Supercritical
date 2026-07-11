@@ -10,7 +10,7 @@ import com.gregtechceu.gtceu.data.recipe.CustomTags
 import net.minecraft.world.item.ItemStack
 import supercritical.common.data.ScritMachines
 import supercritical.common.data.ScritMaterials
-import supercritical.common.registry.ScritBlocks
+import supercritical.common.data.ScritBlocks
 
 object ScritMetaTileEntityLoader {
     fun init() {

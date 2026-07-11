@@ -1,4 +1,4 @@
-package supercritical.common.machine.multiblock.multiblockpart
+package supercritical.common.machine.multiblock.part
 
 import com.gregtechceu.gtceu.api.capability.IControllable
 import com.gregtechceu.gtceu.api.capability.recipe.IO

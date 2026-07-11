@@ -12,15 +12,13 @@ import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection
 import com.gregtechceu.gtceu.common.data.GTBlocks
 import com.gregtechceu.gtceu.common.data.models.GTMachineModels
 import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
 import supercritical.api.machine.multiblock.ScritMultiblockAbility
-import supercritical.common.machine.multiblock.fission.FissionReactor
 import supercritical.common.machine.multiblock.electric.GasCentrifuge
+import supercritical.common.machine.multiblock.fission.FissionReactor
 import supercritical.common.machine.multiblock.fission.HeatExchanger
 import supercritical.common.machine.multiblock.fission.SpentFuelPool
-import supercritical.common.machine.multiblock.multiblockpart.*
-import supercritical.common.machine.multiblock.part.CoolantExportHatch
-import supercritical.common.machine.multiblock.part.CoolantImportHatch
-import supercritical.common.registry.ScritBlocks
+import supercritical.common.machine.multiblock.part.*
 import supercritical.common.registry.ScritRegistration
 import supercritical.util.scId
 
@@ -178,7 +176,7 @@ object ScritMachines {
                 .build()
         }
         .workableCasingModel(
-            scId("block/gas_centrifuge_heater"),
+            ResourceLocation("gtceu", "block/casings/pipe/machine_casing_pipe_polytetrafluoroethylene"),
             scId("block/multiblock/gas_centrifuge")
         )
         .tooltipBuilder { _, tooltip ->

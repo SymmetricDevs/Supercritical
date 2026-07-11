@@ -11,7 +11,7 @@ import supercritical.api.nuclear.fission.FissionFuelRegistry
  */
 class FissionFuelInfo(rod: ItemStack) {
     val rod: ItemStack
-    val depletedRods: MutableList<ItemStack?>?
+    val depletedRods: MutableList<ItemStack>
 
     private val duration: Component
     private val maxTemp: Component
@@ -43,7 +43,7 @@ class FissionFuelInfo(rod: ItemStack) {
                 prop.neutronGenerationTime.toInt()
             )
         } else {
-            this.depletedRods = mutableListOf<ItemStack?>()
+            this.depletedRods = mutableListOf<ItemStack>()
             this.duration = Component.empty()
             this.maxTemp = Component.empty()
             this.crossSectionFast = Component.empty()

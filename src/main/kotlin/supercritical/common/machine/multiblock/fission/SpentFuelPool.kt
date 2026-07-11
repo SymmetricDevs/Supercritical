@@ -22,11 +22,12 @@ import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier
 import com.gregtechceu.gtceu.common.data.GTBlocks
 import net.minecraft.core.BlockPos
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.network.chat.Component
 import net.minecraft.world.level.material.Fluids
 import supercritical.api.pattern.ScritPredicates
 import supercritical.common.data.ScritRecipeTypes
-import supercritical.common.registry.ScritBlocks
+import supercritical.common.data.ScritBlocks
 import supercritical.common.registry.ScritRegistration
 import supercritical.util.scId
 import kotlin.math.max
@@ -38,21 +39,12 @@ import kotlin.math.max
 class SpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?) :
     WorkableMultiblockMachine(holder, *args), IControllable, IDisplayUIMachine {
     override fun isRemote(): Boolean = super<WorkableMultiblockMachine>.isRemote()
-    private var workingEnabled = true
     var isWaterFilled: Boolean = false
         private set
     private var waterPositions: MutableList<BlockPos>? = null
     private var waterFillSubscription: TickableSubscription? = null
     var poolLength: Int = 1
         private set
-
-    override fun isWorkingEnabled(): Boolean {
-        return workingEnabled
-    }
-
-    override fun setWorkingEnabled(workingEnabled: Boolean) {
-        this.workingEnabled = workingEnabled
-    }
 
     override fun createRecipeLogic(vararg args: Any?): RecipeLogic {
         return SpentFuelPoolRecipeLogic(this)
@@ -127,13 +119,6 @@ class SpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?) :
     }
 
     class SpentFuelPoolRecipeLogic(machine: IRecipeLogicMachine) : RecipeLogic(machine) {
-        override fun serverTick() {
-            if (!machine.isWorkingEnabled) {
-                return
-            }
-            super.serverTick()
-        }
-
         override fun checkMatchedRecipeAvailable(match: GTRecipe?): Boolean {
             val pool = machine as? SpentFuelPool ?: return false
             if (!pool.isWaterFilled) {
@@ -275,7 +260,7 @@ class SpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?) :
                 })
                 .pattern { definition: MultiblockMachineDefinition -> buildPattern(definition) }
                 .workableCasingModel(
-                    scId("block/gray_panelling"),
+                    ResourceLocation("gtceu", "block/casings/solid/machine_casing_clean_stainless_steel"),
                     scId("block/multiblock/spent_fuel_pool")
                 )
                 .tooltipBuilder { _, tooltip: MutableList<Component?> ->

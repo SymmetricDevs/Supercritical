@@ -1,4 +1,4 @@
-package supercritical.api.recipe.handlers
+package supercritical.data.recipe.generated
 
 import com.gregtechceu.gtceu.api.GTCEuAPI
 import com.gregtechceu.gtceu.api.GTValues

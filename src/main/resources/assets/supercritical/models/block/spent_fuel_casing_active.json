@@ -1,0 +1,10 @@
+{
+  "parent": "supercritical:block/cube_2_layer/column",
+  "render_type": "minecraft:cutout_mipped",
+  "textures": {
+    "bot_side": "supercritical:block/spent_fuel_casing_side",
+    "bot_end": "supercritical:block/spent_fuel_casing_top",
+    "top_side": "supercritical:block/spent_fuel_casing_side_bloom",
+    "top_end": "supercritical:block/spent_fuel_casing_top_bloom"
+  }
+}

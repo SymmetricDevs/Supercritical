@@ -1,4 +1,4 @@
-package supercritical.common.machine.multiblock.multiblockpart
+package supercritical.common.machine.multiblock.part
 
 import com.gregtechceu.gtceu.api.capability.IControllable
 import com.gregtechceu.gtceu.api.capability.recipe.IO
@@ -27,7 +27,7 @@ import supercritical.api.nuclear.fission.FissionFuelRegistry
 import supercritical.api.nuclear.fission.IFissionFuelStats
 import supercritical.api.nuclear.fission.components.FuelRod
 import supercritical.common.machine.multiblock.fission.FissionReactor
-import supercritical.common.registry.ScritBlocks
+import supercritical.common.data.ScritBlocks
 
 class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMachine(holder, tier, IO.IN),
     IFuelRodHandler, IControllable, IFissionReactorHatch, IUIMachine {

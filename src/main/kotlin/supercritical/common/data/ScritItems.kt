@@ -4,27 +4,33 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix
 import com.gregtechceu.gtceu.common.data.GTMaterialItems
 import com.gregtechceu.gtceu.common.data.GTMaterials
+import com.tterrag.registrate.util.entry.ItemEntry
 import net.minecraft.world.item.Item
-import net.minecraftforge.eventbus.api.IEventBus
-import net.minecraftforge.registries.DeferredRegister
-import net.minecraftforge.registries.ForgeRegistries
-import net.minecraftforge.registries.RegistryObject
-import supercritical.BuildConfig
 import supercritical.api.data.chemical.ore.ScritOrePrefix
+import supercritical.common.registry.ScritRegistration
 import java.util.*
 import java.util.function.Supplier
 
+/**
+ * Supercritical's plain items, registered via GTRegistrate (like GTCEu's `GTItems`). Registrate
+ * auto-generates the `item/generated` model and title-cased English lang (`"anode_basket"` →
+ * `"Anode Basket"`). `ItemEntry<Item>` implements `Supplier<Item>`, so `ScritItems.X.get()` call
+ * sites are unchanged.
+ *
+ * [NUCLEAR_FUEL_ITEMS] is preserved verbatim: it is a lazy lookup table of `Supplier<Item>` into
+ * GTCEu's own [GTMaterialItems] (per material/TagPrefix material items), not Supercritical-
+ * registered items, so it is untouched by the Registrate migration.
+ */
 object ScritItems {
-    val ITEMS: DeferredRegister<Item> = DeferredRegister.create(ForgeRegistries.ITEMS, BuildConfig.MOD_ID)
+    private val REGISTRATE = ScritRegistration.REGISTRATE
 
-    val ANODE_BASKET: RegistryObject<Item> = ITEMS.register("anode_basket") { Item(Item.Properties()) }
-    val FUEL_CLADDING: RegistryObject<Item> = ITEMS.register("fuel_cladding") { Item(Item.Properties()) }
+    val ANODE_BASKET: ItemEntry<Item> = REGISTRATE.item("anode_basket") { Item(it) }.register()
+    val FUEL_CLADDING: ItemEntry<Item> = REGISTRATE.item("fuel_cladding") { Item(it) }.register()
 
     val NUCLEAR_FUEL_ITEMS: MutableMap<String, NuclearFuelItems> = registerNuclearFuelItems()
 
-    fun register(modEventBus: IEventBus?) {
-        ITEMS.register(modEventBus)
-    }
+    /** Forces object initialization so every item entry registers via GTRegistrate. */
+    fun init() {}
 
     private fun registerNuclearFuelItems(): MutableMap<String, NuclearFuelItems> {
         val items = LinkedHashMap<String, NuclearFuelItems>()

@@ -1,11 +1,9 @@
 package supercritical.core.mixin
 
-import org.jspecify.annotations.NullMarked
 import org.objectweb.asm.tree.ClassNode
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo
 
-@NullMarked
 class ScritMixinPlugin : IMixinConfigPlugin {
     override fun onLoad(mixinPackage: String) {
     }

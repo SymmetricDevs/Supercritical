@@ -5,7 +5,7 @@ import java.util.*
 
 object FissionFuelRegistry {
     private val IDENTIFIED_FUELS: MutableMap<String?, IFissionFuelStats?> = linkedMapOf()
-    private val FUELS: MutableMap<ItemStack?, IFissionFuelStats?> = linkedMapOf()
+    private val FUELS: MutableMap<ItemStack, IFissionFuelStats?> = linkedMapOf()
 
     fun registerFuel(item: ItemStack, fuel: IFissionFuelStats) {
         IDENTIFIED_FUELS[fuel.id] = fuel
@@ -23,8 +23,8 @@ object FissionFuelRegistry {
         return FUELS.entries.firstOrNull { ItemStack.isSameItemSameTags(it.key, stack) }?.value
     }
 
-    val allFissionableRods: MutableCollection<ItemStack?>
-        get() = Collections.unmodifiableSet<ItemStack?>(FUELS.keys)
+    val allFissionableRods: MutableCollection<ItemStack>
+        get() = Collections.unmodifiableSet<ItemStack>(FUELS.keys)
 
     fun getFissionFuel(name: String?): IFissionFuelStats? = IDENTIFIED_FUELS[name]
 

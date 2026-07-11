@@ -1,5 +1,5 @@
 {
-  "parent": "gtceu:block/overlay/front",
+  "parent": "gtceu:block/overlay/front_all",
   "textures": {
     "overlay": "supercritical:block/overlay/machine/overlay_moderator_port"
   }

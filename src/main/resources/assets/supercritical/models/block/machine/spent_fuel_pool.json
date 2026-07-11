@@ -3,14 +3,14 @@
   "loader": "gtceu:machine",
   "machine": "supercritical:spent_fuel_pool",
   "texture_overrides": {
-    "all": "supercritical:block/spent_fuel_casing"
+    "all": "gtceu:block/casings/solid/machine_casing_clean_stainless_steel"
   },
   "variants": {
     "is_formed=false,recipe_logic_status=idle": {
       "model": {
         "parent": "gtceu:block/machine/template/cube_all/sided",
         "textures": {
-          "all": "supercritical:block/spent_fuel_casing",
+          "all": "gtceu:block/casings/solid/machine_casing_clean_stainless_steel",
           "overlay_front": "supercritical:block/multiblock/spent_fuel_pool/overlay_front",
           "overlay_front_emissive": "supercritical:block/multiblock/spent_fuel_pool/overlay_front_emissive"
         }
@@ -20,7 +20,7 @@
       "model": {
         "parent": "gtceu:block/machine/template/cube_all/sided",
         "textures": {
-          "all": "supercritical:block/spent_fuel_casing",
+          "all": "gtceu:block/casings/solid/machine_casing_clean_stainless_steel",
           "overlay_front": "supercritical:block/multiblock/spent_fuel_pool/overlay_front"
         }
       }
@@ -29,7 +29,7 @@
       "model": {
         "parent": "gtceu:block/machine/template/cube_all/sided",
         "textures": {
-          "all": "supercritical:block/spent_fuel_casing",
+          "all": "gtceu:block/casings/solid/machine_casing_clean_stainless_steel",
           "overlay_front": "supercritical:block/multiblock/spent_fuel_pool/overlay_front_active",
           "overlay_front_emissive": "supercritical:block/multiblock/spent_fuel_pool/overlay_front_active_emissive"
         }
@@ -39,7 +39,7 @@
       "model": {
         "parent": "gtceu:block/machine/template/cube_all/sided",
         "textures": {
-          "all": "supercritical:block/spent_fuel_casing",
+          "all": "gtceu:block/casings/solid/machine_casing_clean_stainless_steel",
           "overlay_front": "supercritical:block/multiblock/spent_fuel_pool/overlay_front_active",
           "overlay_front_emissive": "supercritical:block/multiblock/spent_fuel_pool/overlay_front_active_emissive"
         }
@@ -49,7 +49,7 @@
       "model": {
         "parent": "gtceu:block/machine/template/cube_all/sided",
         "textures": {
-          "all": "supercritical:block/spent_fuel_casing",
+          "all": "gtceu:block/casings/solid/machine_casing_clean_stainless_steel",
           "overlay_front": "supercritical:block/multiblock/spent_fuel_pool/overlay_front",
           "overlay_front_emissive": "supercritical:block/multiblock/spent_fuel_pool/overlay_front_emissive"
         }
@@ -59,7 +59,7 @@
       "model": {
         "parent": "gtceu:block/machine/template/cube_all/sided",
         "textures": {
-          "all": "supercritical:block/spent_fuel_casing",
+          "all": "gtceu:block/casings/solid/machine_casing_clean_stainless_steel",
           "overlay_front": "supercritical:block/multiblock/spent_fuel_pool/overlay_front"
         }
       }
@@ -68,7 +68,7 @@
       "model": {
         "parent": "gtceu:block/machine/template/cube_all/sided",
         "textures": {
-          "all": "supercritical:block/spent_fuel_casing",
+          "all": "gtceu:block/casings/solid/machine_casing_clean_stainless_steel",
           "overlay_front": "supercritical:block/multiblock/spent_fuel_pool/overlay_front_active",
           "overlay_front_emissive": "supercritical:block/multiblock/spent_fuel_pool/overlay_front_active_emissive"
         }
@@ -78,7 +78,7 @@
       "model": {
         "parent": "gtceu:block/machine/template/cube_all/sided",
         "textures": {
-          "all": "supercritical:block/spent_fuel_casing",
+          "all": "gtceu:block/casings/solid/machine_casing_clean_stainless_steel",
           "overlay_front": "supercritical:block/multiblock/spent_fuel_pool/overlay_front_active",
           "overlay_front_emissive": "supercritical:block/multiblock/spent_fuel_pool/overlay_front_active_emissive"
         }

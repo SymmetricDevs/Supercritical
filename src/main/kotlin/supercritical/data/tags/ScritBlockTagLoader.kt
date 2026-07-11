@@ -5,7 +5,7 @@ import net.minecraft.core.registries.Registries
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.tags.TagKey
 import net.minecraft.world.level.block.Block
-import supercritical.common.registry.ScritBlocks
+import supercritical.common.data.ScritBlocks
 
 object ScritBlockTagLoader {
     // Legacy VariantBlock casings declared a wrench harvest tool

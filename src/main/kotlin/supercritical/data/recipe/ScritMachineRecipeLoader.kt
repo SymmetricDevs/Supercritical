@@ -7,7 +7,7 @@ import com.gregtechceu.gtceu.common.data.GTRecipeTypes
 import com.gregtechceu.gtceu.config.ConfigHolder
 import net.minecraft.world.item.ItemStack
 import supercritical.common.data.ScritMaterials
-import supercritical.common.registry.ScritBlocks
+import supercritical.common.data.ScritBlocks
 
 object ScritMachineRecipeLoader {
     fun init() {

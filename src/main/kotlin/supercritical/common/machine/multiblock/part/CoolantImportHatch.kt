@@ -20,7 +20,7 @@ import supercritical.api.capability.ICoolantHandler
 import supercritical.api.machine.multiblock.IFissionReactorHatch
 import supercritical.api.machine.trait.LockableFluidTank
 import supercritical.api.nuclear.fission.ICoolantStats
-import supercritical.common.registry.ScritBlocks
+import supercritical.common.data.ScritBlocks
 
 class CoolantImportHatch(holder: IMachineBlockEntity, tier: Int) :
     TieredIOPartMachine(holder, tier, IO.IN), ICoolantHandler, IControllable, IFissionReactorHatch, IUIMachine {

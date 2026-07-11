@@ -9,11 +9,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import supercritical.common.data.ScritMaterials
-import supercritical.common.data.ScritRecipeTypes
-import supercritical.common.registry.ScritBlocks
-import supercritical.common.data.ScritItems
-import supercritical.common.data.ScritMachines
+import supercritical.common.data.*
 import supercritical.common.registry.ScritRegistration
 import supercritical.config.ScritConfig
 import supercritical.data.ScritDatagen
@@ -32,13 +28,20 @@ class Supercritical {
 
         val modBus = FMLJavaModLoadingContext.get().modEventBus
         ScritRegistration.REGISTRATE.registerEventListeners(modBus)
-        ScritItems.register(modBus)
-        ScritBlocks.register(modBus)
+        // Create the Supercritical creative tab and mark it current so all subsequently
+        // registered SC blocks/items/machines are tagged into it (GTCEu's GTMachines does the same).
+        ScritCreativeTabs.init()
+        ScritRegistration.REGISTRATE.creativeModeTab(ScritCreativeTabs.MAIN)
+        // Force object initialization -> each `val` registers its entry via GTRegistrate.
+        ScritBlocks.init()
+        ScritItems.init()
         modBus.addGenericListener<GTRecipeEvent, GTRecipeType> { registerRecipeTypes(it) }
         modBus.addGenericListener<GTMachineEvent, MachineDefinition> { registerMachines(it) }
         modBus.addListener<FMLCommonSetupEvent> { commonSetup(it) }
 
         modBus.register(ScritMaterials)
+
+
     }
 
     private fun registerRecipeTypes(event: GTRecipeEvent) {
@@ -57,7 +60,6 @@ class Supercritical {
             ScritMaterials.registerCoolants()
             ScritRecipeManager.loadLatest()
         }
-        LOGGER.info("{} common setup.", BuildConfig.MOD_NAME)
     }
 
     companion object {

@@ -1,7 +1,10 @@
 {
   "variants": {
-    "": {
+    "active=false": {
       "model": "supercritical:block/spent_fuel_casing"
+    },
+    "active=true": {
+      "model": "supercritical:block/spent_fuel_casing_active"
     }
   }
 }

@@ -19,7 +19,7 @@ class FuelRod(maxTemperature: Double, thermalConductivity: Double, private var f
         this.maxTemperature = fuel.maxTemperature.toDouble()
     }
 
-    val depletedFuel: ItemStack?
+    val depletedFuel: ItemStack
         get() = fuel.getDepletedFuel(thermalProportion)
 
     fun getFuel(): IFissionFuelStats {

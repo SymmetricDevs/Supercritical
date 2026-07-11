@@ -18,7 +18,6 @@ import com.gregtechceu.gtceu.api.fluids.FluidBuilder
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys
 import com.gregtechceu.gtceu.common.data.GTMaterials
 import net.minecraftforge.eventbus.api.SubscribeEvent
-import supercritical.ScritAddon
 import supercritical.api.data.chemical.material.property.CoolantProperty
 import supercritical.api.data.chemical.material.property.FissionFuelProperty
 import supercritical.api.data.chemical.material.property.ModeratorProperty
@@ -114,45 +113,45 @@ object ScritMaterials {
     private fun registerElementMaterials() {
         Uranium239 = builder("uranium_239")
             .color(0x46FA46).iconSet(MaterialIconSet.SHINY)
-            .element(ScritAddon.Uranium239)
+            .element(ScritElements.Uranium239)
             .buildAndRegister()
 
         Neptunium235 = builder("neptunium_235")
             .color(0x284D7B).iconSet(MaterialIconSet.METALLIC)
-            .element(ScritAddon.Neptunium235)
+            .element(ScritElements.Neptunium235)
             .buildAndRegister()
         Neptunium236 = builder("neptunium_236")
             .color(0x284D7B).iconSet(MaterialIconSet.METALLIC)
-            .element(ScritAddon.Neptunium236)
+            .element(ScritElements.Neptunium236)
             .buildAndRegister()
         Neptunium237 = builder("neptunium_237")
             .color(0x284D7B).iconSet(MaterialIconSet.METALLIC)
-            .element(ScritAddon.Neptunium237)
+            .element(ScritElements.Neptunium237)
             .buildAndRegister()
         Neptunium239 = builder("neptunium_239")
             .color(0x284D7B).iconSet(MaterialIconSet.METALLIC)
-            .element(ScritAddon.Neptunium239)
+            .element(ScritElements.Neptunium239)
             .buildAndRegister()
 
         Plutonium238 = builder("plutonium_238")
             .liquid(FluidBuilder().temperature(913))
             .color(0xF03232).iconSet(MaterialIconSet.METALLIC)
-            .element(ScritAddon.Plutonium238)
+            .element(ScritElements.Plutonium238)
             .buildAndRegister()
         Plutonium240 = builder("plutonium_240")
             .liquid(FluidBuilder().temperature(913))
             .color(0xF03232).iconSet(MaterialIconSet.METALLIC)
-            .element(ScritAddon.Plutonium240)
+            .element(ScritElements.Plutonium240)
             .buildAndRegister()
         Plutonium242 = builder("plutonium_242")
             .liquid(FluidBuilder().temperature(913))
             .color(0xF03232).iconSet(MaterialIconSet.METALLIC)
-            .element(ScritAddon.Plutonium242)
+            .element(ScritElements.Plutonium242)
             .buildAndRegister()
         Plutonium244 = builder("plutonium_244")
             .liquid(FluidBuilder().temperature(913))
             .color(0xF03232).iconSet(MaterialIconSet.METALLIC)
-            .element(ScritAddon.Plutonium244)
+            .element(ScritElements.Plutonium244)
             .buildAndRegister()
     }
 
@@ -457,7 +456,7 @@ object ScritMaterials {
             if (fuelItems != null) {
                 // Legacy parity (CommonProxy.java:124-133): every fuel emits only the hot depleted fuel rod.
                 // The hot -> cold cooling happens via the spent-fuel-pool recipe, not direct emission.
-                entry.property.setDepletedFuelSupplier { _: Double? ->
+                entry.property.setDepletedFuelSupplier { _: Double ->
                     fuelItems.hotDepletedFuelRod.get().defaultInstance
                 }
                     .setAllDepletedFuels {

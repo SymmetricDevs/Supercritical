@@ -14,7 +14,7 @@ open class LockableItemStackHandler(machine: MetaMachine, io: IO) : NotifiableIt
             IO.IN
         )
     ) IO.BOTH else io
-), ILockableHandler<ItemStack?> {
+), ILockableHandler<ItemStack> {
 
     @Persisted
     @DescSynced

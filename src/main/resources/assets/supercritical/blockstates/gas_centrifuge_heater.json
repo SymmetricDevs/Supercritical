@@ -1,7 +1,10 @@
 {
   "variants": {
-    "": {
+    "active=false": {
       "model": "supercritical:block/gas_centrifuge_heater"
+    },
+    "active=true": {
+      "model": "supercritical:block/gas_centrifuge_heater_active"
     }
   }
 }

@@ -80,7 +80,7 @@ class FissionFuelCategory(helpers: IJeiHelpers) : IRecipeCategory<FissionFuelInf
         fun registerRecipes(registry: IRecipeRegistration) {
             val infos = buildList<FissionFuelInfo?> {
                 for (fuel in FissionFuelRegistry.allFissionableRods) {
-                    if (fuel != null) add(FissionFuelInfo(fuel))
+                    add(FissionFuelInfo(fuel))
                 }
             }
             registry.addRecipes<FissionFuelInfo?>(RECIPE_TYPE, infos)

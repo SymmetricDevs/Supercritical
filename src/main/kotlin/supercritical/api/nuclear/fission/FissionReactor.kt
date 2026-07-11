@@ -99,9 +99,9 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
     }
 
     fun computeK(addToEffectiveLists: Boolean, controlRodsInserted: Boolean): Double {
-        val geometricMatrixNeutrons = Array<DoubleArray>(fuelRods.size) { DoubleArray(fuelRods.size) }
-        val geometricMatrixFastNeutrons = Array<DoubleArray>(fuelRods.size) { DoubleArray(fuelRods.size) }
-        val geometricMatrixSlowNeutrons = Array<DoubleArray>(fuelRods.size) { DoubleArray(fuelRods.size) }
+        val geometricMatrixNeutrons = Array(fuelRods.size) { DoubleArray(fuelRods.size) }
+        val geometricMatrixFastNeutrons = Array(fuelRods.size) { DoubleArray(fuelRods.size) }
+        val geometricMatrixSlowNeutrons = Array(fuelRods.size) { DoubleArray(fuelRods.size) }
 
         for (i in fuelRods.indices) {
             for (j in 0..<i) {
@@ -258,7 +258,7 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
     private val dy = intArrayOf(1, 0, -1, 0)
 
     init {
-        reactorLayout = Array(size) { arrayOfNulls<ReactorComponent>(size) }
+        reactorLayout = Array(size) { arrayOfNulls(size) }
         reactorRadius = size.toDouble() / 2 + 1.5
         this.controlRodInsertion = max(0.001, controlRodInsertion)
         surfaceArea = (reactorRadius * reactorRadius) * Math.PI * 2 + reactorDepth * reactorRadius * Math.PI * 2

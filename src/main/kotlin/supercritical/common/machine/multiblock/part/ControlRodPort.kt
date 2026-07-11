@@ -1,10 +1,10 @@
-package supercritical.common.machine.multiblock.multiblockpart
+package supercritical.common.machine.multiblock.part
 
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine
 import net.minecraft.core.BlockPos
 import supercritical.api.machine.multiblock.IFissionReactorHatch
-import supercritical.common.registry.ScritBlocks
+import supercritical.common.data.ScritBlocks
 
 class ControlRodPort(holder: IMachineBlockEntity, tier: Int, private val hasModeratorTip: Boolean) :
     TieredPartMachine(holder, tier), IFissionReactorHatch {

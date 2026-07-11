@@ -1,4 +1,4 @@
-package supercritical.common.machine.multiblock.multiblockpart
+package supercritical.common.machine.multiblock.part
 
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine
@@ -6,7 +6,7 @@ import net.minecraft.core.BlockPos
 import supercritical.api.machine.multiblock.IFissionReactorHatch
 import supercritical.api.nuclear.fission.IModeratorStats
 import supercritical.api.nuclear.fission.ModeratorRegistry
-import supercritical.common.registry.ScritBlocks
+import supercritical.common.data.ScritBlocks
 
 class ModeratorPort(holder: IMachineBlockEntity, tier: Int) : TieredPartMachine(holder, tier),
     IFissionReactorHatch {

@@ -1,6 +1,6 @@
 package supercritical.data.recipe
 
-import supercritical.api.recipe.handlers.NuclearRecipeHandler
+import supercritical.data.recipe.generated.NuclearRecipeHandler
 import supercritical.config.ScritConfig
 import supercritical.data.recipe.generated.FluidRecipeHandler
 

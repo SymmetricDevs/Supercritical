@@ -45,7 +45,7 @@ interface IFissionFuelStats {
 
     val id: String?
 
-    val depletedFuels: MutableList<ItemStack?>?
+    val depletedFuels: MutableList<ItemStack>
 
-    fun getDepletedFuel(thermalRatio: Double): ItemStack?
+    fun getDepletedFuel(thermalRatio: Double): ItemStack
 }

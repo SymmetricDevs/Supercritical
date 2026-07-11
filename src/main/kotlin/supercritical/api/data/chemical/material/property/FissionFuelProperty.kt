@@ -23,8 +23,8 @@ class FissionFuelProperty : IMaterialProperty, IFissionFuelStats {
     override var releasedHeatEnergy = 0.0
     override var decayRate = 0.0
     private var resourceId: ResourceLocation? = null
-    private var depletedFuelSupplier = Function { thermalRatio: Double? -> ItemStack.EMPTY }
-    private var allDepletedFuels: Supplier<MutableList<ItemStack?>?> = Supplier { mutableListOf() }
+    private var depletedFuelSupplier = Function { thermalRatio: Double -> ItemStack.EMPTY }
+    private var allDepletedFuels: Supplier<MutableList<ItemStack>> = Supplier { mutableListOf() }
 
     override fun verifyProperty(properties: MaterialProperties) {
         properties.ensureSet<DustProperty?>(PropertyKey.DUST, true)
@@ -36,19 +36,19 @@ class FissionFuelProperty : IMaterialProperty, IFissionFuelStats {
     val resourceLocation: ResourceLocation
         get() = checkNotNull(resourceId) { "Fission fuel id has not been initialized" }
 
-    override val depletedFuels: MutableList<ItemStack?>?
+    override val depletedFuels: MutableList<ItemStack>
         get() = allDepletedFuels.get()
 
-    override fun getDepletedFuel(thermalRatio: Double): ItemStack? {
+    override fun getDepletedFuel(thermalRatio: Double): ItemStack {
         return depletedFuelSupplier.apply(thermalRatio)
     }
 
-    fun setDepletedFuelSupplier(depletedFuelSupplier: Function<Double?, ItemStack?>): FissionFuelProperty {
+    fun setDepletedFuelSupplier(depletedFuelSupplier: Function<Double, ItemStack>): FissionFuelProperty {
         this.depletedFuelSupplier = depletedFuelSupplier
         return this
     }
 
-    fun setAllDepletedFuels(allDepletedFuels: Supplier<MutableList<ItemStack?>?>): FissionFuelProperty {
+    fun setAllDepletedFuels(allDepletedFuels: Supplier<MutableList<ItemStack>>): FissionFuelProperty {
         this.allDepletedFuels = allDepletedFuels
         return this
     }

@@ -7,7 +7,7 @@ import com.gregtechceu.gtceu.common.data.GTRecipeTypes
 import net.minecraft.world.item.DyeColor
 import net.minecraft.world.item.ItemStack
 import supercritical.common.data.ScritMaterials
-import supercritical.common.registry.ScritBlocks
+import supercritical.common.data.ScritBlocks
 
 object ScritMiscRecipes {
     fun init() {

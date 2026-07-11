@@ -6,7 +6,7 @@ import supercritical.api.machine.trait.LockableItemStackHandler
 import supercritical.api.nuclear.fission.IFissionFuelStats
 import supercritical.api.nuclear.fission.components.FuelRod
 
-interface IFuelRodHandler : ILockableHandler<ItemStack?> {
+interface IFuelRodHandler : ILockableHandler<ItemStack> {
 
     var fuel: IFissionFuelStats?
 

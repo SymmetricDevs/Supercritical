@@ -24,16 +24,7 @@ import supercritical.util.scId
  * Does not require external energy input.
  */
 class HeatExchanger(holder: IMachineBlockEntity, vararg args: Any?) :
-    WorkableMultiblockMachine(holder, *args), IControllable {
-    private var workingEnabled = true
-
-    override fun isWorkingEnabled(): Boolean {
-        return workingEnabled
-    }
-
-    override fun setWorkingEnabled(workingEnabled: Boolean) {
-        this.workingEnabled = workingEnabled
-    }
+    WorkableMultiblockMachine(holder, *args) {
 
     override fun createRecipeLogic(vararg args: Any?): RecipeLogic {
         return HeatExchangerRecipeLogic(this)
@@ -44,12 +35,6 @@ class HeatExchanger(holder: IMachineBlockEntity, vararg args: Any?) :
     }
 
     class HeatExchangerRecipeLogic(machine: IRecipeLogicMachine) : RecipeLogic(machine) {
-        override fun serverTick() {
-            if (!machine.isWorkingEnabled) {
-                return
-            }
-            super.serverTick()
-        }
 
         override fun checkMatchedRecipeAvailable(match: GTRecipe?): Boolean {
             val modified = machine.fullModifyRecipe(match)

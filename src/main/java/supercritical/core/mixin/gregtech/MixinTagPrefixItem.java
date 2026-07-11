@@ -10,7 +10,6 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -37,7 +36,7 @@ public abstract class MixinTagPrefixItem {
     public TagPrefix tagPrefix;
 
     @Unique
-    private void sc$handleHeatDamage(@NotNull LivingEntity entity) {
+    private void sc$handleHeatDamage(LivingEntity entity) {
         // Legacy applied SC heat damage only to hot depleted fuel rods (the sole prefix with a
         // heatDamageFunction). Hot-ingot heat damage is handled natively by GTCEu Modern's
         // TagPrefixItem.inventoryTick (ingotHot + BLAST), so we must not re-apply it here, or it
@@ -61,7 +60,7 @@ public abstract class MixinTagPrefixItem {
     }
 
     @Unique
-    private void sc$handleRadiationDamage(@NotNull Material material, @NotNull LivingEntity entity) {
+    private void sc$handleRadiationDamage(Material material, LivingEntity entity) {
         TagPrefix prefix = tagPrefix;
         Function<Double, Double> radiationFunction = TagPrefixExtension.Companion.getRadiationDamageFunction(prefix);
 
@@ -76,13 +75,13 @@ public abstract class MixinTagPrefixItem {
     }
 
     @Inject(method = "inventoryTick", at = @At("TAIL"))
-    private void sc$inventoryTick(ItemStack itemStack, Level level, Entity entityIn, int itemSlot, boolean isSelected,
+    private void sc$inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected,
                                   CallbackInfo ci) {
-        if (entityIn instanceof LivingEntity entity && entity.tickCount % 20 == 0) {
+        if (entity instanceof LivingEntity livingEntity && livingEntity.tickCount % 20 == 0) {
             Material material = this.material;
-            if (material == null || material.isNull()) return;
-            sc$handleHeatDamage(entity);
-            sc$handleRadiationDamage(material, entity);
+            if (material.isNull()) return;
+            sc$handleHeatDamage(livingEntity);
+            sc$handleRadiationDamage(material, livingEntity);
         }
     }
 }

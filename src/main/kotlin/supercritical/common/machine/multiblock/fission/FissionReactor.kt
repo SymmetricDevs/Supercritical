@@ -1,22 +1,27 @@
 package supercritical.common.machine.multiblock.fission
 
 import com.gregtechceu.gtceu.api.gui.GuiTextures
-import com.gregtechceu.gtceu.api.gui.UITemplate
+import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel
+import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget
+import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfiguratorButton
+import com.gregtechceu.gtceu.api.gui.fancy.IFancyUIProvider
+import com.gregtechceu.gtceu.api.gui.fancy.TabsWidget
 import com.gregtechceu.gtceu.api.gui.widget.ExtendedProgressWidget
-import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition
 import com.gregtechceu.gtceu.api.machine.TickableSubscription
-import com.gregtechceu.gtceu.api.machine.feature.IUIMachine
+import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility
 import com.gregtechceu.gtceu.api.pattern.*
 import com.gregtechceu.gtceu.api.pattern.error.PatternStringError
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture
 import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture
 import com.lowdragmc.lowdraglib.gui.widget.*
+import supercritical.api.gui.widget.ScritSliderWidget
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted
 import com.lowdragmc.lowdraglib.utils.BlockInfo
@@ -43,17 +48,17 @@ import supercritical.api.nuclear.fission.components.ControlRod
 import supercritical.api.nuclear.fission.components.CoolantChannel
 import supercritical.api.nuclear.fission.components.FuelRod
 import supercritical.api.nuclear.fission.components.Moderator
+import supercritical.common.data.ScritBlocks
 import supercritical.common.data.ScritMaterials
-import supercritical.common.machine.multiblock.multiblockpart.ControlRodPort
-import supercritical.common.machine.multiblock.multiblockpart.ModeratorPort
-import supercritical.common.registry.ScritBlocks
+import supercritical.common.machine.multiblock.part.ControlRodPort
+import supercritical.common.machine.multiblock.part.ModeratorPort
 import supercritical.config.ScritConfig
 import supercritical.util.replace
 import java.util.*
 import java.util.function.Consumer
 import kotlin.math.*
 
-class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(holder), IUIMachine,
+class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(holder), IFancyUIMachine,
     ICustomEnergyCover {
     override fun isRemote(): Boolean = super<MultiblockControllerMachine>.isRemote()
 
@@ -984,35 +989,69 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
         INVALID_COMPONENT
     }
 
-    override fun createUI(entityPlayer: Player): ModularUI {
-        // Display panel matching the 1.12.2 layout: title + scrollable status text (upper) and
-        // the control-rod slider (lower), both inside the DISPLAY panel. The status text is
-        // confined to a scrollable sub-group so it never underlaps the slider, while keeping the
-        // full addDisplayText content reachable by scrolling.
-        val panel = WidgetGroup(7, 4, 226, 109)
-        panel.setBackground(GuiTextures.DISPLAY)
-        panel.addWidget(LabelWidget(4, 5, self().definition.descriptionId))
+    override fun createUI(entityPlayer: Player): ModularUI =
+        ModularUI(198, 208, this, entityPlayer).widget(FancyMachineUIWidget(this, 198, 208))
+
+    override fun createUIWidget(): Widget {
+        // Main page (GTCEu-standard 190×125): a DISPLAY status screen on top, the three live
+        // gauges directly beneath it (NOT inside the screen), and the control-rod slider below
+        // those — all above the player inventory (which FancyMachineUIWidget adds underneath).
         val isClient = self().level?.isClientSide == true
-        val statusText = DraggableScrollableWidgetGroup(4, 17, 218, 38)
-        statusText.addWidget(
-            ComponentPanelWidget(0, 0, Consumer { text: MutableList<Component?> -> this.addDisplayText(text) })
+        val group = WidgetGroup(0, 0, 190, 125)
+        // Status screen (scrollable) — top portion only, so the gauges sit below it, not in it.
+        val screen = DraggableScrollableWidgetGroup(4, 4, 182, 92)
+        screen.setBackground(GuiTextures.DISPLAY)
+        screen.addWidget(LabelWidget(4, 5, self().definition.descriptionId))
+        screen.addWidget(
+            ComponentPanelWidget(4, 17, Consumer { text: MutableList<Component?> -> this.addDisplayText(text) })
                 .textSupplier(if (isClient) null else Consumer { text: MutableList<Component?> ->
                     this.addDisplayText(text)
                 })
-                .setMaxWidthLimit(216)
+                .setMaxWidthLimit(174)
         )
-        panel.addWidget(statusText)
-        panel.addWidget(
-            SliderWidget(3, 56, 220, 18).apply {
+        group.addWidget(screen)
+        // Three gauges across the page width, directly under the screen (reading the @DescSynced
+        // stat mirrors so the bars/tooltips are live on the client).
+        group.addWidget(
+            ExtendedProgressWidget(
+                { this.heatFillPercentage }, 4, 98, 60, 7,
+                ScritGuiTextures.PROGRESS_BAR_FISSION_HEAT
+            )
+                .setServerTooltipSupplier { list ->
+                    list.add(Component.translatable("supercritical.gui.fission.temperature", temperature))
+                }
+                .setFillDirection(ProgressTexture.FillDirection.LEFT_TO_RIGHT)
+        )
+        group.addWidget(
+            ExtendedProgressWidget(
+                { this.pressureFillPercentage }, 65, 98, 60, 7,
+                ScritGuiTextures.PROGRESS_BAR_FISSION_PRESSURE
+            )
+                .setServerTooltipSupplier { list ->
+                    list.add(Component.translatable("supercritical.gui.fission.pressure", pressure))
+                }
+                .setFillDirection(ProgressTexture.FillDirection.LEFT_TO_RIGHT)
+        )
+        group.addWidget(
+            ExtendedProgressWidget(
+                { this.powerFillPercentage }, 126, 98, 60, 7,
+                ScritGuiTextures.PROGRESS_BAR_FISSION_ENERGY
+            )
+                .setServerTooltipSupplier { list ->
+                    list.add(Component.translatable("supercritical.gui.fission.power", power, maxPower))
+                }
+                .setFillDirection(ProgressTexture.FillDirection.LEFT_TO_RIGHT)
+        )
+        // Control-rod insertion slider — back on the main page, below the gauges.
+        group.addWidget(
+            ScritSliderWidget(2, 107, 186, 18).apply {
                 setMinAmount(0f)
                 setMaxAmount(1f)
                 handleTexture = ScritGuiTextures.DARK_SLIDER_ICON
                 handleHoverTexture = ScritGuiTextures.DARK_SLIDER_ICON
                 setBackground(ScritGuiTextures.DARK_SLIDER_BACKGROUND)
-
-                setSliderValueProvider { controlRodInsertion.toFloat() }
-                setSliderCallback { setControlRodInsertion(it.toDouble()) }
-
+                setSliderValueProvider { this@FissionReactor.controlRodInsertion.toFloat() }
+                setResponder { this@FissionReactor.setControlRodInsertion(it.toDouble()) }
                 setOverlay(
                     TextTexture {
                         Component.translatable(
@@ -1023,65 +1062,49 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
                 )
             }
         )
+        // No page background: only the DISPLAY panel above is the "screen"; the gauges + slider sit
+        // on the FancyMachineUIWidget's standard background, below the screen and above the inventory.
+        return group
+    }
 
-        return ModularUI(240, 208, this, entityPlayer)
-            .background(GuiTextures.BACKGROUND)
-            .widget(panel)
-            .widget(
-                ExtendedProgressWidget(
-                    { this.heatFillPercentage }, 4, 115, 76, 7,
-                    ScritGuiTextures.PROGRESS_BAR_FISSION_HEAT
+    override fun attachConfigurators(configuratorPanel: ConfiguratorPanel) {
+        // Attached top→bottom: the smiley control-rod-regulation toggle, then the reactor
+        // power/lock toggle. Do NOT call super — this replaces GTCEu's default IControllable
+        // workingEnabled power button + cover configurators. The BUTTON_POWER toggle below IS the
+        // reactor on/off (locked = running, base = stopped), bound to `locked` rather than
+        // isWorkingEnabled because FissionReactor gates operation on its own lock state.
+        configuratorPanel.attachConfigurators(
+            IFancyConfiguratorButton.Toggle(
+                // BUTTON_CONTROL_ROD_HELPER is an 18×36 two-state strip: top half = regulation off,
+                // bottom half = regulation on.
+                ScritGuiTextures.BUTTON_CONTROL_ROD_HELPER.getSubTexture(0f, 0f, 1f, 0.5f),
+                ScritGuiTextures.BUTTON_CONTROL_ROD_HELPER.getSubTexture(0f, 0.5f, 1f, 0.5f),
+                { this.areControlRodsRegulated() },
+                { _, pressed -> this.setControlRodRegulation(pressed) }
+            ).setTooltipsSupplier { pressed ->
+                listOf(
+                    Component.translatable(
+                        if (pressed) "supercritical.gui.fission.helper.on"
+                        else "supercritical.gui.fission.helper.off"
+                    )
                 )
-                    .setServerTooltipSupplier { list ->
-                        list.add(Component.translatable("supercritical.gui.fission.temperature", temperature))
-                    }
-                    .setFillDirection(ProgressTexture.FillDirection.LEFT_TO_RIGHT)
-            )
-            .widget(
-                ExtendedProgressWidget(
-                    { this.pressureFillPercentage }, 82, 115, 76, 7,
-                    ScritGuiTextures.PROGRESS_BAR_FISSION_PRESSURE
+            },
+            IFancyConfiguratorButton.Toggle(
+                // BUTTON_POWER split like GTCEu's IControllable default: pressed (bottom half) =
+                // reactor running (locked), base (top half) = reactor stopped (unlocked).
+                GuiTextures.BUTTON_POWER.getSubTexture(0f, 0f, 1f, 0.5f),
+                GuiTextures.BUTTON_POWER.getSubTexture(0f, 0.5f, 1f, 0.5f),
+                { this.isLocked() },
+                { _, pressed -> this.locked = pressed }
+            ).setTooltipsSupplier { pressed ->
+                listOf(
+                    Component.translatable(
+                        if (pressed) "supercritical.gui.fission.lock.enabled"
+                        else "supercritical.gui.fission.lock.disabled"
+                    )
                 )
-                    .setServerTooltipSupplier { list ->
-                        list.add(Component.translatable("supercritical.gui.fission.pressure", pressure))
-                    }
-                    .setFillDirection(ProgressTexture.FillDirection.LEFT_TO_RIGHT)
-            )
-            .widget(
-                ExtendedProgressWidget(
-                    { this.powerFillPercentage }, 160, 115, 76, 7,
-                    ScritGuiTextures.PROGRESS_BAR_FISSION_ENERGY
-                )
-                    .setServerTooltipSupplier { list ->
-                        list.add(Component.translatable("supercritical.gui.fission.power", power, maxPower))
-                    }
-                    .setFillDirection(ProgressTexture.FillDirection.LEFT_TO_RIGHT)
-            )
-            .widget(
-                ToggleButtonWidget(
-                    215, 125, 18, 18,
-                    ScritGuiTextures.BUTTON_CONTROL_ROD_HELPER,
-                    { reactor?.controlRodRegulationOn == true },
-                    { enabled: Boolean -> reactor?.let { it.controlRodRegulationOn = enabled } }
-                )
-                    // BUTTON_CONTROL_ROD_HELPER is an 18×36 two-state strip (dark = regulation off,
-                    // bright = on), so it must rely on ToggleButtonWidget's own top/bottom split.
-                    // setShouldUseBaseBackground() would draw the *entire* strip (both smileys) into the
-                    // button — that was the "stitching" artifact. Single-icon buttons (BUTTON_LOCK)
-                    // are the ones that need setShouldUseBaseBackground().
-                    .setTooltipText("supercritical.gui.fission.helper")
-            )
-            .widget(
-                ToggleButtonWidget(
-                    215, 183, 18, 18,
-                    GuiTextures.BUTTON_LOCK,
-                    { this.isLocked() },
-                    { locked: Boolean -> this.locked = locked }
-                )
-                    .setShouldUseBaseBackground()
-                    .setTooltipText("supercritical.gui.fission.lock")
-            )
-            .widget(UITemplate.bindPlayerInventory(entityPlayer.inventory, GuiTextures.SLOT, 7, 125, true))
+            }
+        )
     }
 
     companion object {

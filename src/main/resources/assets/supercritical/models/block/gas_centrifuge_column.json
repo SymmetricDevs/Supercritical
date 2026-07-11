@@ -1,7 +1,21 @@
 {
-  "parent": "minecraft:block/cube_column",
-  "textures": {
-    "end": "supercritical:block/gas_centrifuge_column_end",
-    "side": "supercritical:block/gas_centrifuge_column_side"
-  }
+	"parent": "minecraft:block/block",
+	"textures": {
+		"side": "supercritical:block/gas_centrifuge_column_side",
+		"end": "supercritical:block/gas_centrifuge_column_end"
+	},
+	"elements": [
+		{
+			"from": [3, 0, 3],
+			"to": [13, 16, 13],
+			"faces": {
+				"north": {"uv": [0, 0, 10, 16], "texture": "#side"},
+				"east": {"uv": [0, 0, 10, 16], "texture": "#side"},
+				"south": {"uv": [0, 0, 10, 16], "texture": "#side"},
+				"west": {"uv": [0, 0, 10, 16], "texture": "#side"},
+				"up": {"uv": [3, 3, 13, 13], "texture": "#end", "cullface": "up"},
+				"down": {"uv": [3, 3, 13, 13], "texture": "#end", "cullface": "down"}
+			}
+		}
+	]
 }
