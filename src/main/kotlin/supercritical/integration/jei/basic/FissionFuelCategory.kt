@@ -18,7 +18,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import supercritical.BuildConfig
 import supercritical.api.nuclear.fission.FissionFuelRegistry
-import supercritical.common.registry.ScritMachines
+import supercritical.common.data.ScritMachines
 
 class FissionFuelCategory(helpers: IJeiHelpers) : IRecipeCategory<FissionFuelInfo?> {
     private val icon: IDrawable

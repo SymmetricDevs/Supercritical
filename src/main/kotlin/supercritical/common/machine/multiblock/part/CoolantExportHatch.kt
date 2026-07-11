@@ -1,4 +1,4 @@
-package supercritical.common.machine.multiblock.multiblockpart
+package supercritical.common.machine.multiblock.part
 
 import com.gregtechceu.gtceu.api.capability.IControllable
 import com.gregtechceu.gtceu.api.capability.recipe.IO
@@ -8,8 +8,8 @@ import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.level.material.Fluid
 import supercritical.api.capability.ICoolantHandler
-import supercritical.api.capability.impl.LockableFluidTank
 import supercritical.api.machine.multiblock.IFissionReactorHatch
+import supercritical.api.machine.trait.LockableFluidTank
 import supercritical.api.nuclear.fission.ICoolantStats
 
 class CoolantExportHatch(holder: IMachineBlockEntity, tier: Int) :

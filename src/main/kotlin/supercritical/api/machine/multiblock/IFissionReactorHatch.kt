@@ -1,7 +1,7 @@
 package supercritical.api.machine.multiblock
 
 import net.minecraft.core.BlockPos
-import supercritical.common.machine.multiblock.FissionReactor
+import supercritical.common.machine.multiblock.fission.FissionReactor
 
 interface IFissionReactorHatch {
     /**

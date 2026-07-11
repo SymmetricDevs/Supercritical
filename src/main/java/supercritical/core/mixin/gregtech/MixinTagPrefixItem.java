@@ -19,9 +19,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import supercritical.api.items.armor.ArmorLogicExtension;
-import supercritical.api.unification.material.MaterialExtension;
-import supercritical.api.unification.ore.ScritOrePrefix;
-import supercritical.api.unification.tag.TagPrefixExtension;
+import supercritical.api.data.chemical.material.MaterialExtension;
+import supercritical.api.data.chemical.ore.ScritOrePrefix;
+import supercritical.api.data.chemical.tag.TagPrefixExtension;
 
 import java.util.function.Function;
 

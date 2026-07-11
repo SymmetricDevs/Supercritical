@@ -21,12 +21,12 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraftforge.items.ItemStackHandler
 import supercritical.api.capability.IFuelRodHandler
-import supercritical.api.items.itemhandlers.LockableItemStackHandler
 import supercritical.api.machine.multiblock.IFissionReactorHatch
+import supercritical.api.machine.trait.LockableItemStackHandler
 import supercritical.api.nuclear.fission.FissionFuelRegistry
 import supercritical.api.nuclear.fission.IFissionFuelStats
 import supercritical.api.nuclear.fission.components.FuelRod
-import supercritical.common.machine.multiblock.FissionReactor
+import supercritical.common.machine.multiblock.fission.FissionReactor
 import supercritical.common.registry.ScritBlocks
 
 class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMachine(holder, tier, IO.IN),

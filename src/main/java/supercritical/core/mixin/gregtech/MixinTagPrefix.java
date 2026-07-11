@@ -3,7 +3,7 @@ package supercritical.core.mixin.gregtech;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-import supercritical.api.unification.tag.TagPrefixExtension;
+import supercritical.api.data.chemical.tag.TagPrefixExtension;
 
 import java.util.function.Function;
 

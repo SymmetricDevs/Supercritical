@@ -10,8 +10,8 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import supercritical.api.unification.ElementExtension;
-import supercritical.api.unification.material.MaterialExtension;
+import supercritical.api.data.chemical.ElementExtension;
+import supercritical.api.data.chemical.material.MaterialExtension;
 
 @Mixin(value = Material.class, remap = false)
 public abstract class MixinMaterial implements MaterialExtension {

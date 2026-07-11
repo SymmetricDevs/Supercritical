@@ -6,7 +6,7 @@ import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMa
 import com.gregtechceu.gtceu.api.recipe.GTRecipe
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier
 import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction
-import supercritical.api.util.nullWrongType
+import supercritical.util.nullWrongType
 
 class GasCentrifuge(holder: IMachineBlockEntity) : WorkableElectricMultiblockMachine(holder) {
     var columnCount: Int = 0

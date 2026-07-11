@@ -1,4 +1,4 @@
-package supercritical.common.machine.multiblock
+package supercritical.common.machine.multiblock.fission
 
 import com.gregtechceu.gtceu.api.capability.IControllable
 import com.gregtechceu.gtceu.api.data.RotationState
@@ -15,9 +15,9 @@ import com.gregtechceu.gtceu.common.data.GTBlocks
 import com.gregtechceu.gtceu.common.data.GTMaterials
 import com.gregtechceu.gtceu.common.data.GTRecipeModifiers
 import net.minecraft.resources.ResourceLocation
-import supercritical.api.recipes.ScritRecipeMaps
-import supercritical.api.registries.ScritRegistries
-import supercritical.api.util.scId
+import supercritical.common.data.ScritRecipeTypes
+import supercritical.common.registry.ScritRegistration
+import supercritical.util.scId
 
 /**
  * Heat exchanger multiblock. Converts a hot coolant into a cooled coolant while producing power.
@@ -70,10 +70,10 @@ class HeatExchanger(holder: IMachineBlockEntity, vararg args: Any?) :
 
     companion object {
         fun register(): MultiblockMachineDefinition {
-            return ScritRegistries.REGISTRATE
+            return ScritRegistration.REGISTRATE
                 .multiblock("heat_exchanger") { holder: IMachineBlockEntity -> HeatExchanger(holder) }
                 .rotationState(RotationState.NON_Y_AXIS)
-                .recipeType(ScritRecipeMaps.HEAT_EXCHANGER_RECIPES)
+                .recipeType(ScritRecipeTypes.HEAT_EXCHANGER_RECIPES)
                 .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH)
                 .pattern { definition: MultiblockMachineDefinition ->
                     FactoryBlockPattern.start()

@@ -16,7 +16,7 @@ import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.FluidType
 import net.minecraftforge.fluids.capability.IFluidHandler
 import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction
-import supercritical.common.ScritConfig
+import supercritical.config.ScritConfig
 
 /**
  * Supercritical-specific pattern predicates and helpers.

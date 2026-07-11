@@ -3,7 +3,7 @@ package supercritical.integration.computercraft
 import dan200.computercraft.api.lua.LuaFunction
 import dan200.computercraft.api.lua.MethodResult
 import dan200.computercraft.api.peripheral.IPeripheral
-import supercritical.common.machine.multiblock.FissionReactor
+import supercritical.common.machine.multiblock.fission.FissionReactor
 
 /**
  * CC:Tweaked peripheral wrapping the fission reactor controller. Mirrors the 1.12.2 OpenComputers

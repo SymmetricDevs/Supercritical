@@ -18,7 +18,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import supercritical.BuildConfig
 import supercritical.api.nuclear.fission.ModeratorRegistry
-import supercritical.common.registry.ScritMachines
+import supercritical.common.data.ScritMachines
 
 class ModeratorCategory(helpers: IJeiHelpers) : IRecipeCategory<ModeratorInfo?> {
     private val icon: IDrawable

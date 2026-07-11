@@ -7,7 +7,7 @@ import supercritical.api.nuclear.fission.components.ControlRod
 import supercritical.api.nuclear.fission.components.CoolantChannel
 import supercritical.api.nuclear.fission.components.FuelRod
 import supercritical.api.nuclear.fission.components.ReactorComponent
-import supercritical.common.ScritConfig
+import supercritical.config.ScritConfig
 import java.util.*
 import kotlin.math.exp
 import kotlin.math.max

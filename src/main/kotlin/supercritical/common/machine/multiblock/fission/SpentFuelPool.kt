@@ -1,4 +1,4 @@
-package supercritical.common.machine.multiblock
+package supercritical.common.machine.multiblock.fission
 
 import com.gregtechceu.gtceu.api.capability.IControllable
 import com.gregtechceu.gtceu.api.data.RotationState
@@ -25,10 +25,10 @@ import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
 import net.minecraft.world.level.material.Fluids
 import supercritical.api.pattern.ScritPredicates
-import supercritical.api.recipes.ScritRecipeMaps
-import supercritical.api.registries.ScritRegistries
-import supercritical.api.util.scId
+import supercritical.common.data.ScritRecipeTypes
 import supercritical.common.registry.ScritBlocks
+import supercritical.common.registry.ScritRegistration
+import supercritical.util.scId
 import kotlin.math.max
 
 /**
@@ -257,7 +257,7 @@ class SpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?) :
                 .where('R', Predicates.blocks(ScritBlocks.SPENT_FUEL_CASING.get()))
                 .where(
                     'T', Predicates.blocks(GTBlocks.CASING_STAINLESS_CLEAN.get())
-                        .or(Predicates.autoAbilities(ScritRecipeMaps.SPENT_FUEL_POOL_RECIPES))
+                        .or(Predicates.autoAbilities(ScritRecipeTypes.SPENT_FUEL_POOL_RECIPES))
                         .or(Predicates.autoAbilities(false, false, false))
                         .or(Predicates.abilities(PartAbility.IMPORT_FLUIDS))
                 )
@@ -265,11 +265,11 @@ class SpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?) :
         }
 
         fun register(): MultiblockMachineDefinition {
-            return ScritRegistries.REGISTRATE
+            return ScritRegistration.REGISTRATE
                 .multiblock("spent_fuel_pool") { holder: IMachineBlockEntity -> SpentFuelPool(holder) }
                 .rotationState(RotationState.NON_Y_AXIS)
                 .allowExtendedFacing(false)
-                .recipeType(ScritRecipeMaps.SPENT_FUEL_POOL_RECIPES)
+                .recipeType(ScritRecipeTypes.SPENT_FUEL_POOL_RECIPES)
                 .recipeModifiers(RecipeModifier { machine: MetaMachine, recipe: GTRecipe ->
                     poolParallel(machine, recipe)
                 })

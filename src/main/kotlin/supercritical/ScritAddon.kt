@@ -11,16 +11,16 @@ import com.gregtechceu.gtceu.common.data.GTElements
 import com.gregtechceu.gtceu.common.data.GTOres
 import net.minecraft.tags.BiomeTags
 import net.minecraft.util.valueproviders.UniformInt
-import supercritical.api.registries.ScritRegistries
-import supercritical.api.unification.ElementExtension
-import supercritical.api.unification.material.ScritMaterials
-import supercritical.api.unification.ore.ScritOrePrefix
-import supercritical.api.util.scId
+import supercritical.api.data.chemical.ElementExtension
+import supercritical.api.data.chemical.ore.ScritOrePrefix
+import supercritical.common.data.ScritMaterials
+import supercritical.common.registry.ScritRegistration
+import supercritical.util.scId
 
 @GTAddon
 class ScritAddon : IGTAddon {
     override fun getRegistrate(): GTRegistrate {
-        return ScritRegistries.REGISTRATE
+        return ScritRegistration.REGISTRATE
     }
 
     override fun initializeAddon() {}

@@ -7,7 +7,7 @@ import net.minecraftforge.common.data.ExistingFileHelper
 import net.minecraftforge.registries.RegistryObject
 import supercritical.BuildConfig
 import supercritical.common.registry.ScritBlocks
-import supercritical.common.registry.ScritItems
+import supercritical.common.data.ScritItems
 
 /**
  * Item models for Supercritical's plain `DeferredRegister` items:

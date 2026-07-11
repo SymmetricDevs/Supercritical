@@ -7,7 +7,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.level.Level
 import net.minecraftforge.common.util.LazyOptional
-import supercritical.common.machine.multiblock.FissionReactor
+import supercritical.common.machine.multiblock.fission.FissionReactor
 
 /**
  * Global CC:Tweaked peripheral provider for the fission reactor controller. Registered once via

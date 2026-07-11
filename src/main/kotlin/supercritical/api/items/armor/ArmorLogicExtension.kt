@@ -13,7 +13,7 @@ interface ArmorLogicExtension {
         get() = 1.0f
 
     companion object {
-        fun getRadiationResistance(armorLogic: IArmorLogic): Float =
-            (armorLogic as ArmorLogicExtension).radiationResistance
+        val IArmorLogic.radiationResistance: Float
+            get() = (this as ArmorLogicExtension).radiationResistance
     }
 }

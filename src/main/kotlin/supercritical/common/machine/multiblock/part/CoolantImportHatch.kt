@@ -1,4 +1,4 @@
-package supercritical.common.machine.multiblock.multiblockpart
+package supercritical.common.machine.multiblock.part
 
 import com.gregtechceu.gtceu.api.capability.IControllable
 import com.gregtechceu.gtceu.api.capability.recipe.IO
@@ -17,8 +17,8 @@ import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.material.Fluid
 import supercritical.api.capability.ICoolantHandler
-import supercritical.api.capability.impl.LockableFluidTank
 import supercritical.api.machine.multiblock.IFissionReactorHatch
+import supercritical.api.machine.trait.LockableFluidTank
 import supercritical.api.nuclear.fission.ICoolantStats
 import supercritical.common.registry.ScritBlocks
 

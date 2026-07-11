@@ -5,7 +5,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import supercritical.loaders.recipe.ScritRecipeUtils;
+import supercritical.data.recipe.ScritRecipeUtils;
 
 @Mixin(value = GTRecipeType.class, remap = false)
 public class MixinGTRecipeType {

@@ -9,16 +9,16 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import supercritical.api.recipes.ScritRecipeMaps
-import supercritical.api.registries.ScritRegistries
-import supercritical.api.unification.material.ScritMaterials
-import supercritical.api.util.addGenericListener
-import supercritical.common.ScritConfig
+import supercritical.common.data.ScritMaterials
+import supercritical.common.data.ScritRecipeTypes
 import supercritical.common.registry.ScritBlocks
-import supercritical.common.registry.ScritItems
-import supercritical.common.registry.ScritMachines
+import supercritical.common.data.ScritItems
+import supercritical.common.data.ScritMachines
+import supercritical.common.registry.ScritRegistration
+import supercritical.config.ScritConfig
 import supercritical.data.ScritDatagen
-import supercritical.loaders.recipe.ScritRecipeManager
+import supercritical.data.recipe.ScritRecipeManager
+import supercritical.util.addGenericListener
 
 typealias GTRecipeEvent = GTCEuAPI.RegisterEvent<ResourceLocation, GTRecipeType>
 typealias GTMachineEvent = GTCEuAPI.RegisterEvent<ResourceLocation, MachineDefinition>
@@ -31,7 +31,7 @@ class Supercritical {
         ScritDatagen.init()
 
         val modBus = FMLJavaModLoadingContext.get().modEventBus
-        ScritRegistries.REGISTRATE.registerEventListeners(modBus)
+        ScritRegistration.REGISTRATE.registerEventListeners(modBus)
         ScritItems.register(modBus)
         ScritBlocks.register(modBus)
         modBus.addGenericListener<GTRecipeEvent, GTRecipeType> { registerRecipeTypes(it) }
@@ -42,7 +42,7 @@ class Supercritical {
     }
 
     private fun registerRecipeTypes(event: GTRecipeEvent) {
-        ScritRecipeMaps.init()
+        ScritRecipeTypes.init()
     }
 
     private fun registerMachines(event: GTMachineEvent) {

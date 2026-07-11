@@ -1,4 +1,4 @@
-package supercritical.common.machine.multiblock
+package supercritical.common.machine.multiblock.fission
 
 import com.gregtechceu.gtceu.api.gui.GuiTextures
 import com.gregtechceu.gtceu.api.gui.UITemplate
@@ -15,10 +15,8 @@ import com.gregtechceu.gtceu.api.pattern.error.PatternStringError
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI
 import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture
-import com.lowdragmc.lowdraglib.gui.widget.ComponentPanelWidget
-import com.lowdragmc.lowdraglib.gui.widget.DraggableScrollableWidgetGroup
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup
+import com.lowdragmc.lowdraglib.gui.texture.TextTexture
+import com.lowdragmc.lowdraglib.gui.widget.*
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted
 import com.lowdragmc.lowdraglib.utils.BlockInfo
@@ -35,7 +33,6 @@ import supercritical.api.capability.ICoolantHandler
 import supercritical.api.capability.IFuelRodHandler
 import supercritical.api.cover.ICustomEnergyCover
 import supercritical.api.gui.ScritGuiTextures
-import supercritical.api.gui.widget.ScritSliderWidget
 import supercritical.api.machine.multiblock.IFissionReactorHatch
 import supercritical.api.machine.multiblock.ScritMultiblockAbility
 import supercritical.api.nuclear.fission.CoolantRegistry
@@ -46,12 +43,12 @@ import supercritical.api.nuclear.fission.components.ControlRod
 import supercritical.api.nuclear.fission.components.CoolantChannel
 import supercritical.api.nuclear.fission.components.FuelRod
 import supercritical.api.nuclear.fission.components.Moderator
-import supercritical.api.unification.material.ScritMaterials
-import supercritical.api.util.replace
-import supercritical.common.ScritConfig
+import supercritical.common.data.ScritMaterials
 import supercritical.common.machine.multiblock.multiblockpart.ControlRodPort
 import supercritical.common.machine.multiblock.multiblockpart.ModeratorPort
 import supercritical.common.registry.ScritBlocks
+import supercritical.config.ScritConfig
+import supercritical.util.replace
 import java.util.*
 import java.util.function.Consumer
 import kotlin.math.*
@@ -1006,9 +1003,25 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
         )
         panel.addWidget(statusText)
         panel.addWidget(
-            ScritSliderWidget(3, 56, 220, 18)
-                .setProvider { controlRodInsertion.toFloat() }
-                .setResponder { value -> setControlRodInsertion(value.toDouble()) }
+            SliderWidget(3, 56, 220, 18).apply {
+                setMinAmount(0f)
+                setMaxAmount(1f)
+                handleTexture = ScritGuiTextures.DARK_SLIDER_ICON
+                handleHoverTexture = ScritGuiTextures.DARK_SLIDER_ICON
+                setBackground(ScritGuiTextures.DARK_SLIDER_BACKGROUND)
+
+                setSliderValueProvider { controlRodInsertion.toFloat() }
+                setSliderCallback { setControlRodInsertion(it.toDouble()) }
+
+                setOverlay(
+                    TextTexture {
+                        Component.translatable(
+                            "supercritical.gui.fission.control_rod_insertion",
+                            "%.2f%%".format(sliderValue * 100f)
+                        ).string.replace("%", "%%")
+                    }
+                )
+            }
         )
 
         return ModularUI(240, 208, this, entityPlayer)
