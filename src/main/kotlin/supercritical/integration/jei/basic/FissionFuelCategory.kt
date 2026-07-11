@@ -26,28 +26,29 @@ class FissionFuelCategory(helpers: IJeiHelpers) : IRecipeCategory<FissionFuelInf
     private val arrow: IDrawable
 
     init {
-        val guiHelper = helpers.getGuiHelper()
+        val guiHelper = helpers.guiHelper
         this.icon = guiHelper.createDrawableItemStack(SCMachines.FISSION_REACTOR.asStack())
         this.slot = IGui2IDrawable.toDrawable(GuiTextures.SLOT, 18, 18)
         this.arrow = IGui2IDrawable.toDrawable(GuiTextures.PROGRESS_BAR_ARROW, 20, 20)
     }
 
     override fun setRecipe(
-        builder: IRecipeLayoutBuilder, recipe: FissionFuelInfo,
+        builder: IRecipeLayoutBuilder, recipe: FissionFuelInfo?,
         focuses: IFocusGroup
     ) {
-        builder.addSlot(RecipeIngredientRole.INPUT, 55, 9).addItemStack(recipe.rod)
-        builder.addSlot(RecipeIngredientRole.OUTPUT, 105, 9).addItemStacks(recipe.depletedRods)
+        val info = recipe ?: return
+        builder.addSlot(RecipeIngredientRole.INPUT, 55, 9).addItemStack(info.rod)
+        builder.addSlot(RecipeIngredientRole.OUTPUT, 105, 9).addItemStacks(info.depletedRods)
     }
 
     override fun draw(
-        recipe: FissionFuelInfo, recipeSlotsView: IRecipeSlotsView,
+        recipe: FissionFuelInfo?, recipeSlotsView: IRecipeSlotsView,
         guiGraphics: GuiGraphics, mouseX: Double, mouseY: Double
     ) {
         slot.draw(guiGraphics, 54, 8)
         slot.draw(guiGraphics, 104, 8)
         arrow.draw(guiGraphics, 77, 6)
-        recipe.drawInfo(guiGraphics, Minecraft.getInstance())
+        recipe?.drawInfo(guiGraphics, Minecraft.getInstance())
     }
 
     override fun getRecipeType(): RecipeType<FissionFuelInfo?> {
@@ -66,7 +67,7 @@ class FissionFuelCategory(helpers: IJeiHelpers) : IRecipeCategory<FissionFuelInf
         return 90
     }
 
-    override fun getIcon(): IDrawable? {
+    override fun getIcon(): IDrawable {
         return icon
     }
 
@@ -77,9 +78,10 @@ class FissionFuelCategory(helpers: IJeiHelpers) : IRecipeCategory<FissionFuelInf
         )
 
         fun registerRecipes(registry: IRecipeRegistration) {
-            val infos: MutableList<FissionFuelInfo?> = ArrayList<FissionFuelInfo?>()
-            for (fuel in FissionFuelRegistry.getAllFissionableRods()) {
-                infos.add(FissionFuelInfo(fuel))
+            val infos = buildList<FissionFuelInfo?> {
+                for (fuel in FissionFuelRegistry.allFissionableRods) {
+                    if (fuel != null) add(FissionFuelInfo(fuel))
+                }
             }
             registry.addRecipes<FissionFuelInfo?>(RECIPE_TYPE, infos)
         }

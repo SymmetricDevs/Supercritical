@@ -6,48 +6,45 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeType
 import net.minecraft.resources.ResourceLocation
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.jspecify.annotations.NullMarked
 import supercritical.api.recipes.SCRecipeMaps
 import supercritical.api.registries.SCRegistries
 import supercritical.api.unification.material.SCMaterials
-import supercritical.api.unification.ore.SCOrePrefix
+import supercritical.api.util.addGenericListener
 import supercritical.common.SCConfigHolder
 import supercritical.common.registry.SCBlocks
 import supercritical.common.registry.SCItems
 import supercritical.common.registry.SCMachines
 import supercritical.data.SCDatagen
 import supercritical.loaders.recipe.SCRecipeManager
-import java.util.function.Consumer
-import thedarkcolour.kotlinforforge.forge.MOD_BUS
 
-@NullMarked
+typealias GTRecipeEvent = GTCEuAPI.RegisterEvent<ResourceLocation, GTRecipeType>
+typealias GTMachineEvent = GTCEuAPI.RegisterEvent<ResourceLocation, MachineDefinition>
+
 @Mod(BuildConfig.MOD_ID)
 class Supercritical {
+
     init {
         init()
 
-        val modBus = MOD_BUS
+        val modBus = FMLJavaModLoadingContext.get().modEventBus
         SCRegistries.REGISTRATE.registerEventListeners(modBus)
         SCItems.register(modBus)
         SCBlocks.register(modBus)
-        modBus.addGenericListener(
-            GTRecipeType::class.java
-        ) { event: GTCEuAPI.RegisterEvent<ResourceLocation, GTRecipeType> -> this.registerRecipeTypes(event) }
-        modBus.addGenericListener(
-            MachineDefinition::class.java
-        ) { event: GTCEuAPI.RegisterEvent<ResourceLocation, MachineDefinition> -> this.registerMachines(event) }
-        modBus.addListener { event: FMLCommonSetupEvent -> this.commonSetup(event) }
+        modBus.addGenericListener<GTRecipeEvent, GTRecipeType> { registerRecipeTypes(it) }
+        modBus.addGenericListener<GTMachineEvent, MachineDefinition> { registerMachines(it) }
+        modBus.addListener<FMLCommonSetupEvent> { commonSetup(it) }
 
-        modBus.register(SCMaterials::class.java)
+        modBus.register(SCMaterials)
     }
 
-    private fun registerRecipeTypes(event: GTCEuAPI.RegisterEvent<ResourceLocation, GTRecipeType>) {
+    private fun registerRecipeTypes(event: GTRecipeEvent) {
         SCRecipeMaps.init()
     }
 
-    private fun registerMachines(event: GTCEuAPI.RegisterEvent<ResourceLocation, MachineDefinition>) {
+    private fun registerMachines(event: GTMachineEvent) {
         SCMachines.ensureInitialized()
     }
 
@@ -55,6 +52,7 @@ class Supercritical {
         event.enqueueWork { SCRecipeManager.load() }
         event.enqueueWork { SCMaterials.registerFuelItems() }
         event.enqueueWork {
+            SCMaterials.registerModerators()
             SCMaterials.registerCoolants()
             SCRecipeManager.loadLatest()
         }
@@ -65,8 +63,7 @@ class Supercritical {
         val LOGGER: Logger = LogManager.getLogger(BuildConfig.MOD_ID)
 
         fun init() {
-            SCConfigHolder.register()
-            SCOrePrefix.init()
+            SCConfigHolder.init()
             SCDatagen.init()
         }
     }

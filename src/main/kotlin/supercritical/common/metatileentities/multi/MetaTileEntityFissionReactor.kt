@@ -1,37 +1,43 @@
-package supercritical.common.metatileentities.multi
+package supercritical.common.machine.multiblock
 
 import com.gregtechceu.gtceu.api.gui.GuiTextures
 import com.gregtechceu.gtceu.api.gui.UITemplate
+import com.gregtechceu.gtceu.api.gui.widget.ExtendedProgressWidget
 import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition
 import com.gregtechceu.gtceu.api.machine.TickableSubscription
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility
 import com.gregtechceu.gtceu.api.pattern.*
 import com.gregtechceu.gtceu.api.pattern.error.PatternStringError
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture
-import com.lowdragmc.lowdraglib.gui.util.ClickData
-import com.lowdragmc.lowdraglib.gui.widget.*
+import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture
+import com.lowdragmc.lowdraglib.gui.widget.ComponentPanelWidget
+import com.lowdragmc.lowdraglib.gui.widget.DraggableScrollableWidgetGroup
+import com.lowdragmc.lowdraglib.gui.widget.LabelWidget
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted
 import com.lowdragmc.lowdraglib.utils.BlockInfo
-import it.unimi.dsi.fastutil.booleans.BooleanConsumer
+import net.minecraft.core.BlockPos
 import net.minecraft.core.BlockPos.MutableBlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.level.Explosion
 import net.minecraft.world.level.Level
+import net.minecraftforge.event.ForgeEventFactory
 import supercritical.api.capability.ICoolantHandler
 import supercritical.api.capability.IFuelRodHandler
 import supercritical.api.cover.ICustomEnergyCover
-import supercritical.api.metatileentity.multiblock.IFissionReactorHatch
-import supercritical.api.metatileentity.multiblock.SCMultiblockAbility
+import supercritical.api.gui.SCGuiTextures
+import supercritical.api.gui.widget.SCSliderWidget
+import supercritical.api.machine.multiblock.IFissionReactorHatch
+import supercritical.api.machine.multiblock.SCMultiblockAbility
 import supercritical.api.nuclear.fission.CoolantRegistry
 import supercritical.api.nuclear.fission.FissionFuelRegistry
 import supercritical.api.nuclear.fission.FissionReactor
@@ -40,23 +46,32 @@ import supercritical.api.nuclear.fission.components.ControlRod
 import supercritical.api.nuclear.fission.components.CoolantChannel
 import supercritical.api.nuclear.fission.components.FuelRod
 import supercritical.api.nuclear.fission.components.Moderator
-import supercritical.api.util.SCUtility
+import supercritical.api.unification.material.SCMaterials
+import supercritical.api.util.replace
 import supercritical.common.SCConfigHolder
 import supercritical.common.metatileentities.multi.multiblockpart.MetaTileEntityControlRodPort
 import supercritical.common.metatileentities.multi.multiblockpart.MetaTileEntityModeratorPort
 import supercritical.common.registry.SCBlocks
 import java.util.*
-import java.util.function.*
+import java.util.function.Consumer
 import kotlin.math.*
 
 class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(holder), IUIMachine,
     ICustomEnergyCover {
+    override fun isRemote(): Boolean = super<MultiblockControllerMachine>.isRemote()
+
     var reactor: FissionReactor? = null
         private set
 
-    @Persisted
+    @Persisted(key = "locked")
     @DescSynced
-    private var locked = false
+    private var lockedState = false
+
+    var locked: Boolean
+        get() = lockedState
+        set(value) {
+            applyLockedState(value)
+        }
 
     @Persisted
     @DescSynced
@@ -80,17 +95,46 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
     @DescSynced
     private var pressureExplosion = false
 
+    // R1: mirrors of the reactor's runtime stats, replicated to the client every second by
+    // syncReactorStats(). The GUI bars/text read these (not the non-synced `reactor` field),
+    // so the display is live on the client. controlRodInsertion (above) is the 9th synced value.
+    @DescSynced
+    private var temperature = 0.0
+
+    @DescSynced
+    private var maxTemperature = 0.0
+
+    @DescSynced
+    private var pressure = 0.0
+
+    @DescSynced
+    private var maxPressure = 0.0
+
+    @DescSynced
+    private var power = 0.0
+
+    @DescSynced
+    private var maxPower = 0.0
+
+    @DescSynced
+    private var kEff = 0.0
+
+    @DescSynced
+    private var totalDepletion = 0.0
+
     override fun onLoad() {
         super.onLoad()
-        if (tickSubscription == null || !tickSubscription!!.isStillSubscribed()) {
-            tickSubscription = subscribeServerTick(Runnable { this.tickReactor() })
+        val sub = tickSubscription
+        if (sub == null || !sub.isStillSubscribed) {
+            tickSubscription = subscribeServerTick { tickReactor() }
         }
     }
 
     override fun onUnload() {
         super.onUnload()
-        if (tickSubscription != null) {
-            tickSubscription!!.unsubscribe()
+        val sub = tickSubscription
+        if (sub != null) {
+            sub.unsubscribe()
             tickSubscription = null
         }
     }
@@ -121,18 +165,19 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
     }
 
     private val reactorUp: Direction
-        get() = RelativeDirection.UP.getRelative(getFrontFacing(), getUpwardsFacing(), isFlipped())
+        get() = RelativeDirection.UP.getRelative(frontFacing, upwardsFacing, isFlipped())
 
     private val reactorRight: Direction
-        get() = RelativeDirection.RIGHT.getRelative(getFrontFacing(), getUpwardsFacing(), isFlipped())
+        get() = RelativeDirection.RIGHT.getRelative(frontFacing, upwardsFacing, isFlipped())
 
     protected fun findHeight(top: Boolean): Int {
         var i = 1
-        val pos = getPos().mutable()
+        val pos = pos.mutable()
         val up = this.reactorUp
-        val dir = if (top) up else up.getOpposite()
+        val dir = if (top) up else up.opposite
+        val level = level ?: return 0
         while (i <= 15) {
-            if (isHeightEdge(getLevel()!!, pos, dir, i)) break
+            if (isHeightEdge(level, pos, dir, i)) break
             i++
         }
         return i - 1
@@ -140,18 +185,19 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
 
     protected fun findDiameter(): Int {
         var i = 1
-        val pos = getPos().mutable()
+        val pos = pos.mutable()
+        val level = level ?: return 0
         while (i <= 15) {
-            pos.move(getFrontFacing().getOpposite())
-            val state = getLevel()!!.getBlockState(pos)
-            if (state.getBlock() === SCBlocks.REACTOR_VESSEL.get()) {
+            pos.move(frontFacing.opposite)
+            val state = level.getBlockState(pos)
+            if (state.block === SCBlocks.REACTOR_VESSEL.get()) {
                 break
             }
-            val machine = getMachine(getLevel(), pos)
+            val machine = getMachine(level, pos)
             if (machine is IFissionReactorHatch) {
                 break
             }
-            if (PartAbility.MAINTENANCE.isApplicable(state.getBlock())) {
+            if (PartAbility.MAINTENANCE.isApplicable(state.block)) {
                 break
             }
             i++
@@ -163,7 +209,7 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
         pos.move(direction, steps)
         val edge: Boolean
         val state = level.getBlockState(pos)
-        val block = state.getBlock()
+        val block = state.block
         if (block === SCBlocks.REACTOR_VESSEL.get()) {
             edge = true
         } else if (PartAbility.MAINTENANCE.isApplicable(block)) {
@@ -172,18 +218,18 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
             val machine = getMachine(level, pos)
             edge = machine is IFissionReactorHatch
         }
-        pos.move(direction.getOpposite(), steps)
+        pos.move(direction.opposite, steps)
         return edge
     }
 
     private fun moderatorPredicate(): TraceabilityPredicate {
         return Predicates.custom(
-            Predicate { state: MultiblockState? ->
+            { state: MultiblockState ->
                 ModeratorRegistry.getModerator(
-                    state!!.getBlockState().getBlock()
+                    state.blockState.block
                 ) != null
             },
-            Supplier { arrayOfNulls<BlockInfo>(0) })
+            { arrayOfNulls<BlockInfo>(0) })
     }
 
     private fun buildDynamicPattern(): BlockPattern? {
@@ -191,10 +237,10 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
             Math.round((this.diameter - 1) / 2f)
 
         val interiorBuilder = StringBuilder()
-        val interiorSlice = arrayOfNulls<String>(this.diameter)
-        val controllerSlice: Array<String?>
-        val topSlice: Array<String?>
-        val bottomSlice: Array<String?>
+        val interiorSlice = Array(this.diameter) { "" }
+        val controllerSlice: Array<String>
+        val topSlice: Array<String>
+        val bottomSlice: Array<String>
 
         for (i in 0..<this.diameter) {
             for (j in 0..<this.diameter) {
@@ -210,24 +256,24 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
             interiorBuilder.setLength(0)
         }
 
-        interiorSlice[0] = interiorSlice[0]!!.replace('A', 'B')
+        interiorSlice[0] = interiorSlice[0].replace('A', 'B')
         interiorSlice[this.diameter - 1] = interiorSlice[0]
         for (i in 1..<this.diameter - 1) {
             for (j in 0..<this.diameter) {
-                if (interiorSlice[i]!!.get(j) != 'A') {
+                if (interiorSlice[i][j] != 'A') {
                     continue
                 }
                 val outerI = i + sign((i - (this.diameter / 2)).toFloat()).toInt()
                 if ((outerI - floor(this.diameter / 2.0)).pow(2.0) + (j - floor(this.diameter / 2.0)).pow(2.0) > (radius + 0.5f).toDouble()
                         .pow(2.0)
                 ) {
-                    interiorSlice[i] = SCUtility.replace(interiorSlice[i], j, 'B')
+                    interiorSlice[i] = interiorSlice[i].replace(j, 'B')
                 }
                 val outerJ = j + sign((j - (this.diameter / 2)).toFloat()).toInt()
                 if ((i - floor(this.diameter / 2.0)).pow(2.0) + (outerJ - floor(this.diameter / 2.0)).pow(2.0) > (radius + 0.5f).toDouble()
                         .pow(2.0)
                 ) {
-                    interiorSlice[i] = SCUtility.replace(interiorSlice[i], j, 'B')
+                    interiorSlice[i] = interiorSlice[i].replace(j, 'B')
                 }
             }
         }
@@ -235,20 +281,20 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
         controllerSlice = interiorSlice.clone()
         topSlice = interiorSlice.clone()
         bottomSlice = interiorSlice.clone()
-        controllerSlice[0] = controllerSlice[0]!!.substring(0, floor(this.diameter / 2.0).toInt()) + 'S' +
-                controllerSlice[0]!!.substring(floor(this.diameter / 2.0).toInt() + 1)
+        controllerSlice[0] = controllerSlice[0].substring(0, floor(this.diameter / 2.0).toInt()) + 'S' +
+                controllerSlice[0].substring(floor(this.diameter / 2.0).toInt() + 1)
         for (i in 0..<this.diameter) {
-            topSlice[i] = topSlice[i]!!.replace('A', 'I')
-            bottomSlice[i] = bottomSlice[i]!!.replace('A', 'O')
+            topSlice[i] = topSlice[i].replace('A', 'I')
+            bottomSlice[i] = bottomSlice[i].replace('A', 'O')
         }
 
-        return FactoryBlockPattern.start(RelativeDirection.RIGHT, RelativeDirection.FRONT, RelativeDirection.UP)
+        return FactoryBlockPattern.start(RelativeDirection.RIGHT, RelativeDirection.BACK, RelativeDirection.UP)
             .aisle(*bottomSlice)
             .aisle(*interiorSlice).setRepeatable(heightBottom - 1)
             .aisle(*controllerSlice)
             .aisle(*interiorSlice).setRepeatable(heightTop - 1)
             .aisle(*topSlice)
-            .where('S', Predicates.controller(Predicates.blocks(getDefinition().getBlock())))
+            .where('S', Predicates.controller(Predicates.blocks(definition.block)))
             .where(
                 'A', Predicates.blocks(
                     SCBlocks.FUEL_CHANNEL.get(), SCBlocks.CONTROL_ROD_CHANNEL.get(),
@@ -273,77 +319,79 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
 
     private val importPredicate: TraceabilityPredicate
         get() {
-            val allowedAbilities = arrayOf<PartAbility?>(
+            val allowedAbilities = arrayOf(
                 SCMultiblockAbility.IMPORT_COOLANT,
                 SCMultiblockAbility.IMPORT_FUEL_ROD,
                 SCMultiblockAbility.CONTROL_ROD_PORT,
                 SCMultiblockAbility.MODERATOR_PORT
             )
-            return Predicates.custom(Predicate { state: MultiblockState? ->
-                val machine = getMachine(state!!.getWorld(), state.getPos())
+            return Predicates.custom({ state: MultiblockState ->
+                val machine = getMachine(state.getWorld(), state.pos)
                 if (machine !is IFissionReactorHatch) {
                     state.setError(
                         PatternStringError(
                             "supercritical.multiblock.pattern.error.hatch_invalid"
                         )
                     )
-                    return@custom false
-                }
-                val block = state.getBlockState().getBlock()
-                var allowed = false
-                for (ability in allowedAbilities) {
-                    if (ability!!.isApplicable(block)) {
-                        allowed = true
-                        break
+                    false
+                } else {
+                    val block = state.blockState.block
+                    var allowed = false
+                    for (ability in allowedAbilities) {
+                        if (ability.isApplicable(block)) {
+                            allowed = true
+                            break
+                        }
+                    }
+                    if (!allowed) {
+                        state.setError(
+                            PatternStringError(
+                                "supercritical.multiblock.pattern.error.hatch_invalid"
+                            )
+                        )
+                        false
+                    } else if (!machine.checkValidity(this.height - 1)) {
+                        state.setError(
+                            PatternStringError(
+                                "supercritical.multiblock.pattern.error.hatch_invalid"
+                            )
+                        )
+                        false
+                    } else {
+                        true
                     }
                 }
-                if (!allowed) {
-                    state.setError(
-                        PatternStringError(
-                            "supercritical.multiblock.pattern.error.hatch_invalid"
-                        )
-                    )
-                    return@custom false
-                }
-                if (!machine.checkValidity(this.height - 1)) {
-                    state.setError(
-                        PatternStringError(
-                            "supercritical.multiblock.pattern.error.hatch_invalid"
-                        )
-                    )
-                    return@custom false
-                }
-                true
-            }, Supplier { arrayOfNulls<BlockInfo>(0) })
+            }, { arrayOfNulls<BlockInfo>(0) })
         }
 
     private fun lockAll() {
         for (handler in this.coolantHandlers) {
-            handler.setLocked(true)
+            handler.locked = true
         }
         for (handler in this.fuelRodHandlers) {
-            handler.setLock(true)
+            handler.locked = true
         }
     }
 
     private fun unlockAll() {
-        if (reactor != null) {
-            val depletion = reactor!!.fuelDepletion
+        val r = reactor
+        if (r != null) {
+            val depletion = r.fuelDepletion
             for (handler in this.fuelRodHandlers) {
                 handler.resetDepletion(depletion)
-                handler.setLock(false)
+                handler.locked = false
             }
         } else {
             for (handler in this.fuelRodHandlers) {
-                handler.setLock(false)
+                handler.locked = false
             }
         }
         for (handler in this.coolantHandlers) {
-            handler.setLocked(false)
+            handler.locked = false
         }
-        if (reactor != null) {
-            reactor!!.setOn(false)
-            reactor!!.resetFuelDepletion()
+        if (r != null) {
+            r.isOn = false
+            r.resetFuelDepletion()
         }
     }
 
@@ -354,20 +402,21 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
         }
         this.lockAll()
         this.addReactorComponents()
-        reactor!!.prepareThermalProperties()
-        reactor!!.computeGeometry()
+        val r = reactor ?: return false
+        r.prepareThermalProperties()
+        r.computeGeometry()
         setLockingState(LockingState.LOCKED)
         return true
     }
 
     private fun verifyCorrectness(): Boolean {
         var foundFuel = false
-        for (part in getParts()) {
+        for (part in parts) {
             if (part is ICoolantHandler) {
-                val lockedFluid = part.getLockedObject()
+                val lockedFluid = part.lockedObject
                 if (lockedFluid != null) {
                     val stats = CoolantRegistry.getCoolant(lockedFluid)
-                    if (part.getOutputHandler() == null && !part.checkValidity(this.height - 1)) {
+                    if (part.outputHandler == null && !part.checkValidity(this.height - 1)) {
                         setLockingState(LockingState.INVALID_COMPONENT)
                         return false
                     }
@@ -379,14 +428,20 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
                 setLockingState(LockingState.MISSING_COOLANT)
                 return false
             } else if (part is IFuelRodHandler) {
-                val lockedFuel = part.getInputStackHandler().getStackInSlot(0)
-                if (!lockedFuel.isEmpty()) {
+                val inputHandler = part.inputStackHandler
+                if (inputHandler == null) {
+                    this.unlockAll()
+                    setLockingState(LockingState.MISSING_FUEL)
+                    return false
+                }
+                val lockedFuel = inputHandler.getStackInSlot(0)
+                if (!lockedFuel.isEmpty) {
                     val stats = FissionFuelRegistry.getFissionFuel(lockedFuel)
                     if (stats != null) {
                         foundFuel = true
                         continue
                     }
-                } else if (part.getPartialFuel() != null) {
+                } else if (part.partialFuel != null) {
                     foundFuel = true
                     continue
                 }
@@ -404,14 +459,13 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
     }
 
     private fun addReactorComponents() {
-        if (reactor == null || getLevel() == null) {
-            return
-        }
-        reactor!!.turnOff()
+        val level = level ?: return
+        val r = reactor ?: return
+        r.turnOff()
         val radius = this.diameter / 2
         val size = this.diameter - 2
-        val reactorOrigin = getPos().mutable()
-        reactorOrigin.move(getFrontFacing().getOpposite(), radius)
+        val reactorOrigin = pos.mutable()
+        reactorOrigin.move(frontFacing.opposite, radius)
         for (x in 0..<size) {
             for (y in 0..<size) {
                 val i = x - (radius - 1)
@@ -420,53 +474,55 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
                     continue
                 }
                 val currentPos = reactorOrigin.mutable().move(this.reactorRight, i)
-                    .move(getFrontFacing().getOpposite(), j)
+                    .move(frontFacing.opposite, j)
                     .move(this.reactorUp, heightTop)
                     .immutable()
-                val machine = getMachine(getLevel(), currentPos)
+                val machine = getMachine(level, currentPos)
                 if (machine is ICoolantHandler) {
-                    val lockedFluid = machine.getLockedObject()
-                    val stats = CoolantRegistry.getCoolant(lockedFluid)
-                    machine.setCoolant(stats)
-                    if (machine.getOutputHandler() != null) {
-                        machine.getOutputHandler()!!.setCoolant(stats)
+                    val lockedFluid = machine.lockedObject
+                    val stats = CoolantRegistry.getCoolant(lockedFluid) ?: continue
+                    machine.coolant = stats
+                    val outputHandler = machine.outputHandler
+                    if (outputHandler != null) {
+                        outputHandler.coolant = stats
                     }
                     val component = CoolantChannel(100050.0, 0.0, stats, 1000.0)
-                    component.setHandlers(machine, machine.getOutputHandler())
-                    reactor!!.setComponent(x, y, component)
+                    component.setHandlers(machine, outputHandler)
+                    r.setComponent(x, y, component)
                 } else if (machine is IFuelRodHandler) {
-                    val lockedFuel = machine.getInputStackHandler().getStackInSlot(0)
-                    val stats = FissionFuelRegistry.getFissionFuel(lockedFuel)
-                    val component: FuelRod?
-                    machine.setFuel(stats)
-                    if (machine.getDepletionPoint() == 0.0 || machine.getPartialFuel() == null) {
-                        machine.setPartialFuel(stats)
-                        component = FuelRod(stats!!.getMaxTemperature().toDouble(), 1.0, stats, 650.0)
-                        machine.getInputStackHandler().extractItem(0, 1, false)
+                    val partialFuel = machine.partialFuel
+                    val inputHandler = machine.inputStackHandler
+                    val lockedFuel = inputHandler?.getStackInSlot(0)
+                    val inputFuel = lockedFuel
+                        ?.takeUnless { it.isEmpty }
+                        ?.let { FissionFuelRegistry.getFissionFuel(it) }
+                    val fuel = partialFuel ?: inputFuel ?: continue
+                    val component: FuelRod
+                    machine.fuel = fuel
+                    if (partialFuel == null) {
+                        machine.setPartialFuel(fuel)
+                        component = FuelRod(fuel.maxTemperature.toDouble(), 1.0, fuel, 650.0)
+                        inputHandler!!.extractItem(0, 1, false)
                         machine.markUndepleted()
                     } else {
-                        val partialProp = machine.getPartialFuel()
-                        component = FuelRod(partialProp.getMaxTemperature().toDouble(), 1.0, partialProp, 650.0)
+                        component = FuelRod(partialFuel.maxTemperature.toDouble(), 1.0, partialFuel, 650.0)
                     }
                     machine.setInternalFuelRod(component)
-                    reactor!!.setComponent(x, y, component)
+                    r.setComponent(x, y, component)
                 } else if (machine is MetaTileEntityControlRodPort) {
                     val component = ControlRod(100000.0, machine.hasModeratorTip(), 1.0, 800.0)
-                    reactor!!.setComponent(x, y, component)
+                    r.setComponent(x, y, component)
                 } else if (machine is MetaTileEntityModeratorPort) {
-                    val moderator = machine.getModerator()
+                    val moderator = machine.moderator ?: continue
                     val component = Moderator(0.5, 800.0, moderator)
-                    reactor!!.setComponent(x, y, component)
+                    r.setComponent(x, y, component)
                 }
             }
         }
     }
 
-    private val coolantHandlers: MutableList<ICoolantHandler>
-        get() = getParts().stream()
-            .filter { part: IMultiPart? -> part is ICoolantHandler }
-            .map<ICoolantHandler?> { part: IMultiPart? -> part as ICoolantHandler }
-            .toList()
+    private val coolantHandlers: List<ICoolantHandler>
+        get() = parts.filterIsInstance<ICoolantHandler>()
 
     fun rebuildReactor() {
         val size = max(3, (diameter - 2) or 1)
@@ -477,112 +533,243 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
         reactorSize = size
         reactorDepth = depth
         val old = reactor
-        reactor = FissionReactor(size, depth, controlRodInsertion)
+        val newReactor = FissionReactor(size, depth, controlRodInsertion)
+        reactor = newReactor
         if (old != null) {
-            reactor!!.setOn(old.isOn())
-            reactor!!.kEff = old.kEff
-            reactor!!.power = old.power
-            reactor!!.temperature = old.temperature
-            reactor!!.pressure = old.pressure
-            reactor!!.fuelDepletion = old.fuelDepletion
-            reactor!!.accumulatedHydrogen = old.accumulatedHydrogen
+            newReactor.isOn = old.isOn
+            newReactor.kEff = old.kEff
+            newReactor.power = old.power
+            newReactor.temperature = old.temperature
+            newReactor.pressure = old.pressure
+            newReactor.fuelDepletion = old.fuelDepletion
+            newReactor.accumulatedHydrogen = old.accumulatedHydrogen
         }
-        reactor!!.prepareThermalProperties()
-        reactor!!.computeGeometry()
+        newReactor.prepareThermalProperties()
+        newReactor.computeGeometry()
     }
 
     fun tickReactor() {
-        if (reactor == null || !locked || !isFormed() || meltdown || pressureExplosion) return
-        reactor!!.setOn(true)
-        reactor!!.controlRodInsertion = controlRodInsertion
-        reactor!!.tick()
-        if (getOffsetTimer() % 20 == 0L) {
+        val r = reactor ?: return
+        if (!isFormed()) return
+        // Legacy runs updateReactorState once per second (getOffsetTimer() % 20 == 0). The
+        // FissionReactor formulas are calibrated for 1-second steps, so ticking every server
+        // tick would compound neutron flux/depletion/temperature ~20x.
+        if (offsetTimer % 20 != 0L) return
+
+        if (locked && !meltdown && !pressureExplosion) {
+            // Locked full-power path.
+            r.isOn = true
+            // controlRodInsertion is pushed to the reactor via setControlRodInsertion and the
+            // constructor; regulateControlRods adjusts the reactor copy and syncReactorStats
+            // mirrors it back, so we intentionally do NOT overwrite it here every tick.
+            r.tick()
             handleFuel()
+        } else {
+            // Cooldown / relaxation path (unlocked, or after a meltdown/pressure explosion).
+            // Legacy calls updateReactorState whenever the structure is formed+valid even when
+            // unlocked, so an SCRAMed reactor ramps power/neutronFlux down (isOn=false branch)
+            // and relaxes temperature/pressure. We run the individual update methods directly
+            // (bypassing FissionReactor.tick()'s !isOn early-return) to get that cooldown, but
+            // WITHOUT the fuel/lock side effects of the locked path.
+            r.isOn = false
+            r.updatePower()
+            r.updateTemperature()
+            r.updatePressure()
+            r.updateNeutronPoisoning()
+            r.regulateControlRods()
         }
+        // Legacy runs the meltdown/explosion checks whenever the structure is valid (even
+        // unlocked), because a just-SCRAMed reactor is still hot.
         checkFailureState()
+        // Replicate the (post-update) reactor stats to the client once per second.
+        syncReactorStats()
+    }
+
+    /**
+     * Mirror of legacy syncReactorStats: copies the reactor's 9 display stats into @DescSynced
+     * managed fields so LDLib replicates them to the client. The client GUI reads these fields.
+     */
+    private fun syncReactorStats() {
+        val r = reactor ?: return
+        temperature = r.temperature
+        maxTemperature = r.maxTemperature
+        pressure = r.pressure
+        maxPressure = r.maxPressure
+        power = r.power
+        maxPower = r.maxPower
+        kEff = r.kEff
+        controlRodInsertion = r.controlRodInsertion
+        totalDepletion = r.fuelDepletion
     }
 
     private fun handleFuel() {
+        val r = reactor ?: return
         var canWork = true
         for (fuelImport in this.fuelRodHandlers) {
-            if (fuelImport.isDepleted(reactor!!.fuelDepletion)) {
+            if (fuelImport.isDepleted(r.fuelDepletion)) {
                 val output = fuelImport.getOutputStackHandler(this.height - 1)
-                if (output == null || !output.insertItem(0, fuelImport.getDepletedFuel(), true).isEmpty()) {
+                if (output == null || !output.insertItem(0, fuelImport.depletedFuel, true).isEmpty) {
                     canWork = false
                     setLockingState(LockingState.FUEL_CLOGGED)
-                    setLocked(false)
+                    locked = false
                     break
                 }
-                output.insertItem(0, fuelImport.getDepletedFuel(), false)
+                output.insertItem(0, fuelImport.depletedFuel, false)
                 fuelImport.markUndepleted()
-                val input = fuelImport.getInputStackHandler()
-                if (input.extractItem(0, 1, true).isEmpty()) {
+                val input = fuelImport.inputStackHandler
+                if (input == null || input.extractItem(0, 1, true).isEmpty) {
                     canWork = false
                     fuelImport.setPartialFuel(null)
                     setLockingState(LockingState.MISSING_FUEL)
-                    setLocked(false)
+                    locked = false
                     break
                 }
                 input.extractItem(0, 1, false)
             }
         }
         if (!canWork) {
-            reactor!!.setOn(false)
+            r.isOn = false
         }
     }
 
     val height: Int
         get() = heightTop + heightBottom + 1
 
-    private val fuelRodHandlers: MutableList<IFuelRodHandler>
-        get() = getParts().stream()
-            .filter { part: IMultiPart? -> part is IFuelRodHandler }
-            .map<IFuelRodHandler?> { part: IMultiPart? -> part as IFuelRodHandler }
-            .toList()
+    private val fuelRodHandlers: List<IFuelRodHandler>
+        get() = parts.filterIsInstance<IFuelRodHandler>()
 
     private fun checkFailureState() {
-        if (reactor == null) return
-        if (SCConfigHolder.NUCLEAR.enableMeltdown.get() && reactor!!.temperature >= reactor!!.maxTemperature) {
+        val r = reactor ?: return
+        // Legacy gates both the meltdown and pressure-explosion checks behind enableMeltdown
+        // (updateFormedValid returns early when !enableMeltdown), so disabling meltdown
+        // suppresses both failure modes and their world effects.
+        if (!SCConfigHolder.INSTANCE.nuclear.enableMeltdown) return
+
+        val melts = !meltdown && r.temperature > r.maxTemperature
+        val explodes = !pressureExplosion && r.pressure > r.maxPressure
+        if (!melts && !explodes) return
+
+        if (melts) {
             meltdown = true
-            locked = false
-            reactor!!.setOn(false)
-            markDirty()
+            performMeltdownEffects()
         }
-        if (reactor!!.pressure >= reactor!!.maxPressure) {
+        if (explodes) {
             pressureExplosion = true
-            locked = false
-            reactor!!.setOn(false)
-            markDirty()
+            performPrimaryExplosion()
+            if (r.accumulatedHydrogen > 1.0) {
+                performSecondaryExplosion(r.accumulatedHydrogen)
+            }
+        }
+        // Effects fire once on the false->true transition; then latch the failed state.
+        locked = false
+        r.isOn = false
+        markDirty()
+    }
+
+    /**
+     * Faithful port of legacy performMeltdownEffects: places Corium fluid columns down through
+     * the structure. For each block in the cylindrical footprint, decide whether it melts
+     * (1/10 random chance, or always for the bottom layer and for fuel-rod hatch columns), then
+     * for each melted position fill corium downward to the bottom of the structure.
+     */
+    private fun performMeltdownEffects() {
+        val level = level ?: return
+        unlockAll()
+        val coriumFluid = SCMaterials.Corium.fluid
+        val coriumState = coriumFluid?.defaultFluidState()?.createLegacyBlock() ?: return
+        val controllerPos = pos
+        val radius = diameter / 2
+        val bottomDy = -heightBottom
+        val topDy = heightTop
+        val front = frontFacing.opposite
+        val right = reactorRight
+        val up = reactorUp
+        val random = level.random
+        val meltsDown = LinkedHashSet<BlockPos>()
+        for (i in -radius..radius) {
+            for (j in -radius..radius) {
+                // Same circular bound used by addReactorComponents.
+                if (i * i + j * j > radius * radius + radius) continue
+                for (dy in bottomDy..topDy) {
+                    val pos = controllerPos.mutable()
+                        .move(front, radius + j)
+                        .move(right, i)
+                        .move(up, dy)
+                    // Never replace the controller MTE itself. Legacy could melt the controller
+                    // position (it lived in the pattern cache); in modern doing so orphans this
+                    // machine's tick subscription, so we skip it. The meltdown still guts the
+                    // surrounding structure.
+                    if (pos.x == controllerPos.x && pos.y == controllerPos.y && pos.z == controllerPos.z) continue
+                    var chance = 10
+                    if (dy == bottomDy) {
+                        chance = 1
+                    } else {
+                        val machine = getMachine(level, pos)
+                        if (machine is IFuelRodHandler) chance = 1
+                    }
+                    if (random.nextInt(chance) == 0) {
+                        meltsDown.add(pos.immutable())
+                    }
+                }
+            }
+        }
+        for (immutPos in meltsDown) {
+            val pos = immutPos.mutable()
+            while (pos.y >= controllerPos.y + bottomDy) {
+                level.setBlock(pos, coriumState, 3)
+                pos.move(Direction.DOWN)
+            }
+        }
+    }
+
+    /**
+     * Faithful port of legacy performPrimaryExplosion: a 4f block-breaking explosion at the top
+     * of the reactor center column. Called once when pressure first exceeds maxPressure.
+     */
+    private fun performPrimaryExplosion() {
+        val level = level ?: return
+        unlockAll()
+        val center = pos.mutable().move(frontFacing.opposite, diameter / 2)
+        detonate(level, center.x.toDouble(), (pos.y + heightTop).toDouble(), center.z.toDouble(), 4f, false)
+    }
+
+    /**
+     * Faithful port of legacy performSecondaryExplosion: a fire+block-breaking explosion scaled
+     * by log(accumulatedHydrogen), 3 blocks above the primary. Only fires when hydrogen > 1.
+     */
+    private fun performSecondaryExplosion(accumulatedHydrogen: Double) {
+        val level = level ?: return
+        val center = pos.mutable().move(frontFacing.opposite, diameter / 2)
+        val strength = (5f + Math.log(accumulatedHydrogen).toFloat())
+        detonate(
+            level, center.x.toDouble(), (pos.y + heightTop + 3).toDouble(), center.z.toDouble(),
+            strength, true
+        )
+    }
+
+    private fun detonate(level: Level, x: Double, y: Double, z: Double, radius: Float, fire: Boolean) {
+        // Construct Explosion directly so we can request fire (legacy newExplosion(flaming=true)
+        // for the secondary). DESTROY mirrors legacy isSmoking=true block removal.
+        val explosion = Explosion(level, null, x, y, z, radius, fire, Explosion.BlockInteraction.DESTROY)
+        if (!ForgeEventFactory.onExplosionStart(level, explosion)) {
+            explosion.explode()
+            explosion.finalizeExplosion(true)
         }
     }
 
     fun addDisplayText(text: MutableList<Component?>) {
+        // Matches the 1.12.2 panel (`addDisplayText`): the lock-state line and k_eff.
+        // Temperature/pressure/power live on the gauge hover tooltips (legacy `addBarHoverText`,
+        // here `setServerTooltipSupplier`), and the control-rod insertion is shown on the slider
+        // overlay — so they are intentionally absent from this panel.
         text.add(Component.translatable("supercritical.gui.fission.lock." + lockingState.name.lowercase(Locale.getDefault())))
-        text.add(Component.translatable("supercritical.multiblock.fission_reactor.diameter", diameter))
-        text.add(
-            Component.translatable(
-                "supercritical.multiblock.fission_reactor.height",
-                heightTop + heightBottom + 1
-            )
-        )
-        text.add(
-            Component.translatable(
-                "supercritical.gui.fission.control_rod_insertion",
-                Math.round(controlRodInsertion * 100.0)
-            )
-        )
         if (meltdown) {
             text.add(Component.translatable("supercritical.multiblock.fission_reactor.meltdown"))
         }
         if (pressureExplosion) {
             text.add(Component.translatable("supercritical.multiblock.fission_reactor.pressure_explosion"))
         }
-        if (reactor != null) {
-            text.add(Component.translatable("supercritical.gui.fission.temperature", reactor!!.temperature))
-            text.add(Component.translatable("supercritical.gui.fission.pressure", reactor!!.pressure))
-            text.add(Component.translatable("supercritical.gui.fission.power", reactor!!.power, reactor!!.maxPower))
-            text.add(Component.translatable("supercritical.gui.fission.k_eff", reactor!!.kEff))
-        }
+        text.add(Component.translatable("supercritical.gui.fission.k_eff", kEff))
     }
 
     override fun saveCustomPersistedData(tag: CompoundTag, forDrop: Boolean) {
@@ -593,16 +780,23 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
         tag.putInt("HeightTop", heightTop)
         tag.putInt("HeightBottom", heightBottom)
         tag.putDouble("ControlRodInsertion", controlRodInsertion)
-        tag.putBoolean("Meltdown", meltdown)
-        tag.putBoolean("PressureExplosion", pressureExplosion)
-        if (reactor != null) {
-            tag.putBoolean("ReactorOn", reactor!!.isOn())
-            tag.putDouble("KEff", reactor!!.kEff)
-            tag.putDouble("Power", reactor!!.power)
-            tag.putDouble("Temperature", reactor!!.temperature)
-            tag.putDouble("Pressure", reactor!!.pressure)
-            tag.putDouble("FuelDepletion", reactor!!.fuelDepletion)
-            tag.putDouble("AccumulatedHydrogen", reactor!!.accumulatedHydrogen)
+        if (!forDrop) {
+            // Meltdown-latch soft-lock guard: a melted/exploded controller must NOT carry these
+            // latches into the dropped item. Otherwise wrenching + re-placing bricks the block
+            // permanently (canToggle() stays false, the locked path stays blocked, and
+            // resetFailureState() is unreachable). On reload, loadCustomPersistedData reads these
+            // via CompoundTag#getBoolean, which defaults to false when the keys are absent — and
+            // that manual read runs AFTER the @Persisted field restore, so it wins. The dropped
+            // item therefore reloads to a clean meltdown=false / pressureExplosion=false state.
+            tag.putBoolean("Meltdown", meltdown)
+            tag.putBoolean("PressureExplosion", pressureExplosion)
+        }
+        val r = reactor
+        if (r != null) {
+            // R2: delegate to FissionReactor's faithful port of legacy serializeNBT, which also
+            // persists the previously-dropped NeutronFlux/PrevTemperature/NeutronPoisonAmount/
+            // DecayProductsAmount/ControlRodRegulationOn.
+            tag.put("FissionReactor", r.serializeNBT())
         }
     }
 
@@ -625,32 +819,27 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
         meltdown = tag.getBoolean("Meltdown")
         pressureExplosion = tag.getBoolean("PressureExplosion")
         rebuildReactor()
-        if (reactor != null) {
-            reactor!!.setOn(tag.getBoolean("ReactorOn"))
-            reactor!!.kEff = tag.getDouble("KEff")
-            reactor!!.power = tag.getDouble("Power")
-            reactor!!.temperature =
-                if (tag.contains("Temperature")) tag.getDouble("Temperature") else FissionReactor.Companion.ROOM_TEMPERATURE
-            reactor!!.pressure =
-                if (tag.contains("Pressure")) tag.getDouble("Pressure") else FissionReactor.Companion.STANDARD_PRESSURE
-            reactor!!.fuelDepletion = if (tag.contains("FuelDepletion")) tag.getDouble("FuelDepletion") else -1.0
-            reactor!!.accumulatedHydrogen = tag.getDouble("AccumulatedHydrogen")
+        val r = reactor
+        if (r != null && tag.contains("FissionReactor")) {
+            r.deserializeNBT(tag.getCompound("FissionReactor"))
         }
     }
 
     fun canToggle(): Boolean {
-        return isFormed() && !meltdown && !pressureExplosion && (reactor != null || !locked)
-                && (!locked || SCConfigHolder.NUCLEAR.enableMeltdown.get() || reactor!!.temperature < reactor!!.maxTemperature)
+        val r = reactor
+        return isFormed() && !meltdown && !pressureExplosion && (r != null || !locked)
+                && (!locked || SCConfigHolder.INSTANCE.nuclear.enableMeltdown || (r != null && r.temperature < r.maxTemperature))
     }
 
-    fun setLocked(locked: Boolean) {
+    private fun applyLockedState(locked: Boolean) {
+        val r = reactor
         if (!canToggle() && locked) return
-        this.locked = locked
+        this.lockedState = locked
         if (locked) {
             setLockingState(LockingState.SHOULD_LOCK)
             if (!lockAndPrepareReactor()) {
-                if (reactor != null) {
-                    reactor!!.setOn(false)
+                if (r != null) {
+                    r.isOn = false
                 }
                 return
             }
@@ -660,8 +849,8 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
                 setLockingState(LockingState.UNLOCKED)
             }
         }
-        if (reactor != null) {
-            reactor!!.setOn(locked)
+        if (r != null) {
+            r.isOn = locked
         }
     }
 
@@ -674,11 +863,12 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
         pressureExplosion = false
         locked = false
         setLockingState(LockingState.UNLOCKED)
-        if (reactor != null) {
-            reactor!!.setOn(false)
-            reactor!!.temperature = FissionReactor.Companion.ROOM_TEMPERATURE
-            reactor!!.pressure = FissionReactor.Companion.STANDARD_PRESSURE
-            reactor!!.power = 0.0
+        val r = reactor
+        if (r != null) {
+            r.isOn = false
+            r.temperature = FissionReactor.ROOM_TEMPERATURE
+            r.pressure = FissionReactor.STANDARD_PRESSURE
+            r.power = 0.0
         }
         markDirty()
     }
@@ -728,36 +918,58 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
 
     fun setControlRodInsertion(controlRodInsertion: Double) {
         this.controlRodInsertion = max(0.0, min(1.0, controlRodInsertion))
-        if (reactor != null) {
-            reactor!!.updateControlRodInsertion(this.controlRodInsertion)
-        }
+        reactor?.updateControlRodInsertion(this.controlRodInsertion)
     }
 
-    override fun getCoverCapacity(): Long {
-        return if (reactor == null) 0L else (reactor!!.maxPower * 1e6).toLong()
+    // CC1: public getter API backing the CC:Tweaked peripheral provider (COMPUTER cluster).
+    // Reads the live server-side reactor state; returns 0 when no reactor is formed.
+    fun getMaxPower(): Double = reactor?.maxPower ?: 0.0
+
+    fun getPower(): Double = reactor?.power ?: 0.0
+
+    fun getMaxTemperature(): Double = reactor?.maxTemperature ?: 0.0
+
+    fun getTemperature(): Double = reactor?.temperature ?: 0.0
+
+    fun getMaxPressure(): Double = reactor?.maxPressure ?: 0.0
+
+    fun getPressure(): Double = reactor?.pressure ?: 0.0
+
+    fun areControlRodsRegulated(): Boolean = reactor?.controlRodRegulationOn ?: false
+
+    fun toggleControlRodRegulation() {
+        val r = reactor ?: return
+        r.controlRodRegulationOn = !r.controlRodRegulationOn
     }
 
-    override fun getCoverStored(): Long {
-        return if (reactor == null) 0L else (reactor!!.power * 1e6).toLong()
+    // CC1: absolute-state setter backing the CC:Tweaked peripheral provider (COMPUTER cluster).
+    // Legacy OC setSmiley(boolean) set absolute regulation state; the no-arg toggle above stays
+    // for the GUI button.
+    fun setControlRodRegulation(on: Boolean) {
+        reactor?.controlRodRegulationOn = on
     }
 
+    override val coverCapacity: Long
+        get() = reactor?.let { (it.maxPower * 1e6).toLong() } ?: 0L
+
+    override val coverStored: Long
+        get() = reactor?.let { (it.power * 1e6).toLong() } ?: 0L
+
+    // R1: read the @DescSynced mirrors so the client-side bars track server state.
     private val heatFillPercentage: Double
-        get() = if (reactor == null || reactor!!.maxTemperature <= 0.0) 0.0 else min(
-            1.0,
-            reactor!!.temperature / reactor!!.maxTemperature
-        )
+        get() = if (maxTemperature <= 0.0) 0.0 else min(1.0, temperature / maxTemperature)
 
     private val pressureFillPercentage: Double
-        get() = if (reactor == null || reactor!!.maxPressure <= 0.0) 0.0 else min(
-            1.0,
-            reactor!!.pressure / reactor!!.maxPressure
-        )
+        get() = if (maxPressure <= 0.0) 0.0 else min(1.0, pressure / maxPressure)
 
+    // R4: restore legacy getFillPercentage(2) logarithmic scale, floored at 0 when the reactor is
+    // far below max power (maxPower / power > e^9).
     private val powerFillPercentage: Double
-        get() = if (reactor == null || reactor!!.maxPower <= 0.0) 0.0 else min(
-            1.0,
-            reactor!!.power / reactor!!.maxPower
-        )
+        get() {
+            if (maxPower <= 0.0 || power <= 0.0) return 0.0
+            if (maxPower / power > Math.exp(9.0)) return 0.0
+            return (Math.log(power / maxPower) + 9.0) / 9.0
+        }
 
     private fun setLockingState(lockingState: LockingState) {
         this.lockingState = lockingState
@@ -776,111 +988,87 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
     }
 
     override fun createUI(entityPlayer: Player): ModularUI {
-        val screen = DraggableScrollableWidgetGroup(7, 4, 226, 109).setBackground(GuiTextures.DISPLAY)
-        screen.addWidget(LabelWidget(4, 5, self().getDefinition().getDescriptionId()))
-        screen.addWidget(
-            ComponentPanelWidget(4, 17, Consumer { text: MutableList<Component?>? -> this.addDisplayText(text!!) })
-                .textSupplier(if (self().getLevel()!!.isClientSide) null else Consumer { text: MutableList<Component?>? ->
-                    this.addDisplayText(
-                        text!!
-                    )
+        // Display panel matching the 1.12.2 layout: title + scrollable status text (upper) and
+        // the control-rod slider (lower), both inside the DISPLAY panel. The status text is
+        // confined to a scrollable sub-group so it never underlaps the slider, while keeping the
+        // full addDisplayText content reachable by scrolling.
+        val panel = WidgetGroup(7, 4, 226, 109)
+        panel.setBackground(GuiTextures.DISPLAY)
+        panel.addWidget(LabelWidget(4, 5, self().definition.descriptionId))
+        val isClient = self().level?.isClientSide == true
+        val statusText = DraggableScrollableWidgetGroup(4, 17, 218, 38)
+        statusText.addWidget(
+            ComponentPanelWidget(0, 0, Consumer { text: MutableList<Component?> -> this.addDisplayText(text) })
+                .textSupplier(if (isClient) null else Consumer { text: MutableList<Component?> ->
+                    this.addDisplayText(text)
                 })
                 .setMaxWidthLimit(216)
+        )
+        panel.addWidget(statusText)
+        panel.addWidget(
+            SCSliderWidget(3, 56, 220, 18)
+                .setProvider { controlRodInsertion.toFloat() }
+                .setResponder { value -> setControlRodInsertion(value.toDouble()) }
         )
 
         return ModularUI(240, 208, this, entityPlayer)
             .background(GuiTextures.BACKGROUND)
-            .widget(screen)
+            .widget(panel)
             .widget(
-                ProgressWidget(
-                    DoubleSupplier { this.heatFillPercentage }, 4, 115, 76, 7,
-                    GuiTextures.PROGRESS_BAR_BOILER_HEAT
+                ExtendedProgressWidget(
+                    { this.heatFillPercentage }, 4, 115, 76, 7,
+                    SCGuiTextures.PROGRESS_BAR_FISSION_HEAT
                 )
-                    .setHoverTooltips(
-                        Component.translatable(
-                            "supercritical.gui.fission.temperature",
-                            if (reactor == null) 0.0 else reactor!!.temperature
-                        ).getString()
-                    )
+                    .setServerTooltipSupplier { list ->
+                        list.add(Component.translatable("supercritical.gui.fission.temperature", temperature))
+                    }
+                    .setFillDirection(ProgressTexture.FillDirection.LEFT_TO_RIGHT)
             )
             .widget(
-                ProgressWidget(
-                    DoubleSupplier { this.pressureFillPercentage }, 82, 115, 76, 7,
-                    GuiTextures.PROGRESS_BAR_COMPRESS
+                ExtendedProgressWidget(
+                    { this.pressureFillPercentage }, 82, 115, 76, 7,
+                    SCGuiTextures.PROGRESS_BAR_FISSION_PRESSURE
                 )
-                    .setHoverTooltips(
-                        Component.translatable(
-                            "supercritical.gui.fission.pressure",
-                            if (reactor == null) 0.0 else reactor!!.pressure
-                        ).getString()
-                    )
+                    .setServerTooltipSupplier { list ->
+                        list.add(Component.translatable("supercritical.gui.fission.pressure", pressure))
+                    }
+                    .setFillDirection(ProgressTexture.FillDirection.LEFT_TO_RIGHT)
             )
             .widget(
-                ProgressWidget(
-                    DoubleSupplier { this.powerFillPercentage }, 160, 115, 76, 7,
-                    GuiTextures.PROGRESS_BAR_ARROW
+                ExtendedProgressWidget(
+                    { this.powerFillPercentage }, 160, 115, 76, 7,
+                    SCGuiTextures.PROGRESS_BAR_FISSION_ENERGY
                 )
-                    .setHoverTooltips(
-                        Component.translatable(
-                            "supercritical.gui.fission.power",
-                            if (reactor == null) 0.0 else reactor!!.power,
-                            if (reactor == null) 0.0 else reactor!!.maxPower
-                        ).getString()
-                    )
-            )
-            .widget(LabelWidget(10, 132, Supplier {
-                Component.translatable(
-                    "supercritical.gui.fission.control_rod_insertion",
-                    String.format("%.2f%%", controlRodInsertion * 100.0)
-                ).getString()
-            }))
-            .widget(
-                ButtonWidget(
-                    10, 146, 20, 18,
-                    TextTexture("-"), Consumer { cd: ClickData? ->
-                        if (!cd!!.isRemote) {
-                            setControlRodInsertion(controlRodInsertion - 0.01)
-                        }
-                    }).setHoverTooltips("gui.widget.incrementButton.default_tooltip")
-            )
-            .widget(
-                ButtonWidget(
-                    34, 146, 20, 18,
-                    TextTexture("+"), Consumer { cd: ClickData? ->
-                        if (!cd!!.isRemote) {
-                            setControlRodInsertion(controlRodInsertion + 0.01)
-                        }
-                    }).setHoverTooltips("gui.widget.incrementButton.default_tooltip")
+                    .setServerTooltipSupplier { list ->
+                        list.add(Component.translatable("supercritical.gui.fission.power", power, maxPower))
+                    }
+                    .setFillDirection(ProgressTexture.FillDirection.LEFT_TO_RIGHT)
             )
             .widget(
                 ToggleButtonWidget(
-                    215,
-                    125,
-                    18,
-                    18,
-                    GuiTextures.BUTTON_WORKING_ENABLE,
-                    BooleanSupplier { reactor != null && reactor!!.controlRodRegulationOn },
-                    BooleanConsumer { enabled: Boolean ->
-                        if (reactor != null) {
-                            reactor!!.controlRodRegulationOn = enabled
-                        }
-                    })
-                    .setShouldUseBaseBackground()
+                    215, 125, 18, 18,
+                    SCGuiTextures.BUTTON_CONTROL_ROD_HELPER,
+                    { reactor?.controlRodRegulationOn == true },
+                    { enabled: Boolean -> reactor?.let { it.controlRodRegulationOn = enabled } }
+                )
+                    // BUTTON_CONTROL_ROD_HELPER is an 18×36 two-state strip (dark = regulation off,
+                    // bright = on), so it must rely on ToggleButtonWidget's own top/bottom split.
+                    // setShouldUseBaseBackground() would draw the *entire* strip (both smileys) into the
+                    // button — that was the "stitching" artifact. Single-icon buttons (BUTTON_LOCK)
+                    // are the ones that need setShouldUseBaseBackground().
                     .setTooltipText("supercritical.gui.fission.helper")
             )
             .widget(
                 ToggleButtonWidget(
-                    215,
-                    183,
-                    18,
-                    18,
+                    215, 183, 18, 18,
                     GuiTextures.BUTTON_LOCK,
-                    BooleanSupplier { this.isLocked() },
-                    BooleanConsumer { locked: Boolean -> this.setLocked(locked) })
+                    { this.isLocked() },
+                    { locked: Boolean -> this.locked = locked }
+                )
                     .setShouldUseBaseBackground()
                     .setTooltipText("supercritical.gui.fission.lock")
             )
-            .widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT, 7, 125, true))
+            .widget(UITemplate.bindPlayerInventory(entityPlayer.inventory, GuiTextures.SLOT, 7, 125, true))
     }
 
     companion object {
@@ -894,7 +1082,7 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
                 Math.round((diameter - 1) / 2f)
 
             val interiorBuilder = StringBuilder()
-            val interiorSlice = arrayOfNulls<String>(diameter)
+            val interiorSlice = Array(diameter) { "" }
 
             for (i in 0..<diameter) {
                 for (j in 0..<diameter) {
@@ -910,24 +1098,24 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
                 interiorBuilder.setLength(0)
             }
 
-            interiorSlice[0] = interiorSlice[0]!!.replace('A', 'B')
+            interiorSlice[0] = interiorSlice[0].replace('A', 'B')
             interiorSlice[diameter - 1] = interiorSlice[0]
             for (i in 1..<diameter - 1) {
                 for (j in 0..<diameter) {
-                    if (interiorSlice[i]!!.get(j) != 'A') {
+                    if (interiorSlice[i][j] != 'A') {
                         continue
                     }
                     val outerI = i + sign((i - (diameter / 2)).toFloat()).toInt()
                     if ((outerI - floor(diameter / 2.0)).pow(2.0) + (j - floor(diameter / 2.0)).pow(2.0) > (radius + 0.5f).toDouble()
                             .pow(2.0)
                     ) {
-                        interiorSlice[i] = SCUtility.replace(interiorSlice[i], j, 'B')
+                        interiorSlice[i] = interiorSlice[i].replace(j, 'B')
                     }
                     val outerJ = j + sign((j - (diameter / 2)).toFloat()).toInt()
                     if ((i - floor(diameter / 2.0)).pow(2.0) + (outerJ - floor(diameter / 2.0)).pow(2.0) > (radius + 0.5f).toDouble()
                             .pow(2.0)
                     ) {
-                        interiorSlice[i] = SCUtility.replace(interiorSlice[i], j, 'B')
+                        interiorSlice[i] = interiorSlice[i].replace(j, 'B')
                     }
                 }
             }
@@ -935,20 +1123,20 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
             val controllerSlice = interiorSlice.clone()
             val topSlice = interiorSlice.clone()
             val bottomSlice = interiorSlice.clone()
-            controllerSlice[0] = controllerSlice[0]!!.substring(0, floor(diameter / 2.0).toInt()) + 'S' +
-                    controllerSlice[0]!!.substring(floor(diameter / 2.0).toInt() + 1)
+            controllerSlice[0] = controllerSlice[0].substring(0, floor(diameter / 2.0).toInt()) + 'S' +
+                    controllerSlice[0].substring(floor(diameter / 2.0).toInt() + 1)
             for (i in 0..<diameter) {
-                topSlice[i] = topSlice[i]!!.replace('A', 'I')
-                bottomSlice[i] = bottomSlice[i]!!.replace('A', 'O')
+                topSlice[i] = topSlice[i].replace('A', 'I')
+                bottomSlice[i] = bottomSlice[i].replace('A', 'O')
             }
 
-            return FactoryBlockPattern.start(RelativeDirection.RIGHT, RelativeDirection.FRONT, RelativeDirection.UP)
+            return FactoryBlockPattern.start(RelativeDirection.RIGHT, RelativeDirection.BACK, RelativeDirection.UP)
                 .aisle(*bottomSlice)
                 .aisle(*interiorSlice).setRepeatable(heightBottom - 1)
                 .aisle(*controllerSlice)
                 .aisle(*interiorSlice).setRepeatable(heightTop - 1)
                 .aisle(*topSlice)
-                .where('S', Predicates.controller(Predicates.blocks(definition.getBlock())))
+                .where('S', Predicates.controller(Predicates.blocks(definition.block)))
                 .where(
                     'A', Predicates.blocks(
                         SCBlocks.FUEL_CHANNEL.get(), SCBlocks.CONTROL_ROD_CHANNEL.get(),

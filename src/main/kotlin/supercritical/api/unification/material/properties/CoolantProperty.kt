@@ -13,19 +13,21 @@ class CoolantProperty(
     material: Material,
     var hotHPCoolant: Material,
     val coolantKey: FluidStorageKey?,
-    private var moderatorFactor: Double,
-    private var coolingFactor: Double,
-    private var boilingPoint: Double,
-    private var heatOfVaporization: Double,
-    private var specificHeatCapacity: Double
+    override var moderatorFactor: Double,
+    override var coolingFactor: Double,
+    override var boilingPoint: Double,
+    override var heatOfVaporization: Double,
+    override var specificHeatCapacity: Double
 ) : IMaterialProperty, ICoolantStats {
     private var accumulatesHydrogen = false
-    private var slowAbsorptionFactor = 0.0
-    private var fastAbsorptionFactor = 0.0
-    private val mass: Double
+    override var slowAbsorptionFactor = 0.0
+    override var fastAbsorptionFactor = 0.0
+    override val mass: Double
+    override val hotCoolant: Fluid?
+        get() = hotHPCoolant.fluid
 
     init {
-        this.mass = material.getMass().toDouble()
+        mass = material.mass.toDouble()
     }
 
     override fun verifyProperty(properties: MaterialProperties) {
@@ -37,17 +39,9 @@ class CoolantProperty(
         return this
     }
 
-    override fun getModeratorFactor(): Double {
-        return moderatorFactor
-    }
-
     fun setModeratorFactor(moderatorFactor: Double): CoolantProperty {
         this.moderatorFactor = moderatorFactor
         return this
-    }
-
-    override fun getCoolingFactor(): Double {
-        return coolingFactor
     }
 
     fun setCoolingFactor(coolingFactor: Double): CoolantProperty {
@@ -55,26 +49,14 @@ class CoolantProperty(
         return this
     }
 
-    override fun getBoilingPoint(): Double {
-        return boilingPoint
-    }
-
     fun setBoilingPoint(boilingPoint: Double): CoolantProperty {
         this.boilingPoint = boilingPoint
         return this
     }
 
-    override fun getHeatOfVaporization(): Double {
-        return heatOfVaporization
-    }
-
     fun setHeatOfVaporization(heatOfVaporization: Double): CoolantProperty {
         this.heatOfVaporization = heatOfVaporization
         return this
-    }
-
-    override fun getSpecificHeatCapacity(): Double {
-        return specificHeatCapacity
     }
 
     fun setSpecificHeatCapacity(specificHeatCapacity: Double): CoolantProperty {
@@ -91,17 +73,9 @@ class CoolantProperty(
         return this
     }
 
-    override fun getSlowAbsorptionFactor(): Double {
-        return slowAbsorptionFactor
-    }
-
     fun setSlowAbsorptionFactor(slowAbsorptionFactor: Double): CoolantProperty {
         this.slowAbsorptionFactor = slowAbsorptionFactor
         return this
-    }
-
-    override fun getFastAbsorptionFactor(): Double {
-        return fastAbsorptionFactor
     }
 
     fun setFastAbsorptionFactor(fastAbsorptionFactor: Double): CoolantProperty {
@@ -109,11 +83,4 @@ class CoolantProperty(
         return this
     }
 
-    override fun getMass(): Double {
-        return mass
-    }
-
-    override fun getHotCoolant(): Fluid? {
-        return hotHPCoolant.getFluid()
-    }
 }

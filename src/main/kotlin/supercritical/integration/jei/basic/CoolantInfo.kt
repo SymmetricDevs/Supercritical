@@ -21,23 +21,23 @@ class CoolantInfo(coolant: Fluid, hotCoolant: Fluid) {
         this.coolant = FluidStack(coolant, 1000)
         this.hotCoolant = FluidStack(hotCoolant, 1000)
 
-        val stats = CoolantRegistry.getCoolant(this.coolant.getFluid())
+        val stats = CoolantRegistry.getCoolant(this.coolant.fluid)
         if (stats != null) {
             this.temps = Component.translatable(
                 "supercritical.coolant.exit_temp",
-                stats.getHotCoolant().getFluidType().getTemperature()
+                stats.hotCoolant?.fluidType?.temperature ?: 0
             )
             this.heatCapacity = Component.translatable(
                 "supercritical.coolant.heat_capacity",
-                stats.getSpecificHeatCapacity().toInt()
+                stats.specificHeatCapacity.toInt()
             )
             this.heatTransfer = Component.translatable(
                 "supercritical.coolant.cooling_factor",
-                stats.getCoolingFactor().toInt()
+                stats.coolingFactor.toInt()
             )
             this.moderation = Component.translatable(
                 "supercritical.coolant.moderation_factor",
-                stats.getModeratorFactor().toInt()
+                stats.moderatorFactor.toInt()
             )
             this.hydrogen = if (stats.accumulatesHydrogen())
                 Component.translatable("supercritical.coolant.accumulates_hydrogen")

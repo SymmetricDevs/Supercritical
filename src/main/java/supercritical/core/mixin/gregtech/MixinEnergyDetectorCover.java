@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.common.cover.detector.DetectorCover;
 import com.gregtechceu.gtceu.common.cover.detector.EnergyDetectorCover;
 import net.minecraft.core.Direction;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

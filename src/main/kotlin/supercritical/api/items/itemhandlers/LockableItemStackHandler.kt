@@ -21,8 +21,8 @@ open class LockableItemStackHandler(machine: MetaMachine, io: IO) : NotifiableIt
     override var locked: Boolean = false
         set(locked) {
             field = locked
-            if (locked && !this.getStackInSlot(0).isEmpty) {
-                lockedObject = this.getStackInSlot(0).copy()
+            if (locked && !getStackInSlot(0).isEmpty) {
+                lockedObject = getStackInSlot(0).copy()
                 lockedObject.setCount(1)
             } else {
                 lockedObject = ItemStack.EMPTY
@@ -33,19 +33,20 @@ open class LockableItemStackHandler(machine: MetaMachine, io: IO) : NotifiableIt
     @DescSynced
     override var lockedObject: ItemStack = ItemStack.EMPTY
 
+
     override fun getFieldHolder(): ManagedFieldHolder {
         return MANAGED_FIELD_HOLDER
     }
 
     override fun insertItem(slot: Int, stack: ItemStack, simulate: Boolean): ItemStack {
-        if (locked && !lockedObject.isEmpty && !ItemStack.isSameItem(this.lockedObject, stack)) {
+        if (locked && !lockedObject.isEmpty && !ItemStack.isSameItem(lockedObject, stack)) {
             return stack
         }
         return super.insertItem(slot, stack, simulate)
     }
 
     override fun isItemValid(slot: Int, stack: ItemStack): Boolean {
-        if (this.locked && !this.lockedObject.isEmpty && !ItemStack.isSameItem(this.lockedObject, stack)) {
+        if (locked && !lockedObject.isEmpty && !ItemStack.isSameItem(lockedObject, stack)) {
             return false
         }
         return super.isItemValid(slot, stack)

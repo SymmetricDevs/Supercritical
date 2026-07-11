@@ -4,85 +4,62 @@ import com.gregtechceu.gtceu.api.capability.IControllable
 import com.gregtechceu.gtceu.api.capability.recipe.IO
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted
-import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender
+import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.level.material.Fluid
 import supercritical.api.capability.ICoolantHandler
 import supercritical.api.capability.impl.LockableFluidTank
-import supercritical.api.metatileentity.multiblock.IFissionReactorHatch
+import supercritical.api.machine.multiblock.IFissionReactorHatch
 import supercritical.api.nuclear.fission.ICoolantStats
 
 class MetaTileEntityCoolantExportHatch(holder: IMachineBlockEntity, tier: Int) :
     TieredIOPartMachine(holder, tier, IO.OUT), ICoolantHandler, IControllable, IFissionReactorHatch {
-    @Persisted
-    @DescSynced
-    @RequireRerender
-    private var workingEnabled = true
-    private val fluidTank: LockableFluidTank
-    private var coolant: ICoolantStats? = null
+    override val fluidTank: LockableFluidTank
+    override var coolant: ICoolantStats? = null
 
     init {
         this.fluidTank = LockableFluidTank(this, 16000, IO.OUT)
     }
 
-    override fun isWorkingEnabled(): Boolean {
-        return workingEnabled
-    }
+    override val coolantFrontFacing: Direction
+        get() = frontFacing
 
-    override fun setWorkingEnabled(workingEnabled: Boolean) {
-        this.workingEnabled = workingEnabled
-    }
+    override val hatchPos
+        get() = pos
+
+    override var locked: Boolean
+        get() = fluidTank.lockedState
+        set(value) {
+            fluidTank.lockedState = value
+        }
+
+    override val lockedObject: Fluid?
+        get() = fluidTank.lockedObject
+
+    override val outputHandler: ICoolantHandler
+        get() = this
+
 
     override fun checkValidity(depth: Int): Boolean {
         return true
     }
 
-    override fun setLocked(isLocked: Boolean) {
-        fluidTank.setLock(isLocked)
-    }
-
-    override fun isLocked(): Boolean {
-        return fluidTank.isLocked()
-    }
-
-    override fun getLockedObject(): Fluid? {
-        return fluidTank.getLockedObject()
-    }
-
-    override fun getCoolant(): ICoolantStats? {
-        return this.coolant
-    }
-
-    override fun setCoolant(prop: ICoolantStats?) {
-        this.coolant = prop
-    }
-
-    override fun getFluidTank(): LockableFluidTank {
-        return this.fluidTank
-    }
-
-    override fun getOutputHandler(): ICoolantHandler? {
-        return this
-    }
-
     override fun onLoad() {
         super.onLoad()
-        subscribeServerTick(Runnable {
-            if (getOffsetTimer() % 5 == 0L && isWorkingEnabled()) {
-                fluidTank.exportToNearby(getFrontFacing())
+        subscribeServerTick {
+            if (offsetTimer % 5 == 0L && isWorkingEnabled) {
+                fluidTank.exportToNearby(frontFacing)
             }
-        })
+        }
     }
 
     override fun saveCustomPersistedData(tag: CompoundTag, forDrop: Boolean) {
         super.saveCustomPersistedData(tag, forDrop)
-        tag.putBoolean("Locked", fluidTank.isLocked())
+        tag.putBoolean("Locked", fluidTank.lockedState)
     }
 
     override fun loadCustomPersistedData(tag: CompoundTag) {
         super.loadCustomPersistedData(tag)
-        fluidTank.setLock(tag.getBoolean("Locked"))
+        fluidTank.lockedState = tag.getBoolean("Locked")
     }
 }

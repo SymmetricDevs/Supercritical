@@ -1,3 +1,4 @@
+
 import net.neoforged.moddevgradle.dsl.RunModel
 import org.apache.tools.ant.filters.ReplaceTokens
 
@@ -5,6 +6,16 @@ plugins {
     alias(libs.plugins.modDevGradle)
     alias(libs.plugins.buildconfig)
     alias(libs.plugins.ideaExt)
+}
+
+dependencies {
+    if (useMixin) {
+        annotationProcessor(variantOf(libs.mixin) { classifier("processor") })
+        compileOnly(libs.mixinExtras.common)
+        annotationProcessor(libs.mixinExtras.common)
+        api(libs.mixinExtras.forge)
+        jarJar(libs.mixinExtras.forge)
+    }
 }
 
 //configurations.configureEach {
@@ -127,6 +138,7 @@ tasks.processResources {
     // Template files for 1.20.1: mods.toml, pack.mcmeta, and mixin configs
     filesMatching(listOf("META-INF/mods.toml", "pack.mcmeta", "*mixin*.json")) {
         filter<ReplaceTokens>("tokens" to templateTokens)
+        expand(templateTokens)
     }
 }
 

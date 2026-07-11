@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.data.tag.TagPrefix
  * radiation damage behaviour for Supercritical nuclear items.
  */
 typealias damageFunction = java.util.function.Function<Double, Double>
+
 interface TagPrefixExtension {
 
     var radiationDamageFunction: damageFunction

@@ -4,15 +4,13 @@ import net.minecraft.world.level.block.Block
 import java.util.*
 
 object ModeratorRegistry {
-    private val MODERATORS: MutableMap<Block?, IModeratorStats?> = LinkedHashMap<Block?, IModeratorStats?>()
+    private val MODERATORS: MutableMap<Block?, IModeratorStats?> = linkedMapOf()
 
     fun registerModerator(block: Block?, stats: IModeratorStats?) {
-        MODERATORS.put(block, stats)
+        MODERATORS[block] = stats
     }
 
-    fun getModerator(block: Block?): IModeratorStats? {
-        return MODERATORS.get(block)
-    }
+    fun getModerator(block: Block?): IModeratorStats? = MODERATORS[block]
 
     val allModerators: MutableCollection<Block?>
         get() = Collections.unmodifiableSet<Block?>(MODERATORS.keys)

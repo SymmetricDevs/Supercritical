@@ -35,7 +35,8 @@ minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
 forge = { module = "net.minecraftforge:forge", version.ref = "forge" }
 renderNurse = { module = "net.neoforged:render-nurse", version.ref = "renderNurse" }
 mixin = { module = "org.spongepowered:mixin", version.ref = "mixin" }
-mixinExtras = { module = "io.github.llamalad7:mixinextras-forge", version.ref = "mixinExtras" }
+mixinExtras-forge = { module = "io.github.llamalad7:mixinextras-forge", version.ref = "mixinExtras" }
+mixinExtras-common = { module = "io.github.llamalad7:mixinextras-common", version.ref = "mixinExtras" }
 
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }

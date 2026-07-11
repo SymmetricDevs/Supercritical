@@ -24,23 +24,23 @@ class FissionFuelInfo(rod: ItemStack) {
 
         val prop = FissionFuelRegistry.getFissionFuel(rod)
         if (prop != null) {
-            this.depletedRods = prop.getDepletedFuels()
+            this.depletedRods = prop.depletedFuels
             this.duration = Component.translatable(
                 "metaitem.nuclear.tooltip.duration",
-                (prop.getDuration() * prop.getReleasedHeatEnergy()).toInt()
+                (prop.duration * prop.releasedHeatEnergy).toInt()
             )
-            this.maxTemp = Component.translatable("metaitem.nuclear.tooltip.temperature", prop.getMaxTemperature())
+            this.maxTemp = Component.translatable("metaitem.nuclear.tooltip.temperature", prop.maxTemperature)
             this.crossSectionFast = Component.translatable(
                 "metaitem.nuclear.tooltip.cross_section_fast",
-                prop.getFastNeutronFissionCrossSection().toInt()
+                prop.fastNeutronFissionCrossSection.toInt()
             )
             this.crossSectionSlow = Component.translatable(
                 "metaitem.nuclear.tooltip.cross_section_slow",
-                prop.getSlowNeutronFissionCrossSection().toInt()
+                prop.slowNeutronFissionCrossSection.toInt()
             )
             this.neutronGenerationTime = Component.translatable(
-                "metaitem.nuclear.tooltip.neutron_time." + prop.getNeutronGenerationTimeCategory(),
-                prop.getNeutronGenerationTime().toInt()
+                "metaitem.nuclear.tooltip.neutron_time." + prop.neutronGenerationTimeCategory,
+                prop.neutronGenerationTime.toInt()
             )
         } else {
             this.depletedRods = mutableListOf<ItemStack?>()

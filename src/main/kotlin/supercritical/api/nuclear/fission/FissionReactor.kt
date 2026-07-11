@@ -1,5 +1,6 @@
 package supercritical.api.nuclear.fission
 
+import net.minecraft.nbt.CompoundTag
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction
 import supercritical.api.nuclear.fission.components.ControlRod
@@ -14,11 +15,11 @@ import kotlin.math.min
 import kotlin.math.sqrt
 
 class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Double) {
-    private val reactorLayout: Array<Array<ReactorComponent?>?>
-    val fuelRods: MutableList<FuelRod> = ArrayList<FuelRod>()
-    val controlRods: MutableList<ControlRod> = ArrayList<ControlRod>()
-    val coolantChannels: MutableList<CoolantChannel> = ArrayList<CoolantChannel>()
-    private val effectiveControlRods: MutableList<ControlRod?> = ArrayList<ControlRod?>()
+    private val reactorLayout: Array<Array<ReactorComponent?>>
+    val fuelRods: MutableList<FuelRod> = arrayListOf()
+    val controlRods: MutableList<ControlRod> = arrayListOf()
+    val coolantChannels: MutableList<CoolantChannel> = arrayListOf()
+    private val effectiveControlRods: MutableList<ControlRod> = arrayListOf()
     private val reactorRadius: Double
     private val surfaceArea: Double
     private val exteriorPressure: Double = STANDARD_PRESSURE
@@ -55,11 +56,11 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
     var controlRodRegulationOn: Boolean = true
 
     fun setComponent(x: Int, y: Int, component: ReactorComponent?) {
-        reactorLayout[x]!![y] = component
+        reactorLayout[x][y] = component
     }
 
     fun getComponent(x: Int, y: Int): ReactorComponent? {
-        return reactorLayout[x]!![y]
+        return reactorLayout[x][y]
     }
 
     fun prepareThermalProperties() {
@@ -76,22 +77,21 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         var controlIndex = 0
         var coolantIndex = 0
         for (x in reactorLayout.indices) {
-            for (y in reactorLayout[x]!!.indices) {
-                val component = reactorLayout[x]!![y]
-                if (component == null || !component.isValid()) continue
+            for (y in reactorLayout[x].indices) {
+                val component = reactorLayout[x][y]
+                if (component == null || !component.isValid) continue
                 component.setPos(x, y)
-                maxTemperature = min(maxTemperature, component.getMaxTemperature())
-                structuralMass += component.getMass()
+                maxTemperature = min(maxTemperature, component.maxTemperature)
+                structuralMass += component.mass
                 if (component is FuelRod) {
-                    component.setIndex(fuelIndex++)
+                    component.index = fuelIndex++
                     fuelRods.add(component)
-                    fuelMass += component.getMass()
                 } else if (component is ControlRod) {
-                    component.setIndex(controlIndex++)
+                    component.index = controlIndex++
                     controlRods.add(component)
                 } else if (component is CoolantChannel) {
-                    component.setIndex(coolantIndex++)
-                    component.setWeight(0.0)
+                    component.index = coolantIndex++
+                    component.weight = 0.0
                     coolantChannels.add(component)
                 }
             }
@@ -99,48 +99,48 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
     }
 
     fun computeK(addToEffectiveLists: Boolean, controlRodsInserted: Boolean): Double {
-        val geometricMatrixNeutrons = Array<DoubleArray?>(fuelRods.size) { DoubleArray(fuelRods.size) }
-        val geometricMatrixFastNeutrons = Array<DoubleArray?>(fuelRods.size) { DoubleArray(fuelRods.size) }
-        val geometricMatrixSlowNeutrons = Array<DoubleArray?>(fuelRods.size) { DoubleArray(fuelRods.size) }
+        val geometricMatrixNeutrons = Array<DoubleArray>(fuelRods.size) { DoubleArray(fuelRods.size) }
+        val geometricMatrixFastNeutrons = Array<DoubleArray>(fuelRods.size) { DoubleArray(fuelRods.size) }
+        val geometricMatrixSlowNeutrons = Array<DoubleArray>(fuelRods.size) { DoubleArray(fuelRods.size) }
 
         for (i in fuelRods.indices) {
             for (j in 0..<i) {
                 var mij = 0.0
                 var saij = 0.0
                 var faij = 0.0
-                val rodOne = fuelRods.get(i)
-                val rodTwo = fuelRods.get(j)
+                val rodOne = fuelRods[i]
+                val rodTwo = fuelRods[j]
 
-                var prevX = fuelRods.get(i).getX()
-                var prevY = fuelRods.get(i).getY()
-                val resolution = SCConfigHolder.NUCLEAR.fissionReactorResolution.get().toInt()
+                var prevX = fuelRods[i].x
+                var prevY = fuelRods[i].y
+                val resolution = SCConfigHolder.INSTANCE.nuclear.fissionReactorResolution.toInt()
                 for (t in 0..<resolution) {
                     val x = Math.round(
-                        (rodTwo.getX() - rodOne.getX()) *
-                                (t.toDouble() / resolution) + fuelRods.get(i).getX()
+                        (rodTwo.x - rodOne.x) *
+                                (t.toDouble() / resolution) + fuelRods[i].x
                     ).toInt()
                     val y = Math.round(
-                        (rodTwo.getY() - rodOne.getY()) *
-                                (t.toDouble() / resolution) + fuelRods.get(i).getY()
+                        (rodTwo.y - rodOne.y) *
+                                (t.toDouble() / resolution) + fuelRods[i].y
                     ).toInt()
                     if (x < 0 || x > reactorLayout.size - 1 || y < 0 || y > reactorLayout.size - 1) {
                         continue
                     }
-                    val component = reactorLayout[x]!![y]
+                    val component = reactorLayout[x][y]
 
                     if (component == null) {
                         continue
                     }
 
-                    if (!component.samePositionAs(fuelRods.get(i)) &&
-                        !component.samePositionAs(fuelRods.get(j))
+                    if (!component.samePositionAs(fuelRods[i]) &&
+                        !component.samePositionAs(fuelRods[j])
                     ) {
                         saij += component.getAbsorptionFactor(controlRodsInserted, true)
                         faij += component.getAbsorptionFactor(controlRodsInserted, false)
                     }
 
-                    if (component.getModerationFactor() > 0) {
-                        mij += component.getModerationFactor()
+                    if (component.moderationFactor > 0) {
+                        mij += component.moderationFactor
                         saij = (faij + saij) / 2
                     }
 
@@ -166,29 +166,29 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
                 val slow = (1 / dist - fast) * unabsorbedSlow
                 fast = fast * unabsorbedFast
 
-                var slowNeutronFissionMultiplier = rodTwo.getFuel().getSlowFissionMultiplier()
-                var fastNeutronFissionMultiplier = rodTwo.getFuel().getFastFissionMultiplier()
-                geometricMatrixNeutrons[i]!![j] = slow * slowNeutronFissionMultiplier +
+                var slowNeutronFissionMultiplier = rodTwo.getFuel().slowFissionMultiplier
+                var fastNeutronFissionMultiplier = rodTwo.getFuel().fastFissionMultiplier
+                geometricMatrixNeutrons[i][j] = slow * slowNeutronFissionMultiplier +
                         fast * fastNeutronFissionMultiplier
 
-                slowNeutronFissionMultiplier = rodOne.getFuel().getSlowFissionMultiplier()
-                fastNeutronFissionMultiplier = rodOne.getFuel().getFastFissionMultiplier()
-                geometricMatrixNeutrons[j]!![i] = slow * slowNeutronFissionMultiplier +
+                slowNeutronFissionMultiplier = rodOne.getFuel().slowFissionMultiplier
+                fastNeutronFissionMultiplier = rodOne.getFuel().fastFissionMultiplier
+                geometricMatrixNeutrons[j][i] = slow * slowNeutronFissionMultiplier +
                         fast * fastNeutronFissionMultiplier
 
                 if (addToEffectiveLists) {
-                    geometricMatrixFastNeutrons[i]!![j] = fast * rodTwo.getFuel().getFastNeutronCaptureCrossSection()
-                    geometricMatrixSlowNeutrons[i]!![j] = slow * rodTwo.getFuel().getSlowNeutronCaptureCrossSection()
+                    geometricMatrixFastNeutrons[i][j] = fast * rodTwo.getFuel().fastNeutronCaptureCrossSection
+                    geometricMatrixSlowNeutrons[i][j] = slow * rodTwo.getFuel().slowNeutronCaptureCrossSection
 
-                    geometricMatrixFastNeutrons[j]!![i] = fast * rodOne.getFuel().getFastNeutronCaptureCrossSection()
-                    geometricMatrixSlowNeutrons[j]!![i] = slow * rodOne.getFuel().getSlowNeutronCaptureCrossSection()
+                    geometricMatrixFastNeutrons[j][i] = fast * rodOne.getFuel().fastNeutronCaptureCrossSection
+                    geometricMatrixSlowNeutrons[j][i] = slow * rodOne.getFuel().slowNeutronCaptureCrossSection
                 }
             }
         }
 
         val vector = DoubleArray(fuelRods.size)
         Arrays.fill(vector, 1.0)
-        for (i in 0..<SCConfigHolder.NUCLEAR.fissionReactorPowerIterations.get()) {
+        for (i in 0..<SCConfigHolder.INSTANCE.nuclear.fissionReactorPowerIterations) {
             normalize(vector)
             multiply(geometricMatrixNeutrons, vector)
         }
@@ -196,7 +196,7 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         if (addToEffectiveLists) {
             linearNormalize(vector)
             for (i in fuelRods.indices) {
-                fuelRods.get(i).setWeight(vector[i])
+                fuelRods[i].weight = vector[i]
             }
             val fastVector = vector.copyOf(vector.size)
             val slowVector = vector.copyOf(vector.size)
@@ -204,9 +204,9 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
             multiply(geometricMatrixSlowNeutrons, slowVector)
             for (i in fuelRods.indices) {
                 if (slowVector[i] + fastVector[i] == 0.0) {
-                    fuelRods.get(i).setThermalProportion(0.0)
+                    fuelRods[i].thermalProportion = 0.0
                 } else {
-                    fuelRods.get(i).setThermalProportion(slowVector[i] / (slowVector[i] + fastVector[i]))
+                    fuelRods[i].thermalProportion = (slowVector[i] / (slowVector[i] + fastVector[i]))
                 }
             }
         }
@@ -236,8 +236,8 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         decayNeutrons = 0.0
 
         for (rod in fuelRods) {
-            neutronToPowerConversion += rod.getFuel().getReleasedHeatEnergy() / rod.getFuel().getRequiredNeutrons()
-            decayNeutrons += rod.getFuel().getDecayRate()
+            neutronToPowerConversion += rod.getFuel().releasedHeatEnergy / rod.getFuel().releasedNeutrons
+            decayNeutrons += rod.getFuel().decayRate
         }
         computeCoolantWeights()
 
@@ -246,10 +246,10 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
             maxPower = calculateMaxPower()
         } else {
             k = 0.00001
-            maxPower = 0.1 * SCConfigHolder.NUCLEAR.nuclearPowerMultiplier.get()
+            maxPower = 0.1 * SCConfigHolder.INSTANCE.nuclear.nuclearPowerMultiplier
         }
 
-        controlRodFactor = ControlRod.Companion.controlRodFactor(effectiveControlRods, controlRodInsertion)
+        controlRodFactor = ControlRod.controlRodFactor(effectiveControlRods, controlRodInsertion)
 
         prepareInitialConditions()
     }
@@ -258,7 +258,7 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
     private val dy = intArrayOf(1, 0, -1, 0)
 
     init {
-        reactorLayout = Array<Array<ReactorComponent?>?>(size) { arrayOfNulls<ReactorComponent>(size) }
+        reactorLayout = Array(size) { arrayOfNulls<ReactorComponent>(size) }
         reactorRadius = size.toDouble() / 2 + 1.5
         this.controlRodInsertion = max(0.001, controlRodInsertion)
         surfaceArea = (reactorRadius * reactorRadius) * Math.PI * 2 + reactorDepth * reactorRadius * Math.PI * 2
@@ -268,12 +268,12 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
     protected fun computeCoolantWeights() {
         for (rod in fuelRods) {
             for (i in 0..3) {
-                val x = rod.getX() + dx[i]
-                val y = rod.getY() + dy[i]
-                if (x < 0 || x >= reactorLayout.size || y < 0 || y >= reactorLayout[x]!!.size) continue
-                val comp = reactorLayout[x]!![y]
+                val x = rod.x + dx[i]
+                val y = rod.y + dy[i]
+                if (x < 0 || x >= reactorLayout.size || y < 0 || y >= reactorLayout[x].size) continue
+                val comp = reactorLayout[x][y]
                 if (comp is CoolantChannel) {
-                    comp.addWeight(rod.getWeight())
+                    comp.addWeight(rod.weight)
                 }
             }
         }
@@ -283,12 +283,12 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         var totalWeight = 0.0
         for (rod in controlRods) {
             rod.computeWeightFromFuelRodMap()
-            if (rod.getWeight() > 0) {
+            if (rod.weight > 0) {
                 effectiveControlRods.add(rod)
-                totalWeight += rod.getWeight()
+                totalWeight += rod.weight
             }
         }
-        ControlRod.Companion.normalizeWeights(effectiveControlRods, totalWeight, totalWorth)
+        ControlRod.normalizeWeights(effectiveControlRods, totalWeight, totalWorth)
     }
 
     fun resetFuelDepletion() {
@@ -303,7 +303,7 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         weightedGenerationTime = 0.0
 
         for (rod in fuelRods) {
-            weightedGenerationTime += rod.getNeutronGenerationTime()
+            weightedGenerationTime += rod.neutronGenerationTime
         }
         if (fuelRods.isEmpty()) {
             weightedGenerationTime = 2.0
@@ -312,15 +312,16 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         }
 
         for (channel in coolantChannels) {
-            val prop = channel.getCoolant()
+            val prop = channel.coolant
             val original = CoolantRegistry.originalFluid(prop)
+            val hotCoolant = requireNotNull(prop.hotCoolant) { "Coolant must define a hot coolant fluid" }
 
             if (original != null) {
-                coolantBaseTemperature += original.getFluidType().getTemperature().toDouble()
+                coolantBaseTemperature += original.getFluidType().temperature.toDouble()
             }
-            coolantBoilingPointStandardPressure += prop.getBoilingPoint()
-            coolantExitTemperature += prop.getHotCoolant().getFluidType().getTemperature().toDouble()
-            coolantHeatOfVaporization += prop.getHeatOfVaporization()
+            coolantBoilingPointStandardPressure += prop.boilingPoint
+            coolantExitTemperature += hotCoolant.getFluidType().temperature.toDouble()
+            coolantHeatOfVaporization += prop.heatOfVaporization
         }
 
         if (!coolantChannels.isEmpty()) {
@@ -343,39 +344,40 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         var heatRemoved = 0.0
         coolantMass = 0.0
         for (channel in coolantChannels) {
-            val input = channel.getInputHandler()
-            val output = channel.getOutputHandler()
+            val input = channel.inputHandler
+            val output = channel.outputHandler
             if (input == null || output == null) continue
 
-            val inputTank = input.getFluidTank()
-            val outputTank = output.getFluidTank()
+            val inputTank = input.fluidTank
+            val outputTank = output.fluidTank
             val drained = inputTank.drain(16000, FluidAction.SIMULATE)
-            if (drained.isEmpty()) continue
+            if (drained.isEmpty) continue
 
-            val available = drained.getAmount()
-            val prop = channel.getCoolant()
+            val available = drained.amount
+            val prop = channel.coolant
             val original = CoolantRegistry.originalFluid(prop)
             val coolantTemp =
-                if (original == null) ROOM_TEMPERATURE.toInt() else original.getFluidType().getTemperature()
-            val hotCoolant = prop.getHotCoolant()
-            val cooledTemperature =
-                if (hotCoolant == null) ROOM_TEMPERATURE.toInt() else hotCoolant.getFluidType().getTemperature()
+                if (original == null) ROOM_TEMPERATURE.toInt() else original.getFluidType().temperature
+            val hotCoolant = requireNotNull(prop.hotCoolant) {
+                "Coolant must define a hot coolant fluid for coolant flow"
+            }
+            val cooledTemperature = hotCoolant.getFluidType().temperature
             if (cooledTemperature > this.temperature) continue
 
-            val heatRemovedPerLiter = prop.getSpecificHeatCapacity() /
-                    SCConfigHolder.NUCLEAR.fissionCoolantDivisor.get() *
+            val heatRemovedPerLiter = prop.specificHeatCapacity /
+                    SCConfigHolder.INSTANCE.nuclear.fissionCoolantDivisor *
                     (cooledTemperature - coolantTemp)
             if (heatRemovedPerLiter <= 0) continue
 
             val heatFluxPerAreaAndTemp: Double = 1 /
-                    (1 / prop.getCoolingFactor() + coolantWallThickness / thermalConductivity)
-            val idealHeatFlux = heatFluxPerAreaAndTemp * channel.getWeight() * reactorDepth *
+                    (1 / prop.coolingFactor + coolantWallThickness / thermalConductivity)
+            val idealHeatFlux = heatFluxPerAreaAndTemp * channel.weight * reactorDepth *
                     (temperature - cooledTemperature)
 
             val idealFluidUsed = idealHeatFlux / heatRemovedPerLiter
             val cappedFluidUsed = min(available.toDouble(), idealFluidUsed)
 
-            val remainingSpace = outputTank.getTankCapacity(0) - outputTank.getFluidInTank(0).getAmount()
+            val remainingSpace = outputTank.getTankCapacity(0) - outputTank.getFluidInTank(0).amount
             val actualFlowRate = min(
                 remainingSpace,
                 (cappedFluidUsed + channel.partialCoolant).toInt()
@@ -398,7 +400,7 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
                 }
             }
 
-            this.coolantMass += cappedFluidUsed * prop.getMass()
+            this.coolantMass += cappedFluidUsed * prop.mass
             heatRemoved += cappedFluidUsed * heatRemovedPerLiter
         }
         this.coolantMass /= 1000.0
@@ -410,25 +412,26 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         val hypotheticalTemperature = min(maxTemperature, zircaloyHydrogenReactionTemperature)
         var heatRemoved = 0.0
         for (channel in coolantChannels) {
-            val prop = channel.getCoolant()
+            val prop = channel.coolant
             val original = CoolantRegistry.originalFluid(prop)
             val coolantTemp =
-                if (original == null) ROOM_TEMPERATURE.toInt() else original.getFluidType().getTemperature()
+                if (original == null) ROOM_TEMPERATURE.toInt() else original.getFluidType().temperature
 
-            val hotCoolant = prop.getHotCoolant()
-            val cooledTemperature =
-                if (hotCoolant == null) ROOM_TEMPERATURE.toInt() else hotCoolant.getFluidType().getTemperature()
+            val hotCoolant = requireNotNull(prop.hotCoolant) {
+                "Coolant must define a hot coolant fluid for maximum-power calculation"
+            }
+            val cooledTemperature = hotCoolant.getFluidType().temperature
             if (cooledTemperature > hypotheticalTemperature) {
                 continue
             }
 
-            val heatRemovedPerLiter = prop.getSpecificHeatCapacity() /
-                    SCConfigHolder.NUCLEAR.fissionCoolantDivisor.get() *
+            val heatRemovedPerLiter = prop.specificHeatCapacity /
+                    SCConfigHolder.INSTANCE.nuclear.fissionCoolantDivisor *
                     (cooledTemperature - coolantTemp)
 
             val heatFluxPerAreaAndTemp: Double = 1 /
-                    (1 / prop.getCoolingFactor() + coolantWallThickness / thermalConductivity)
-            val idealHeatFlux = heatFluxPerAreaAndTemp * channel.getWeight() * reactorDepth *
+                    (1 / prop.coolingFactor + coolantWallThickness / thermalConductivity)
+            val idealHeatFlux = heatFluxPerAreaAndTemp * channel.weight * reactorDepth *
                     (hypotheticalTemperature - cooledTemperature)
 
             val idealFluidUsed = idealHeatFlux / heatRemovedPerLiter
@@ -447,10 +450,10 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
     }
 
     protected fun coolantBoilingPoint(coolant: ICoolantStats): Double {
-        if (coolant.getBoilingPoint() == 0.0) {
+        if (coolant.boilingPoint == 0.0) {
             return coolantBoilingPoint()
         }
-        return coolant.getBoilingPoint()
+        return coolant.boilingPoint
     }
 
     fun updateTemperature() {
@@ -534,7 +537,7 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
 
     fun updateControlRodInsertion(controlRodInsertion: Double) {
         this.controlRodInsertion = max(0.001, controlRodInsertion)
-        this.controlRodFactor = ControlRod.Companion.controlRodFactor(effectiveControlRods, this.controlRodInsertion)
+        this.controlRodFactor = ControlRod.controlRodFactor(effectiveControlRods, this.controlRodInsertion)
     }
 
     fun regulateControlRods() {
@@ -575,7 +578,7 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         if (adjustFactor) {
             this.controlRodInsertion = max(0.0, min(1.0, this.controlRodInsertion))
             this.controlRodFactor =
-                ControlRod.Companion.controlRodFactor(effectiveControlRods, this.controlRodInsertion)
+                ControlRod.controlRodFactor(effectiveControlRods, this.controlRodInsertion)
         }
     }
 
@@ -595,6 +598,49 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         effectiveControlRods.clear()
     }
 
+    /**
+     * Faithful port of legacy FissionReactor#serializeNBT. Persists the dynamic reactor state
+     * (including the five fields the modern port previously dropped: NeutronFlux, PrevTemperature,
+     * NeutronPoisonAmount, DecayProductsAmount, ControlRodRegulationOn) so a reload resumes the
+     * neutron/thermal transient instead of resetting it. Structural limits (maxTemperature etc.)
+     * are deliberately NOT persisted, matching legacy: they are recomputed in prepareThermalProperties.
+     */
+    fun serializeNBT(): CompoundTag {
+        val tag = CompoundTag()
+        tag.putDouble("Temperature", temperature)
+        tag.putDouble("PrevTemperature", prevTemperature)
+        tag.putDouble("Pressure", pressure)
+        tag.putDouble("Power", power)
+        tag.putDouble("NeutronFlux", neutronFlux)
+        tag.putDouble("FuelDepletion", fuelDepletion)
+        tag.putDouble("AccumulatedHydrogen", accumulatedHydrogen)
+        tag.putDouble("NeutronPoisonAmount", neutronPoisonAmount)
+        tag.putDouble("DecayProductsAmount", decayProductsAmount)
+        tag.putDouble("ControlRodInsertion", controlRodInsertion)
+        tag.putBoolean("IsOn", isOn)
+        tag.putBoolean("ControlRodRegulationOn", controlRodRegulationOn)
+        return tag
+    }
+
+    /**
+     * Faithful port of legacy FissionReactor#deserializeNBT. Restores the fields written by
+     * [serializeNBT]. Should be called after [computeGeometry] so structural properties are fresh.
+     */
+    fun deserializeNBT(tag: CompoundTag) {
+        temperature = tag.getDouble("Temperature")
+        prevTemperature = tag.getDouble("PrevTemperature")
+        pressure = tag.getDouble("Pressure")
+        power = tag.getDouble("Power")
+        neutronFlux = tag.getDouble("NeutronFlux")
+        fuelDepletion = tag.getDouble("FuelDepletion")
+        accumulatedHydrogen = tag.getDouble("AccumulatedHydrogen")
+        neutronPoisonAmount = tag.getDouble("NeutronPoisonAmount")
+        decayProductsAmount = tag.getDouble("DecayProductsAmount")
+        controlRodInsertion = tag.getDouble("ControlRodInsertion")
+        isOn = tag.getBoolean("IsOn")
+        controlRodRegulationOn = tag.getBoolean("ControlRodRegulationOn")
+    }
+
     companion object {
         const val R: Double = 8.31446261815324
         const val STANDARD_PRESSURE: Double = 101325.0
@@ -603,7 +649,7 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
 
         var thermalConductivity: Double = 45.0 // W/(m K), for steel
         var wallThickness: Double = 0.1 // m
-        var coolantWallThickness: Double = 0.06 // m
+        var coolantWallThickness: Double = 0.02 // m (legacy value; 0.06 was the original, then /3 for balance)
         var specificHeatCapacity: Double = 420.0 // J/(kg K), for steel
         var convectiveHeatTransferCoefficient: Double = 10.0 // W/(m^2 K), for slow-moving air
         var powerDefectCoefficient: Double = 0.016 // reactivity units
@@ -639,11 +685,11 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
             for (i in vector.indices) vector[i] /= sum
         }
 
-        fun multiply(matrix: Array<DoubleArray?>, vector: DoubleArray) {
+        fun multiply(matrix: Array<DoubleArray>, vector: DoubleArray) {
             val result = DoubleArray(vector.size)
             for (i in matrix.indices) {
-                for (j in matrix[i]!!.indices) {
-                    result[i] += matrix[i]!![j] * vector[j]
+                for (j in matrix[i].indices) {
+                    result[i] += matrix[i][j] * vector[j]
                 }
             }
             System.arraycopy(result, 0, vector, 0, result.size)

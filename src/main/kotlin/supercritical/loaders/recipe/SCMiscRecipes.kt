@@ -26,7 +26,7 @@ object SCMiscRecipes {
                 GTRecipeTypes.CHEMICAL_BATH_RECIPES.recipeBuilder(color.getName() + "_panelling")
                     .inputItems(ItemStack(SCBlocks.GRAY_PANELLING.get()))
                     .inputFluids(GTMaterials.CHEMICAL_DYES[color.ordinal].getFluid(9))
-                    .outputItems(ItemStack(SCBlocks.PANELLING.get(color)!!.get()))
+                    .outputItems(ItemStack(SCBlocks.PANELLING.getValue(color).get()))
                     .EUt(2).duration(10)
                     .buildRawRecipe()
             )

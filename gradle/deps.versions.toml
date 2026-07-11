@@ -1,20 +1,33 @@
 [versions]
-annotations = "26.1.0"
-jspecify = "1.0.0"
-assertj = "3.27.7"
-
+ldlib = "1.0.50"
+registrate = "MC1.20-1.3.11"
+configuration = "3.1.0-forge"
 gtceu = "7.5.3"
+
 jei = "15.20.0.133"
+jade = "11.13.2+forge"
+jade-addons = "5.5.1+forge"
+
+ccTweaked = "1.120.0"
 
 [libraries]
-annotations = { module = "org.jetbrains:annotations", version.ref = "annotations" }
-jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
-assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
-
+ldlib = { module = "com.lowdragmc.ldlib:ldlib-forge-1.20.1", version.ref = "ldlib" }
+registrate = { module = "com.tterrag.registrate:Registrate", version.ref = "registrate" }
+configuration = { module = "dev.toma.configuration:configuration-1.20.1", version.ref = "configuration" }
 gtceu = { module = "com.gregtechceu.gtceu:gtceu-1.20.1", version.ref = "gtceu" }
+
 jei-common-api = { module = "mezz.jei:jei-1.20.1-common-api", version.ref = "jei" }
 jei-forge-api = { module = "mezz.jei:jei-1.20.1-forge-api", version.ref = "jei" }
 jei-forge-impl = { module = "mezz.jei:jei-1.20.1-forge", version.ref = "jei" }
+jade = { module = "maven.modrinth:jade", version.ref = "jade" }
+jade-addons = { module = "maven.modrinth:jade-addons-forge", version.ref = "jade-addons" }
+
+ccTweaked-core-api = { module = "cc.tweaked:cc-tweaked-1.20.1-core-api", version.ref = "ccTweaked" }
+ccTweaked-common-api = { module = "cc.tweaked:cc-tweaked-1.20.1-common-api", version.ref = "ccTweaked" }
+ccTweaked-forge-api = { module = "cc.tweaked:cc-tweaked-1.20.1-forge-api", version.ref = "ccTweaked" }
+ccTweaked-forge = { module = "cc.tweaked:cc-tweaked-1.20.1-forge", version.ref = "ccTweaked" }
 
 [bundles]
 jei = ["jei-common-api", "jei-forge-api", "jei-forge-impl"]
+jade = ["jade", "jade-addons"]
+ccTweaked-api = ["ccTweaked-core-api", "ccTweaked-common-api", "ccTweaked-forge-api"]

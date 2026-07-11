@@ -18,21 +18,21 @@ class SCJEIPlugin : IModPlugin {
     }
 
     override fun registerCategories(registration: IRecipeCategoryRegistration) {
-        val helpers = registration.getJeiHelpers()
+        val helpers = registration.jeiHelpers
         registration.addRecipeCategories(FissionFuelCategory(helpers))
         registration.addRecipeCategories(CoolantCategory(helpers))
         registration.addRecipeCategories(ModeratorCategory(helpers))
     }
 
     override fun registerRecipes(registration: IRecipeRegistration) {
-        FissionFuelCategory.Companion.registerRecipes(registration)
-        CoolantCategory.Companion.registerRecipes(registration)
-        ModeratorCategory.Companion.registerRecipes(registration)
+        FissionFuelCategory.registerRecipes(registration)
+        CoolantCategory.registerRecipes(registration)
+        ModeratorCategory.registerRecipes(registration)
     }
 
     override fun registerRecipeCatalysts(registration: IRecipeCatalystRegistration) {
-        FissionFuelCategory.Companion.registerRecipeCatalysts(registration)
-        CoolantCategory.Companion.registerRecipeCatalysts(registration)
-        ModeratorCategory.Companion.registerRecipeCatalysts(registration)
+        FissionFuelCategory.registerRecipeCatalysts(registration)
+        CoolantCategory.registerRecipeCatalysts(registration)
+        ModeratorCategory.registerRecipeCatalysts(registration)
     }
 }

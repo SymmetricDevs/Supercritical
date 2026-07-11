@@ -6,7 +6,7 @@ class ControlRod(
     thermalConductivity: Double,
     mass: Double
 ) : ReactorComponent(0.0, maxTemperature, thermalConductivity, mass, true) {
-    private var weight = 0.0
+    var weight = 0.0
     private var relatedFuelRodPairs = 0
 
     override fun getAbsorptionFactor(controlsInserted: Boolean, thermal: Boolean): Double {
@@ -25,23 +25,16 @@ class ControlRod(
         weight = (relatedFuelRodPairs * 4).toDouble()
     }
 
-    fun getWeight(): Double {
-        return weight
-    }
-
-    fun setWeight(weight: Double) {
-        this.weight = weight
-    }
 
     companion object {
-        fun normalizeWeights(effectiveControlRods: MutableList<ControlRod>, totalWeight: Double, totalWorth: Double) {
+        fun normalizeWeights(effectiveControlRods: List<ControlRod>, totalWeight: Double, totalWorth: Double) {
             if (totalWeight == 0.0) return
             for (rod in effectiveControlRods) {
                 rod.weight = rod.weight / totalWeight * totalWorth
             }
         }
 
-        fun controlRodFactor(effectiveControlRods: MutableList<ControlRod>, insertion: Double): Double {
+        fun controlRodFactor(effectiveControlRods: List<ControlRod>, insertion: Double): Double {
             var factor = 0.0
             for (rod in effectiveControlRods) {
                 if (rod.hasModeratorTip()) {

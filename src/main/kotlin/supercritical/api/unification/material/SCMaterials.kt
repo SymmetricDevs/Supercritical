@@ -1,9 +1,11 @@
 package supercritical.api.unification.material
 
 import com.gregtechceu.gtceu.api.GTCEuAPI
+import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper
 import com.gregtechceu.gtceu.api.data.chemical.material.Material
 import com.gregtechceu.gtceu.api.data.chemical.material.event.MaterialEvent
 import com.gregtechceu.gtceu.api.data.chemical.material.event.MaterialRegistryEvent
+import com.gregtechceu.gtceu.api.data.chemical.material.event.PostMaterialEvent
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconSet
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.BlastProperty
@@ -11,6 +13,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.DustProperty
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidProperty
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey
 import com.gregtechceu.gtceu.api.data.chemical.material.registry.MaterialRegistry
+import com.gregtechceu.gtceu.api.data.tag.TagPrefix
 import com.gregtechceu.gtceu.api.fluids.FluidBuilder
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys
 import com.gregtechceu.gtceu.common.data.GTMaterials
@@ -19,56 +22,55 @@ import net.minecraftforge.eventbus.api.SubscribeEvent
 import supercritical.SCGTAddon
 import supercritical.api.nuclear.fission.CoolantRegistry
 import supercritical.api.nuclear.fission.FissionFuelRegistry
+import supercritical.api.nuclear.fission.ModeratorRegistry
 import supercritical.api.unification.material.properties.CoolantProperty
 import supercritical.api.unification.material.properties.FissionFuelProperty
 import supercritical.api.unification.material.properties.ModeratorProperty
 import supercritical.api.unification.material.properties.SCPropertyKey
-import supercritical.api.util.SCUtility
+import supercritical.api.util.scId
+import supercritical.common.SCConfigHolder
 import supercritical.common.registry.SCItems
 import java.util.List
-import java.util.function.Function
-import java.util.function.Supplier
-import java.util.function.UnaryOperator
 
 object SCMaterials {
-    private val FUEL_ITEM_ENTRIES: MutableList<FuelItemEntry> = ArrayList<FuelItemEntry>()
+    private val FUEL_ITEM_ENTRIES: MutableList<FuelItemEntry> = arrayListOf()
 
-    var Uranium239: Material? = null
-    var Neptunium235: Material? = null
-    var Neptunium236: Material? = null
-    var Neptunium237: Material? = null
-    var Neptunium239: Material? = null
-    var Plutonium238: Material? = null
-    var Plutonium240: Material? = null
-    var Plutonium242: Material? = null
-    var Plutonium244: Material? = null
+    lateinit var Uranium239: Material
+    lateinit var Neptunium235: Material
+    lateinit var Neptunium236: Material
+    lateinit var Neptunium237: Material
+    lateinit var Neptunium239: Material
+    lateinit var Plutonium238: Material
+    lateinit var Plutonium240: Material
+    lateinit var Plutonium242: Material
+    lateinit var Plutonium244: Material
 
-    var HighEnrichedUraniumDioxide: Material? = null
-    var DepletedUraniumDioxide: Material? = null
-    var HighPressureSteam: Material? = null
-    var FissilePlutoniumDioxide: Material? = null
-    var Zircaloy: Material? = null
-    var LowEnrichedUraniumDioxide: Material? = null
-    var Zircon: Material? = null
-    var ZirconiumDioxide: Material? = null
-    var ZirconiumTetrachloride: Material? = null
-    var HafniumDioxide: Material? = null
-    var HafniumTetrachloride: Material? = null
-    var Inconel: Material? = null
-    var HighEnrichedUraniumHexafluoride: Material? = null
-    var BoronTrioxide: Material? = null
-    var BoronCarbide: Material? = null
-    var HighPressureHeavyWater: Material? = null
-    var HeavyWater: Material? = null
+    lateinit var HighEnrichedUraniumDioxide: Material
+    lateinit var DepletedUraniumDioxide: Material
+    lateinit var HighPressureSteam: Material
+    lateinit var FissilePlutoniumDioxide: Material
+    lateinit var Zircaloy: Material
+    lateinit var LowEnrichedUraniumDioxide: Material
+    lateinit var Zircon: Material
+    lateinit var ZirconiumDioxide: Material
+    lateinit var ZirconiumTetrachloride: Material
+    lateinit var HafniumDioxide: Material
+    lateinit var HafniumTetrachloride: Material
+    lateinit var Inconel: Material
+    lateinit var HighEnrichedUraniumHexafluoride: Material
+    lateinit var BoronTrioxide: Material
+    lateinit var BoronCarbide: Material
+    lateinit var HighPressureHeavyWater: Material
+    lateinit var HeavyWater: Material
 
-    var SpentUraniumFuelSolution: Material? = null
-    var RadonRichGasMixture: Material? = null
+    lateinit var SpentUraniumFuelSolution: Material
+    lateinit var RadonRichGasMixture: Material
 
-    var Corium: Material? = null
-    var LEU235: Material? = null
-    var HEU235: Material? = null
-    var LowGradeMOX: Material? = null
-    var HighGradeMOX: Material? = null
+    lateinit var Corium: Material
+    lateinit var LEU235: Material
+    lateinit var HEU235: Material
+    lateinit var LowGradeMOX: Material
+    lateinit var HighGradeMOX: Material
 
     private var registry: MaterialRegistry? = null
 
@@ -80,12 +82,19 @@ object SCMaterials {
     @SubscribeEvent
     fun register(event: MaterialEvent?) {
         registerCoreMaterials()
-        // Config values are not available during MaterialEvent; defer conditional material registration.
+        if (SCConfigHolder.INSTANCE.misc.disableAllMaterials) return
         registerElementMaterials()
         registerFirstDegreeMaterials()
         registerSecondDegreeMaterials()
         registerUnknownCompositionMaterials()
-        applyMaterialModifications()
+    }
+
+    @SubscribeEvent
+    fun modifyExistingMaterials(@Suppress("UNUSED_PARAMETER") event: PostMaterialEvent) {
+        val misc = SCConfigHolder.INSTANCE.misc
+        if (misc.enableMaterialModifications) {
+            applyMaterialModifications(includeDistilledWaterCoolant = !misc.disableAllMaterials)
+        }
     }
 
     private fun registerCoreMaterials() {
@@ -95,55 +104,58 @@ object SCMaterials {
                     .temperature(2500)
                     .density(8.0)
                     .viscosity(10000)
+                    .block()
             )
             .color(0x7A6B50)
             .iconSet(MaterialIconSet.DULL)
-            .flags(MaterialFlags.NO_UNIFICATION, MaterialFlags.STICKY)
+            // DISABLE_MATERIAL_RECIPES is the modern (non-deprecated) replacement for NO_UNIFICATION
+            // (both disable auto recipe generation for the material; Corium is byproduct-only).
+            .flags(MaterialFlags.DISABLE_MATERIAL_RECIPES, MaterialFlags.STICKY, MaterialFlags.PHOSPHORESCENT)
             .buildAndRegister()
     }
 
     private fun registerElementMaterials() {
         Uranium239 = builder("uranium_239")
             .color(0x46FA46).iconSet(MaterialIconSet.SHINY)
-            .element(SCGTAddon.Companion.Uranium239)
+            .element(SCGTAddon.Uranium239)
             .buildAndRegister()
 
         Neptunium235 = builder("neptunium_235")
             .color(0x284D7B).iconSet(MaterialIconSet.METALLIC)
-            .element(SCGTAddon.Companion.Neptunium235)
+            .element(SCGTAddon.Neptunium235)
             .buildAndRegister()
         Neptunium236 = builder("neptunium_236")
             .color(0x284D7B).iconSet(MaterialIconSet.METALLIC)
-            .element(SCGTAddon.Companion.Neptunium236)
+            .element(SCGTAddon.Neptunium236)
             .buildAndRegister()
         Neptunium237 = builder("neptunium_237")
             .color(0x284D7B).iconSet(MaterialIconSet.METALLIC)
-            .element(SCGTAddon.Companion.Neptunium237)
+            .element(SCGTAddon.Neptunium237)
             .buildAndRegister()
         Neptunium239 = builder("neptunium_239")
             .color(0x284D7B).iconSet(MaterialIconSet.METALLIC)
-            .element(SCGTAddon.Companion.Neptunium239)
+            .element(SCGTAddon.Neptunium239)
             .buildAndRegister()
 
         Plutonium238 = builder("plutonium_238")
             .liquid(FluidBuilder().temperature(913))
             .color(0xF03232).iconSet(MaterialIconSet.METALLIC)
-            .element(SCGTAddon.Companion.Plutonium238)
+            .element(SCGTAddon.Plutonium238)
             .buildAndRegister()
         Plutonium240 = builder("plutonium_240")
             .liquid(FluidBuilder().temperature(913))
             .color(0xF03232).iconSet(MaterialIconSet.METALLIC)
-            .element(SCGTAddon.Companion.Plutonium240)
+            .element(SCGTAddon.Plutonium240)
             .buildAndRegister()
         Plutonium242 = builder("plutonium_242")
             .liquid(FluidBuilder().temperature(913))
             .color(0xF03232).iconSet(MaterialIconSet.METALLIC)
-            .element(SCGTAddon.Companion.Plutonium242)
+            .element(SCGTAddon.Plutonium242)
             .buildAndRegister()
         Plutonium244 = builder("plutonium_244")
             .liquid(FluidBuilder().temperature(913))
             .color(0xF03232).iconSet(MaterialIconSet.METALLIC)
-            .element(SCGTAddon.Companion.Plutonium244)
+            .element(SCGTAddon.Plutonium244)
             .buildAndRegister()
     }
 
@@ -235,6 +247,9 @@ object SCMaterials {
         Inconel = builder("inconel")
             .ingot().fluid()
             .color(0x7F8F75).iconSet(MaterialIconSet.SHINY)
+            // GENERATE_PLATE already auto-generates the legacy 2x "plateDouble" (modern plate);
+            // GENERATE_DENSE is intentionally omitted — it would generate a 9x "plateDense" that
+            // legacy never had.
             .flags(MaterialFlags.GENERATE_PLATE, MaterialFlags.GENERATE_SPRING, MaterialFlags.DISABLE_DECOMPOSITION)
             .components(
                 GTMaterials.Nickel,
@@ -248,9 +263,9 @@ object SCMaterials {
                 GTMaterials.Molybdenum,
                 1
             )
-            .blast(UnaryOperator { b: BlastProperty.Builder? ->
-                b!!.temp(1610, BlastProperty.GasTier.MID).blastStats(2048, 200)
-            })
+            .blast { b: BlastProperty.Builder ->
+                b.temp(1610, BlastProperty.GasTier.MID).blastStats(2048, 200)
+            }
             .fluidPipeProperties(2010, 175, true, true, true, false)
             .buildAndRegister()
 
@@ -293,7 +308,7 @@ object SCMaterials {
             HeavyWater, HighPressureHeavyWater, FluidStorageKeys.LIQUID,
             4.0, 1000.0, 374.4, 2064000.0, 4228.0
         ).setAccumulatesHydrogen(true)
-        HeavyWater!!.setProperty<CoolantProperty?>(SCPropertyKey.COOLANT, heavyWaterCoolant)
+        HeavyWater.setProperty<CoolantProperty?>(SCPropertyKey.COOLANT, heavyWaterCoolant)
     }
 
     private fun registerSecondDegreeMaterials() {
@@ -304,7 +319,7 @@ object SCMaterials {
             .components(HighEnrichedUraniumDioxide, 1, DepletedUraniumDioxide, 19)
             .buildAndRegister()
             .setFormula("UO2", true)
-        SCMaterials.registerFuel(LEU235!!, "leu_235", 1500, 75000, 3.5, 0.4, 1.8, 1.8, 2.5, 0.01, 0.025)
+        registerFuel(LEU235, "leu_235", 1500, 75000, 3.5, 0.4, 1.8, 1.8, 2.5, 0.01, 0.025)
 
         HEU235 = builder("heu_235")
             .dust(3)
@@ -313,7 +328,7 @@ object SCMaterials {
             .components(HighEnrichedUraniumDioxide, 1, DepletedUraniumDioxide, 4)
             .buildAndRegister()
             .setFormula("UO2", true)
-        SCMaterials.registerFuel(HEU235!!, "heu_235", 1800, 60000, 2.5, 0.3, 2.0, 2.0, 2.5, 0.01, 0.05)
+        registerFuel(HEU235, "heu_235", 1800, 60000, 2.5, 0.3, 2.0, 2.0, 2.5, 0.01, 0.05)
 
         LowGradeMOX = builder("low_grade_mox")
             .dust(3)
@@ -322,7 +337,7 @@ object SCMaterials {
             .components(FissilePlutoniumDioxide, 1, GTMaterials.Uraninite, 19)
             .buildAndRegister()
             .setFormula("(U,Pu)O2", true)
-        SCMaterials.registerFuel(LowGradeMOX!!, "low_grade_mox", 1600, 50000, 1.5, 0.5, 2.2, 2.2, 2.60, 0.02, 0.1)
+        registerFuel(LowGradeMOX, "low_grade_mox", 1600, 50000, 1.5, 0.5, 2.2, 2.2, 2.60, 0.02, 0.1)
 
         HighGradeMOX = builder("high_grade_mox")
             .dust(3)
@@ -331,7 +346,7 @@ object SCMaterials {
             .components(FissilePlutoniumDioxide, 1, GTMaterials.Uraninite, 4)
             .buildAndRegister()
             .setFormula("(U,Pu)O2", true)
-        SCMaterials.registerFuel(HighGradeMOX!!, "high_grade_mox", 2000, 80000, 1.0, 0.5, 2.4, 2.4, 2.80, 0.02, 0.2)
+        registerFuel(HighGradeMOX, "high_grade_mox", 2000, 80000, 1.0, 0.5, 2.4, 2.4, 2.80, 0.02, 0.2)
     }
 
     private fun registerUnknownCompositionMaterials() {
@@ -346,18 +361,36 @@ object SCMaterials {
             .buildAndRegister()
     }
 
-    private fun applyMaterialModifications() {
+    private fun applyMaterialModifications(includeDistilledWaterCoolant: Boolean) {
         GTMaterials.Zirconium.setProperty<DustProperty?>(PropertyKey.DUST, DustProperty())
+        GTMaterials.Hafnium.setProperty<DustProperty?>(PropertyKey.DUST, DustProperty())
         GTMaterials.Hafnium.addFlags(MaterialFlags.GENERATE_LONG_ROD)
         GTMaterials.Hafnium.setProperty<BlastProperty?>(PropertyKey.BLAST, BlastProperty(2227))
+        GTMaterials.Plutonium239.getProperty(PropertyKey.ORE).setOreByProducts()
+        // Restore legacy SC Uranium/Plutonium overrides (ElementMaterials.java).
+        // In modern GTCEu the "uranium" material is GTMaterials.Uranium238 and the "plutonium" material is
+        // GTMaterials.Plutonium239 (registered under those ids), so applying the legacy SC color/iconset to
+        // them is the parity equivalent of overriding CEu's Uranium/Plutonium. Legacy values:
+        //   uranium   -> color 0x32F032, METALLIC (legacy liquid 1405K already matches GTCEu's Uranium238)
+        //   plutonium -> color 0xF03232, METALLIC
+        // Conscious choice (stage-3 review): legacy had SEPARATE materials for natural-U and the U-238
+        // isotope, each with its own palette (natural-U 0x32F032/METALLIC vs isotope 0x46FA46/SHINY).
+        // Modern collapses both into the single GTMaterials.Uranium238 material, so only one palette can
+        // win. We keep the natural-uranium 0x32F032/METALLIC look because DUO2 (depleted_uranium_dioxide,
+        // color 0x335323) is derived from this Uranium238 and its visual identity depends on it; the
+        // isotope's 0x46FA46/SHINY is sacrificed.
+        GTMaterials.Uranium238.materialARGB = 0x32F032
+        GTMaterials.Uranium238.materialIconSet = MaterialIconSet.METALLIC
+        GTMaterials.Plutonium239.materialARGB = 0xF03232
+        GTMaterials.Plutonium239.materialIconSet = MaterialIconSet.METALLIC
         GTMaterials.Salt.setProperty<FluidProperty?>(
             PropertyKey.FLUID,
             FluidProperty(FluidStorageKeys.LIQUID, FluidBuilder().translation("gregtech.fluid.molten"))
         )
         GTMaterials.StainlessSteel.addFlags(MaterialFlags.GENERATE_ROUND)
 
-        val uraniniteFuel: FissionFuelProperty? =
-            FissionFuelProperty.Companion.builder(GTMaterials.Uraninite.getResourceLocation(), 1800, 60000, 2.4)
+        val uraniniteFuel: FissionFuelProperty =
+            FissionFuelProperty.builder(GTMaterials.Uraninite.resourceLocation, 1800, 60000, 2.4)
                 .fastNeutronCaptureCrossSection(0.5)
                 .slowNeutronCaptureCrossSection(1.0)
                 .slowNeutronFissionCrossSection(1.0)
@@ -367,19 +400,21 @@ object SCMaterials {
                 .decayRate(0.001)
                 .build()
         GTMaterials.Uraninite.setProperty<FissionFuelProperty?>(SCPropertyKey.FISSION_FUEL, uraniniteFuel)
-        FUEL_ITEM_ENTRIES.add(FuelItemEntry(GTMaterials.Uraninite, "uraninite", uraniniteFuel))
+        FUEL_ITEM_ENTRIES.add(FuelItemEntry("uraninite", uraniniteFuel))
 
-        val distilledWaterCoolant = CoolantProperty(
-            GTMaterials.DistilledWater, HighPressureSteam, FluidStorageKeys.LIQUID,
-            2.0, 1000.0, 373.0, 2260000.0, 4168.0
-        )
-            .setAccumulatesHydrogen(true)
-            .setSlowAbsorptionFactor(0.1875)
-            .setFastAbsorptionFactor(0.0625)
-        GTMaterials.DistilledWater.setProperty<CoolantProperty?>(SCPropertyKey.COOLANT, distilledWaterCoolant)
+        if (includeDistilledWaterCoolant) {
+            val distilledWaterCoolant = CoolantProperty(
+                GTMaterials.DistilledWater, HighPressureSteam, FluidStorageKeys.LIQUID,
+                2.0, 1000.0, 373.0, 2260000.0, 4168.0
+            )
+                .setAccumulatesHydrogen(true)
+                .setSlowAbsorptionFactor(0.1875)
+                .setFastAbsorptionFactor(0.0625)
+            GTMaterials.DistilledWater.setProperty<CoolantProperty?>(SCPropertyKey.COOLANT, distilledWaterCoolant)
+        }
 
         GTMaterials.Graphite.setProperty<ModeratorProperty?>(
-            SCPropertyKey.MODERATOR, ModeratorProperty.Companion.builder()
+            SCPropertyKey.MODERATOR, ModeratorProperty.builder()
                 .maxTemperature(3650)
                 .absorptionFactor(0.0625)
                 .moderationFactor(3.0)
@@ -388,7 +423,7 @@ object SCMaterials {
         GTMaterials.Graphite.addFlags(MaterialFlags.FORCE_GENERATE_BLOCK)
 
         GTMaterials.Beryllium.setProperty<ModeratorProperty?>(
-            SCPropertyKey.MODERATOR, ModeratorProperty.Companion.builder()
+            SCPropertyKey.MODERATOR, ModeratorProperty.builder()
                 .maxTemperature(1500)
                 .absorptionFactor(0.015625)
                 .moderationFactor(5.0)
@@ -402,8 +437,8 @@ object SCMaterials {
         fastCapture: Double, slowCapture: Double, slowFission: Double, releasedNeutrons: Double,
         releasedHeatEnergy: Double, decayRate: Double
     ) {
-        val property: FissionFuelProperty? = FissionFuelProperty.Companion.builder(
-            material.getResourceLocation(), maxTemperature, duration,
+        val property: FissionFuelProperty = FissionFuelProperty.builder(
+            material.resourceLocation, maxTemperature, duration,
             neutronGenerationTime
         )
             .fastNeutronCaptureCrossSection(fastCapture)
@@ -415,64 +450,36 @@ object SCMaterials {
             .releasedHeatEnergy(releasedHeatEnergy)
             .decayRate(decayRate)
             .build()
-        FUEL_ITEM_ENTRIES.add(FuelItemEntry(material, fuelItemKey, property))
+        FUEL_ITEM_ENTRIES.add(FuelItemEntry(fuelItemKey, property))
         material.setProperty<FissionFuelProperty?>(SCPropertyKey.FISSION_FUEL, property)
     }
 
     fun registerFuelItems() {
         for (entry in FUEL_ITEM_ENTRIES) {
-            val fuelItems = SCItems.NUCLEAR_FUEL_ITEMS.get(entry.fuelItemKey)
+            val fuelItems = SCItems.NUCLEAR_FUEL_ITEMS[entry.fuelItemKey]
             if (fuelItems != null) {
-                entry.property!!.setDepletedFuelSupplier(Function { thermalRatio: Double? ->
-                    (if (thermalRatio!! > 0.5)
-                        fuelItems.hotDepletedFuelRod.get()
-                    else
-                        fuelItems.depletedFuelRod.get()).getDefaultInstance()
-                })
-                    .setAllDepletedFuels(Supplier {
-                        List.of<ItemStack?>(
-                            fuelItems.depletedFuelRod.get().getDefaultInstance(),
-                            fuelItems.hotDepletedFuelRod.get().getDefaultInstance()
-                        )
-                    })
-                FissionFuelRegistry.registerFuel(fuelItems.fuelRod.get().getDefaultInstance(), entry.property)
+                // Legacy parity (CommonProxy.java:124-133): every fuel emits only the hot depleted fuel rod.
+                // The hot -> cold cooling happens via the spent-fuel-pool recipe, not direct emission.
+                entry.property.setDepletedFuelSupplier { _: Double? ->
+                    fuelItems.hotDepletedFuelRod.get().defaultInstance
+                }
+                    .setAllDepletedFuels {
+                        List.of<ItemStack?>(fuelItems.hotDepletedFuelRod.get().defaultInstance)
+                    }
+                FissionFuelRegistry.registerFuel(fuelItems.fuelRod.get().defaultInstance, entry.property)
             } else {
                 FissionFuelRegistry.registerFuel(entry.property)
             }
         }
-        // For materials registered outside the fuel registry, just add them if they have a property.
-        registerUraniniteFuel()
         FUEL_ITEM_ENTRIES.clear()
     }
 
-    private fun registerUraniniteFuel() {
-        val property = GTMaterials.Uraninite.getProperty<FissionFuelProperty?>(SCPropertyKey.FISSION_FUEL)
-        if (property == null) return
-        val fuelItems = SCItems.NUCLEAR_FUEL_ITEMS.get("uraninite")
-        if (fuelItems != null) {
-            property.setDepletedFuelSupplier(Function { thermalRatio: Double? ->
-                (if (thermalRatio!! > 0.5)
-                    fuelItems.hotDepletedFuelRod.get()
-                else
-                    fuelItems.depletedFuelRod.get()).getDefaultInstance()
-            })
-                .setAllDepletedFuels(Supplier {
-                    List.of<ItemStack?>(
-                        fuelItems.depletedFuelRod.get().getDefaultInstance(),
-                        fuelItems.hotDepletedFuelRod.get().getDefaultInstance()
-                    )
-                })
-            FissionFuelRegistry.registerFuel(fuelItems.fuelRod.get().getDefaultInstance(), property)
-        } else {
-            FissionFuelRegistry.registerFuel(property)
-        }
-    }
-
     fun registerCoolants() {
-        for (material in GTCEuAPI.materialManager.getRegisteredMaterials()) {
+        for (material in GTCEuAPI.materialManager.registeredMaterials) {
             if (material.hasProperty<CoolantProperty?>(SCPropertyKey.COOLANT)) {
                 val property = material.getProperty<CoolantProperty>(SCPropertyKey.COOLANT)
-                val fluid = material.getFluid(property.getCoolantKey())
+                val fluid =
+                    material.getFluid(requireNotNull(property.coolantKey) { "Coolant fluid key for ${material.name} is not initialized" })
                 if (fluid != null) {
                     CoolantRegistry.registerCoolant(fluid, property)
                 }
@@ -480,8 +487,26 @@ object SCMaterials {
         }
     }
 
-    private fun builder(name: String?): Material.Builder {
-        return Material.Builder(SCUtility.scId(name))
+    fun registerModerators() {
+        for (material in GTCEuAPI.materialManager.registeredMaterials) {
+            if (material.hasProperty<ModeratorProperty?>(SCPropertyKey.MODERATOR)) {
+                registerModerator(material)
+            }
+        }
+    }
+
+    private fun registerModerator(material: Material) {
+        val property = requireNotNull(material.getProperty<ModeratorProperty?>(SCPropertyKey.MODERATOR)) {
+            "${material.name} is missing its moderator property"
+        }
+        val block = requireNotNull(ChemicalHelper.getBlock(TagPrefix.block, material)) {
+            "${material.name} has no storage block"
+        }
+        ModeratorRegistry.registerModerator(block, property)
+    }
+
+    private fun builder(name: String): Material.Builder {
+        return Material.Builder(scId(name))
     }
 
     fun registry(): MaterialRegistry? {
@@ -490,8 +515,7 @@ object SCMaterials {
 
     @JvmRecord
     private data class FuelItemEntry(
-        val material: Material?,
         val fuelItemKey: String?,
-        val property: FissionFuelProperty?
+        val property: FissionFuelProperty
     )
 }

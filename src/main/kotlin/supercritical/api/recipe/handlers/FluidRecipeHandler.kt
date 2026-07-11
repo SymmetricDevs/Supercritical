@@ -12,33 +12,33 @@ import kotlin.math.ceil
 
 object FluidRecipeHandler {
     fun runRecipeGeneration() {
-        if (!SCConfigHolder.MISC.enableHX.get()) return
+        if (!SCConfigHolder.INSTANCE.misc.enableHX) return
         SCRecipeMaps.HEAT_EXCHANGER_RECIPES.beginStagingRecipes()
-        for (material in GTCEuAPI.materialManager.getRegisteredMaterials()) {
+        for (material in GTCEuAPI.materialManager.registeredMaterials) {
             if (material.hasProperty<CoolantProperty?>(SCPropertyKey.COOLANT)) {
                 processCoolant(material, material.getProperty<CoolantProperty?>(SCPropertyKey.COOLANT))
             }
         }
-        SCRecipeMaps.HEAT_EXCHANGER_RECIPES.getAdditionHandler().completeStaging()
+        SCRecipeMaps.HEAT_EXCHANGER_RECIPES.additionHandler.completeStaging()
     }
 
     fun processCoolant(material: Material, coolant: CoolantProperty) {
         var waterAmount = 6
         var coolantAmount = calculateCoolantAmount(material, coolant, waterAmount)
-        addHeatExchangerRecipe("small_" + material.getName() + "_water", 1, waterAmount, coolantAmount, false)
-        addHeatExchangerRecipe("small_" + material.getName() + "_distilled_water", 1, waterAmount, coolantAmount, true)
+        addHeatExchangerRecipe("small_" + material.name + "_water", 1, waterAmount, coolantAmount, false)
+        addHeatExchangerRecipe("small_" + material.name + "_distilled_water", 1, waterAmount, coolantAmount, true)
 
         waterAmount = 600
         coolantAmount = calculateCoolantAmount(material, coolant, waterAmount)
-        addHeatExchangerRecipe("large_" + material.getName() + "_water", 2, waterAmount, coolantAmount, false)
-        addHeatExchangerRecipe("large_" + material.getName() + "_distilled_water", 2, waterAmount, coolantAmount, true)
+        addHeatExchangerRecipe("large_" + material.name + "_water", 2, waterAmount, coolantAmount, false)
+        addHeatExchangerRecipe("large_" + material.name + "_distilled_water", 2, waterAmount, coolantAmount, true)
 
         SCRecipeUtils.addRecipe(
             SCRecipeMaps.HEAT_EXCHANGER_RECIPES, SCRecipeMaps.HEAT_EXCHANGER_RECIPES
-                .recipeBuilder(material.getName() + "_radiator")
+                .recipeBuilder(material.name + "_radiator")
                 .duration(10)
                 .circuitMeta(3)
-                .inputFluids(coolant.getHotHPCoolant().getFluid(8000))
+                .inputFluids(coolant.hotHPCoolant.getFluid(8000))
                 .outputFluids(material.getFluid(8000))
                 .buildRawRecipe()
         )
@@ -54,8 +54,8 @@ object FluidRecipeHandler {
         var coolant: CoolantProperty? = null
         val materialName =
             id.substring(id.indexOf('_') + 1, id.lastIndexOf(if (distilled) "_distilled_water" else "_water"))
-        for (material in GTCEuAPI.materialManager.getRegisteredMaterials()) {
-            if (material.getName() == materialName && material.hasProperty<CoolantProperty?>(SCPropertyKey.COOLANT)) {
+        for (material in GTCEuAPI.materialManager.registeredMaterials) {
+            if (material.name == materialName && material.hasProperty<CoolantProperty?>(SCPropertyKey.COOLANT)) {
                 coolantMaterial = material
                 coolant = material.getProperty<CoolantProperty?>(SCPropertyKey.COOLANT)
                 break
@@ -67,7 +67,7 @@ object FluidRecipeHandler {
             SCRecipeMaps.HEAT_EXCHANGER_RECIPES, SCRecipeMaps.HEAT_EXCHANGER_RECIPES.recipeBuilder(id)
                 .duration(1)
                 .circuitMeta(circuit)
-                .inputFluids(coolant.getHotHPCoolant().getFluid(coolantAmount), water.getFluid(waterAmount))
+                .inputFluids(coolant.hotHPCoolant.getFluid(coolantAmount), water.getFluid(waterAmount))
                 .outputFluids(
                     coolantMaterial.getFluid(coolantAmount),
                     GTMaterials.Steam.getFluid(Math.toIntExact(waterAmount * 160L))
@@ -77,12 +77,12 @@ object FluidRecipeHandler {
     }
 
     private fun calculateCoolantAmount(material: Material, coolant: CoolantProperty, waterAmount: Int): Int {
-        val multiplier = SCConfigHolder.NUCLEAR.heatExchangerEfficiencyMultiplier.get()
-        val hotTemperature = coolant.getHotHPCoolant().getFluid().getFluidType().getTemperature()
-        val coldTemperature = material.getFluid().getFluidType().getTemperature()
+        val multiplier = SCConfigHolder.INSTANCE.nuclear.heatExchangerEfficiencyMultiplier
+        val hotTemperature = coolant.hotHPCoolant.fluid.getFluidType().temperature
+        val coldTemperature = material.fluid.getFluidType().temperature
         return ceil(
             100 * 4168 * waterAmount * multiplier /
-                    (coolant.getSpecificHeatCapacity() * (hotTemperature - coldTemperature))
+                    (coolant.specificHeatCapacity * (hotTemperature - coldTemperature))
         ).toInt()
     }
 }

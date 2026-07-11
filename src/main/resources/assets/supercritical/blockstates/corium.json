@@ -1,0 +1,52 @@
+{
+  "variants": {
+    "level=0": {
+      "model": "supercritical:block/corium"
+    },
+    "level=1": {
+      "model": "supercritical:block/corium"
+    },
+    "level=2": {
+      "model": "supercritical:block/corium"
+    },
+    "level=3": {
+      "model": "supercritical:block/corium"
+    },
+    "level=4": {
+      "model": "supercritical:block/corium"
+    },
+    "level=5": {
+      "model": "supercritical:block/corium"
+    },
+    "level=6": {
+      "model": "supercritical:block/corium"
+    },
+    "level=7": {
+      "model": "supercritical:block/corium"
+    },
+    "level=8": {
+      "model": "supercritical:block/corium"
+    },
+    "level=9": {
+      "model": "supercritical:block/corium"
+    },
+    "level=10": {
+      "model": "supercritical:block/corium"
+    },
+    "level=11": {
+      "model": "supercritical:block/corium"
+    },
+    "level=12": {
+      "model": "supercritical:block/corium"
+    },
+    "level=13": {
+      "model": "supercritical:block/corium"
+    },
+    "level=14": {
+      "model": "supercritical:block/corium"
+    },
+    "level=15": {
+      "model": "supercritical:block/corium"
+    }
+  }
+}

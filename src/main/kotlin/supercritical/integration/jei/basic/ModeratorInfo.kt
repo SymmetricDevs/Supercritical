@@ -22,14 +22,14 @@ class ModeratorInfo(block: Block) {
 
         val prop = ModeratorRegistry.getModerator(block)
         if (prop != null) {
-            this.maxTemp = Component.translatable("metaitem.nuclear.tooltip.temperature", prop.getMaxTemperature())
+            this.maxTemp = Component.translatable("metaitem.nuclear.tooltip.temperature", prop.maxTemperature)
             this.moderationFactor = Component.translatable(
                 "metaitem.nuclear.tooltip.moderation_factor",
-                prop.getModerationFactor().toInt()
+                prop.moderationFactor.toInt()
             )
             this.absorptionFactor = Component.translatable(
                 "metaitem.nuclear.tooltip.absorption_factor",
-                prop.getAbsorptionFactor().toInt()
+                prop.absorptionFactor.toInt()
             )
         } else {
             this.maxTemp = Component.empty()

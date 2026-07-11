@@ -11,7 +11,7 @@ import java.util.function.Function;
 public abstract class MixinTagPrefix implements TagPrefixExtension {
 
     @Unique
-    private Function<Double, Double> sc$radiationDamageFunction = null;
+    private Function<Double, Double> sc$radiationDamageFunction;
 
     @Override
     public Function<Double, Double> getRadiationDamageFunction() {

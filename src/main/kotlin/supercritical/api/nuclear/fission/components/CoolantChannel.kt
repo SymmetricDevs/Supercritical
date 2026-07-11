@@ -5,7 +5,7 @@ import supercritical.api.nuclear.fission.ICoolantStats
 
 class CoolantChannel(maxTemperature: Double, thermalConductivity: Double, val coolant: ICoolantStats, mass: Double) :
     ReactorComponent(
-        coolant.getModeratorFactor(), maxTemperature, thermalConductivity, mass, true
+        coolant.moderatorFactor, maxTemperature, thermalConductivity, mass, true
     ) {
     var weight: Double = 0.0
     var partialCoolant: Double = 0.0
@@ -24,6 +24,6 @@ class CoolantChannel(maxTemperature: Double, thermalConductivity: Double, val co
     }
 
     override fun getAbsorptionFactor(controlsInserted: Boolean, thermal: Boolean): Double {
-        return if (thermal) coolant.getSlowAbsorptionFactor() else coolant.getFastAbsorptionFactor()
+        return if (thermal) coolant.slowAbsorptionFactor else coolant.fastAbsorptionFactor
     }
 }

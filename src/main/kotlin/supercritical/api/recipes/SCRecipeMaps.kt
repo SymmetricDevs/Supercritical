@@ -1,8 +1,12 @@
 package supercritical.api.recipes
 
+import com.gregtechceu.gtceu.api.recipe.GTRecipeSerializer
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType
+import com.gregtechceu.gtceu.api.registry.GTRegistries
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes
 import com.gregtechceu.gtceu.common.data.GTSoundEntries
+import net.minecraftforge.registries.ForgeRegistries
+import supercritical.api.util.scId
 import java.util.*
 
 object SCRecipeMaps {
@@ -10,11 +14,18 @@ object SCRecipeMaps {
     const val SPENT_FUEL_POOL_ID: String = "spent_fuel_pool"
     const val GAS_CENTRIFUGE_ID: String = "gas_centrifuge"
 
-    var HEAT_EXCHANGER_RECIPES: GTRecipeType? = null
-    var SPENT_FUEL_POOL_RECIPES: GTRecipeType? = null
-    var GAS_CENTRIFUGE_RECIPES: GTRecipeType? = null
+    private var heatExchangerRecipes: GTRecipeType? = null
+    private var spentFuelPoolRecipes: GTRecipeType? = null
+    private var gasCentrifugeRecipes: GTRecipeType? = null
 
-    private val RECIPE_MAPS: MutableMap<String?, RecipeMapInfo?> = LinkedHashMap<String?, RecipeMapInfo?>()
+    val HEAT_EXCHANGER_RECIPES: GTRecipeType
+        get() = checkNotNull(heatExchangerRecipes) { "Heat exchanger recipe type has not been initialized" }
+    val SPENT_FUEL_POOL_RECIPES: GTRecipeType
+        get() = checkNotNull(spentFuelPoolRecipes) { "Spent fuel pool recipe type has not been initialized" }
+    val GAS_CENTRIFUGE_RECIPES: GTRecipeType
+        get() = checkNotNull(gasCentrifugeRecipes) { "Gas centrifuge recipe type has not been initialized" }
+
+    private val RECIPE_MAPS: MutableMap<String?, RecipeMapInfo?> = linkedMapOf()
 
     private var initialized = false
 
@@ -22,14 +33,14 @@ object SCRecipeMaps {
     fun init() {
         if (initialized) return
 
-        HEAT_EXCHANGER_RECIPES = GTRecipeTypes.register(HEAT_EXCHANGER_ID, GTRecipeTypes.MULTIBLOCK)
+        heatExchangerRecipes = registerRecipeType(HEAT_EXCHANGER_ID, GTRecipeTypes.MULTIBLOCK)
             .setMaxIOSize(1, 0, 2, 2)
             .setSound(GTSoundEntries.COOLING)
 
-        SPENT_FUEL_POOL_RECIPES = GTRecipeTypes.register(SPENT_FUEL_POOL_ID, GTRecipeTypes.MULTIBLOCK)
+        spentFuelPoolRecipes = registerRecipeType(SPENT_FUEL_POOL_ID, GTRecipeTypes.MULTIBLOCK)
             .setMaxIOSize(1, 1, 1, 1)
 
-        GAS_CENTRIFUGE_RECIPES = GTRecipeTypes.register(GAS_CENTRIFUGE_ID, GTRecipeTypes.MULTIBLOCK)
+        gasCentrifugeRecipes = registerRecipeType(GAS_CENTRIFUGE_ID, GTRecipeTypes.MULTIBLOCK)
             .setMaxIOSize(0, 0, 1, 2)
             .setSound(GTSoundEntries.CENTRIFUGE)
 
@@ -38,6 +49,19 @@ object SCRecipeMaps {
         register(GAS_CENTRIFUGE_ID, GAS_CENTRIFUGE_RECIPES, 0, 0, 1, 2)
 
         initialized = true
+    }
+
+    private fun registerRecipeType(name: String, group: String): GTRecipeType {
+        val recipeType = GTRecipeType(scId(name), group)
+        // Forge deprecates BuiltInRegistries.RECIPE_TYPE/RECIPE_SERIALIZER ("Use ForgeRegistries
+        // instead"). Register directly against the Forge registries — this is exactly what GTCEu's
+        // GTRegistries.register(...) helper does internally for these two keys, so behavior is
+        // identical (RECIPE_TYPES + RECIPE_SERIALIZERS + GTRegistries.RECIPE_TYPES), without the
+        // deprecated accessor.
+        ForgeRegistries.RECIPE_TYPES.register(recipeType.registryName, recipeType)
+        ForgeRegistries.RECIPE_SERIALIZERS.register(recipeType.registryName, GTRecipeSerializer())
+        GTRegistries.RECIPE_TYPES.register(recipeType.registryName, recipeType)
+        return recipeType
     }
 
     private fun register(
@@ -52,7 +76,7 @@ object SCRecipeMaps {
     }
 
     fun all(): MutableMap<String?, RecipeMapInfo?> {
-        return Collections.unmodifiableMap<String?, RecipeMapInfo?>(RECIPE_MAPS)
+        return Collections.unmodifiableMap(RECIPE_MAPS)
     }
 
     @JvmRecord

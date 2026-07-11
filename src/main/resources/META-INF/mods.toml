@@ -1,34 +1,41 @@
-modLoader = "kotlinforforge"
-loaderVersion = "[4.10,)"
+modLoader = "javafml"
+loaderVersion = "[47,)"
 license = "LGPL-3.0-or-later"
 
 [[mods]]
-modId = "@mod_id@"
-version = "@mod_version@"
-displayName = "@mod_name@"
+modId = "supercritical"
+version = "${mod_version}"
+displayName = "${mod_name}"
 description = "A GregTechCEu Modern nuclear technology addon for Minecraft 1.20.1"
 logoFile = "assets/supercritical/textures/supercritical_logo.png"
 displayURL = "https://github.com/SymmetricDevs/Supercritical"
 authors = "SymmetricDevs"
 
-[[dependencies.@mod_id@]]
+[[dependencies.supercritical]]
 modId = "forge"
 mandatory = true
 versionRange = "[47,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.@mod_id@]]
+[[dependencies.supercritical]]
 modId = "minecraft"
 mandatory = true
 versionRange = "[1.20.1]"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.@mod_id@]]
+[[dependencies.supercritical]]
 modId = "gtceu"
 mandatory = true
 versionRange = "[7.5.3,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.supercritical]]
+modId = "kotlinforforge"
+mandatory = true
+versionRange = "[4.10,)"
 ordering = "AFTER"
 side = "BOTH"
 

@@ -1,4 +1,4 @@
-package supercritical.common.metatileentities.multi
+package supercritical.common.machine.multiblock
 
 import com.gregtechceu.gtceu.api.capability.IControllable
 import com.gregtechceu.gtceu.api.data.RotationState
@@ -21,33 +21,27 @@ import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier
 import com.gregtechceu.gtceu.common.data.GTBlocks
-import com.gregtechceu.gtceu.config.ConfigHolder
-import net.minecraft.MethodsReturnNonnullByDefault
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
-import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.material.Fluids
 import supercritical.api.pattern.SCPredicates
 import supercritical.api.recipes.SCRecipeMaps
 import supercritical.api.registries.SCRegistries
-import supercritical.api.util.SCUtility
+import supercritical.api.util.scId
 import supercritical.common.registry.SCBlocks
-import java.util.function.BiConsumer
-import java.util.function.Function
-import java.util.function.ToIntFunction
 import kotlin.math.max
 
 /**
  * Spent fuel pool multiblock. Slowly cools spent nuclear fuel by submerging it in water.
  * Pool length is variable and determines maximum recipe parallelism.
  */
-@MethodsReturnNonnullByDefault
 class MetaTileEntitySpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?) :
     WorkableMultiblockMachine(holder, *args), IControllable, IDisplayUIMachine {
+    override fun isRemote(): Boolean = super<WorkableMultiblockMachine>.isRemote()
     private var workingEnabled = true
     var isWaterFilled: Boolean = false
         private set
-    private var waterPositions: MutableList<BlockPos?>? = null
+    private var waterPositions: MutableList<BlockPos>? = null
     private var waterFillSubscription: TickableSubscription? = null
     var poolLength: Int = 1
         private set
@@ -70,13 +64,14 @@ class MetaTileEntitySpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?
 
     override fun onStructureFormed() {
         super.onStructureFormed()
-        this.waterPositions = getMultiblockState().getMatchContext()
-            .getOrDefault<ArrayList<BlockPos?>?>(SCPredicates.FLUID_BLOCKS_KEY, ArrayList<BlockPos?>())
-        this.waterPositions!!.sort(Comparator.comparingInt<BlockPos?>(ToIntFunction { obj: BlockPos? -> obj!!.getY() }))
-        this.isWaterFilled = waterPositions!!.isEmpty()
-        val repetitions = getPattern().getFormedRepetitionCount()
+        val wp = multiblockState.matchContext
+            .getOrDefault<ArrayList<BlockPos>>(SCPredicates.FLUID_BLOCKS_KEY, arrayListOf())
+        this.waterPositions = wp
+        wp.sortWith(compareBy { it.y })
+        this.isWaterFilled = wp.isEmpty()
+        val repetitions = pattern.getFormedRepetitionCount()
         this.poolLength = if (repetitions != null && repetitions.size > 2) max(1, repetitions[2]) else 1
-        this.waterFillSubscription = subscribeServerTick(Runnable { this.tryFillWater() })
+        this.waterFillSubscription = subscribeServerTick { this.tryFillWater() }
     }
 
     override fun onStructureInvalid() {
@@ -89,11 +84,12 @@ class MetaTileEntitySpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?
     }
 
     private fun tryFillWater() {
-        if (this.isWaterFilled || waterPositions == null || waterPositions!!.isEmpty()) return
-        if (getOffsetTimer() % 5 != 0L) return
-
-        SCPredicates.fillFluid(this, this.waterPositions, Fluids.WATER)
-        if (this.waterPositions!!.isEmpty()) {
+        if (this.isWaterFilled) return
+        val positions = this.waterPositions ?: return
+        if (positions.isEmpty()) return
+        if (offsetTimer % 5 != 0L) return
+        SCPredicates.fillFluid(this, positions, Fluids.WATER)
+        if (positions.isEmpty()) {
             this.isWaterFilled = true
         }
     }
@@ -106,11 +102,11 @@ class MetaTileEntitySpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?
         get() = this.poolLength * PARALLEL_PER_LENGTH
 
     override fun addDisplayText(textList: MutableList<Component?>) {
-        super<IDisplayUIMachine>.addDisplayText(textList)
+        super.addDisplayText(textList)
         if (isFormed()) {
             if (!this.isWaterFilled) {
                 textList.add(Component.translatable("supercritical.multiblock.spent_fuel_pool.obstructed"))
-            } else if (!isWorkingEnabled()) {
+            } else if (!isWorkingEnabled) {
                 textList.add(Component.translatable("gtceu.multiblock.work_paused"))
             } else if (recipeLogic.isActive()) {
                 textList.add(Component.translatable("gtceu.multiblock.running"))
@@ -127,28 +123,29 @@ class MetaTileEntitySpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?
     }
 
     override fun getPattern(): BlockPattern {
-        return buildPattern(getDefinition())
+        return buildPattern(definition)
     }
 
     class SpentFuelPoolRecipeLogic(machine: IRecipeLogicMachine) : RecipeLogic(machine) {
         override fun serverTick() {
-            if (!machine.isWorkingEnabled()) {
+            if (!machine.isWorkingEnabled) {
                 return
             }
             super.serverTick()
         }
 
         override fun checkMatchedRecipeAvailable(match: GTRecipe?): Boolean {
-            if (machine !is MetaTileEntitySpentFuelPool || !machine.isWaterFilled) {
+            val pool = machine as? MetaTileEntitySpentFuelPool ?: return false
+            if (!pool.isWaterFilled) {
                 return false
             }
-            val modified = machine.fullModifyRecipe(match)
+            val modified = pool.fullModifyRecipe(match)
             if (modified != null) {
                 val recipeMatch = checkRecipe(modified)
-                if (recipeMatch.isSuccess()) {
+                if (recipeMatch.isSuccess) {
                     setupRecipe(modified)
                 }
-                if (lastRecipe != null && getStatus() == Status.WORKING) {
+                if (lastRecipe != null && status == Status.WORKING) {
                     lastOriginRecipe = match
                     lastFailedMatches = null
                     return true
@@ -163,7 +160,7 @@ class MetaTileEntitySpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?
 
         private fun buildPattern(definition: MultiblockMachineDefinition): BlockPattern {
             return FactoryBlockPattern.start(
-                RelativeDirection.FRONT,
+                RelativeDirection.BACK,
                 RelativeDirection.UP,
                 RelativeDirection.RIGHT
             ) // spotless:off
@@ -253,7 +250,7 @@ class MetaTileEntitySpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?
                     "CCCCCCCCCC",
                     "TTTTTTTTTT"
                 ) //spotless:on
-                .where('S', Predicates.controller(Predicates.blocks(definition.getBlock())))
+                .where('S', Predicates.controller(Predicates.blocks(definition.block)))
                 .where('.', Predicates.any())
                 .where('C', Predicates.blocks(SCBlocks.GRAY_PANELLING.get()))
                 .where('W', SCPredicates.fluid(Fluids.WATER))
@@ -261,7 +258,7 @@ class MetaTileEntitySpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?
                 .where(
                     'T', Predicates.blocks(GTBlocks.CASING_STAINLESS_CLEAN.get())
                         .or(Predicates.autoAbilities(SCRecipeMaps.SPENT_FUEL_POOL_RECIPES))
-                        .or(Predicates.autoAbilities(ConfigHolder.INSTANCE.machines.enableMaintenance, false, false))
+                        .or(Predicates.autoAbilities(false, false, false))
                         .or(Predicates.abilities(PartAbility.IMPORT_FLUIDS))
                 )
                 .build()
@@ -269,32 +266,27 @@ class MetaTileEntitySpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?
 
         fun register(): MultiblockMachineDefinition {
             return SCRegistries.REGISTRATE
-                .multiblock(
-                    "spent_fuel_pool",
-                    Function { holder: IMachineBlockEntity? -> MetaTileEntitySpentFuelPool(holder!!) })
+                .multiblock("spent_fuel_pool") { holder: IMachineBlockEntity -> MetaTileEntitySpentFuelPool(holder) }
                 .rotationState(RotationState.NON_Y_AXIS)
                 .allowExtendedFacing(false)
                 .recipeType(SCRecipeMaps.SPENT_FUEL_POOL_RECIPES)
-                .recipeModifiers(RecipeModifier { machine: MetaMachine?, recipe: GTRecipe? ->
-                    Companion.poolParallel(
-                        machine,
-                        recipe!!
-                    )
+                .recipeModifiers(RecipeModifier { machine: MetaMachine, recipe: GTRecipe ->
+                    poolParallel(machine, recipe)
                 })
-                .pattern(Function { definition: MultiblockMachineDefinition? -> Companion.buildPattern(definition!!) })
+                .pattern { definition: MultiblockMachineDefinition -> buildPattern(definition) }
                 .workableCasingModel(
-                    SCUtility.scId("block/gray_panelling"),
-                    SCUtility.scId("block/multiblock/spent_fuel_pool")
+                    scId("block/gray_panelling"),
+                    scId("block/multiblock/spent_fuel_pool")
                 )
-                .tooltipBuilder(BiConsumer { stack: ItemStack?, tooltip: MutableList<Component?>? ->
-                    tooltip!!.add(
+                .tooltipBuilder { _, tooltip: MutableList<Component?> ->
+                    tooltip.add(
                         Component.translatable(
                             "supercritical.machine.spent_fuel_pool.tooltip.parallel",
                             PARALLEL_PER_LENGTH
                         )
                     )
                     tooltip.add(Component.translatable("supercritical.machine.fluid_auto_fill.tooltip"))
-                })
+                }
                 .register()
         }
 

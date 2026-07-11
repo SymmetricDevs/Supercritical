@@ -27,21 +27,21 @@ interface IFissionFuelStats {
 
     val neutronGenerationTimeCategory: Int
         get() {
-            if (this.neutronGenerationTime > 2) {
+            if (neutronGenerationTime > 2) {
                 return 0
-            } else if (this.neutronGenerationTime > 1.25) {
+            } else if (neutronGenerationTime > 1.25) {
                 return 1
-            } else if (this.neutronGenerationTime > 0.9) {
+            } else if (neutronGenerationTime > 0.9) {
                 return 2
             }
             return 3
         }
 
     val fastFissionMultiplier: Double
-        get() = this.fastNeutronFissionCrossSection * this.releasedNeutrons / this.requiredNeutrons
+        get() = fastNeutronFissionCrossSection * releasedNeutrons / requiredNeutrons
 
     val slowFissionMultiplier: Double
-        get() = this.slowNeutronFissionCrossSection * this.releasedNeutrons / this.requiredNeutrons
+        get() = slowNeutronFissionCrossSection * releasedNeutrons / requiredNeutrons
 
     val id: String?
 

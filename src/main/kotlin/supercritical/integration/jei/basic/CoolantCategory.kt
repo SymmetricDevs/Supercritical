@@ -20,13 +20,13 @@ import supercritical.BuildConfig
 import supercritical.api.nuclear.fission.CoolantRegistry
 import supercritical.common.registry.SCMachines
 
-class CoolantCategory(helpers: IJeiHelpers) : IRecipeCategory<CoolantInfo?> {
+class CoolantCategory(helpers: IJeiHelpers) : IRecipeCategory<CoolantInfo> {
     private val icon: IDrawable
     private val slot: IDrawable
     private val arrow: IDrawable
 
     init {
-        val guiHelper = helpers.getGuiHelper()
+        val guiHelper = helpers.guiHelper
         this.icon = guiHelper.createDrawableItemStack(SCMachines.FISSION_REACTOR.asStack())
         this.slot = IGui2IDrawable.toDrawable(GuiTextures.SLOT, 18, 18)
         this.arrow = IGui2IDrawable.toDrawable(GuiTextures.PROGRESS_BAR_ARROW, 20, 20)
@@ -37,9 +37,9 @@ class CoolantCategory(helpers: IJeiHelpers) : IRecipeCategory<CoolantInfo?> {
         focuses: IFocusGroup
     ) {
         builder.addSlot(RecipeIngredientRole.INPUT, 55, 9)
-            .addFluidStack(recipe.coolant.getFluid(), recipe.coolant.getAmount().toLong())
+            .addFluidStack(recipe.coolant.fluid, recipe.coolant.amount.toLong())
         builder.addSlot(RecipeIngredientRole.OUTPUT, 105, 9)
-            .addFluidStack(recipe.hotCoolant.getFluid(), recipe.hotCoolant.getAmount().toLong())
+            .addFluidStack(recipe.hotCoolant.fluid, recipe.hotCoolant.amount.toLong())
     }
 
     override fun draw(
@@ -52,7 +52,7 @@ class CoolantCategory(helpers: IJeiHelpers) : IRecipeCategory<CoolantInfo?> {
         recipe.drawInfo(guiGraphics, Minecraft.getInstance())
     }
 
-    override fun getRecipeType(): RecipeType<CoolantInfo?> {
+    override fun getRecipeType(): RecipeType<CoolantInfo> {
         return RECIPE_TYPE
     }
 
@@ -68,22 +68,23 @@ class CoolantCategory(helpers: IJeiHelpers) : IRecipeCategory<CoolantInfo?> {
         return 90
     }
 
-    override fun getIcon(): IDrawable? {
+    override fun getIcon(): IDrawable {
         return icon
     }
 
     companion object {
-        val RECIPE_TYPE: RecipeType<CoolantInfo?> =
-            RecipeType<CoolantInfo?>(ResourceLocation(BuildConfig.MOD_ID, "coolant"), CoolantInfo::class.java)
+        val RECIPE_TYPE: RecipeType<CoolantInfo> =
+            RecipeType<CoolantInfo>(ResourceLocation(BuildConfig.MOD_ID, "coolant"), CoolantInfo::class.java)
 
         fun registerRecipes(registry: IRecipeRegistration) {
-            val infos: MutableList<CoolantInfo?> = ArrayList<CoolantInfo?>()
-            for (coolant in CoolantRegistry.getAllCoolants()) {
-                val stats = CoolantRegistry.getCoolant(coolant)
-                if (stats == null) continue
-                infos.add(CoolantInfo(coolant, stats.getHotCoolant()))
+            val infos = buildList {
+                for (coolant in CoolantRegistry.allCoolants) {
+                    val stats = CoolantRegistry.getCoolant(coolant) ?: continue
+                    val hotCoolant = stats.hotCoolant
+                    if (coolant != null && hotCoolant != null) add(CoolantInfo(coolant, hotCoolant))
+                }
             }
-            registry.addRecipes<CoolantInfo?>(RECIPE_TYPE, infos)
+            registry.addRecipes(RECIPE_TYPE, infos)
         }
 
         fun registerRecipeCatalysts(registration: IRecipeCatalystRegistration) {

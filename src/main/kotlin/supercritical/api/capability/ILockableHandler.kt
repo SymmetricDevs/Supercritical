@@ -2,7 +2,7 @@ package supercritical.api.capability
 
 interface ILockableHandler<T> {
 
-    val locked: Boolean
+    var locked: Boolean
 
     val lockedObject: T
 }

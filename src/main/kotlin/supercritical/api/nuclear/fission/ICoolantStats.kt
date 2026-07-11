@@ -1,5 +1,7 @@
 package supercritical.api.nuclear.fission
 
+import net.minecraft.world.level.material.Fluid
+
 interface ICoolantStats {
     val hotCoolant: Fluid?
 

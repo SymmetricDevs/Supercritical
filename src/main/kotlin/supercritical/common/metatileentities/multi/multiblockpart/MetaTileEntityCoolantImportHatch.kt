@@ -2,40 +2,54 @@ package supercritical.common.metatileentities.multi.multiblockpart
 
 import com.gregtechceu.gtceu.api.capability.IControllable
 import com.gregtechceu.gtceu.api.capability.recipe.IO
+import com.gregtechceu.gtceu.api.gui.GuiTextures
+import com.gregtechceu.gtceu.api.gui.UITemplate
+import com.gregtechceu.gtceu.api.gui.widget.TankWidget
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
+import com.gregtechceu.gtceu.api.machine.feature.IUIMachine
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted
-import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender
+import com.lowdragmc.lowdraglib.gui.modular.ModularUI
+import com.lowdragmc.lowdraglib.gui.widget.ImageWidget
+import com.lowdragmc.lowdraglib.gui.widget.LabelWidget
+import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.material.Fluid
 import supercritical.api.capability.ICoolantHandler
 import supercritical.api.capability.impl.LockableFluidTank
-import supercritical.api.metatileentity.multiblock.IFissionReactorHatch
+import supercritical.api.machine.multiblock.IFissionReactorHatch
 import supercritical.api.nuclear.fission.ICoolantStats
 import supercritical.common.registry.SCBlocks
 
 class MetaTileEntityCoolantImportHatch(holder: IMachineBlockEntity, tier: Int) :
-    TieredIOPartMachine(holder, tier, IO.IN), ICoolantHandler, IControllable, IFissionReactorHatch {
-    @Persisted
-    @DescSynced
-    @RequireRerender
-    private var workingEnabled = true
-    private val fluidTank: LockableFluidTank
-    private var coolant: ICoolantStats? = null
+    TieredIOPartMachine(holder, tier, IO.IN), ICoolantHandler, IControllable, IFissionReactorHatch, IUIMachine {
+    override val fluidTank: LockableFluidTank
+    override var coolant: ICoolantStats? = null
     private var pairedHatch: MetaTileEntityCoolantExportHatch? = null
 
     init {
         this.fluidTank = LockableFluidTank(this, 16000, IO.IN)
     }
 
-    override fun isWorkingEnabled(): Boolean {
-        return workingEnabled
-    }
+    override val coolantFrontFacing: Direction
+        get() = frontFacing
 
-    override fun setWorkingEnabled(workingEnabled: Boolean) {
-        this.workingEnabled = workingEnabled
-    }
+    override val hatchPos
+        get() = pos
+
+    override var locked: Boolean
+        get() = fluidTank.lockedState
+        set(value) {
+            fluidTank.lockedState = value
+        }
+
+    override val lockedObject: Fluid?
+        get() = fluidTank.lockedObject
+
+    override val outputHandler: ICoolantHandler?
+        get() = pairedHatch
+
 
     override fun checkValidity(depth: Int): Boolean {
         this.pairedHatch = getExportHatch(depth)
@@ -43,65 +57,66 @@ class MetaTileEntityCoolantImportHatch(holder: IMachineBlockEntity, tier: Int) :
     }
 
     fun getExportHatch(depth: Int): MetaTileEntityCoolantExportHatch? {
-        val pos = getPos()!!.mutable()
-        val back = getFrontFacing().getOpposite()
+        val level = level ?: return null
+        val pos = (pos ?: return null).mutable()
+        val back = frontFacing.opposite
         for (i in 1..<depth) {
             pos.move(back)
-            if (getLevel()!!.getBlockState(pos).getBlock() !== SCBlocks.COOLANT_CHANNEL.get()) {
+            if (level.getBlockState(pos).block !== SCBlocks.COOLANT_CHANNEL.get()) {
                 return null
             }
         }
         pos.move(back)
-        if (getMachine(getLevel(), pos) is MetaTileEntityCoolantExportHatch) {
-            return export
+        return getMachine(level, pos) as? MetaTileEntityCoolantExportHatch
+    }
+
+    override fun createUI(entityPlayer: Player): ModularUI {
+        val tankWidget = TankWidget(fluidTank, 0, 119, 52, true, false)
+            .setShowAmount(false)
+            .setBackground(GuiTextures.FLUID_SLOT)
+        return ModularUI(176, 166, this, entityPlayer)
+            .background(GuiTextures.BACKGROUND)
+            .widget(LabelWidget(6, 6, definition.descriptionId))
+            .widget(ImageWidget(7, 16, 131, 55, GuiTextures.DISPLAY))
+            .widget(tankWidget)
+            .widget(LabelWidget(11, 20, "gtceu.gui.fluid_amount"))
+            // White is the LabelWidget default (its constructor calls setTextColor(-1)), so the
+            // deprecated setTextColor call is intentionally omitted here.
+            .widget(LabelWidget(11, 30) { getFormattedFluidAmount() })
+            .widget(LabelWidget(11, 40) { getFluidNameWithLock() })
+            .widget(UITemplate.bindPlayerInventory(entityPlayer.inventory, GuiTextures.SLOT, 7, 84, true))
+    }
+
+    private fun getFormattedFluidAmount(): String {
+        return String.format("%,d", fluidTank.getFluidInTank(0).amount)
+    }
+
+    private fun getFluidNameWithLock(): String {
+        val fluid = fluidTank.getFluidInTank(0)
+        val name = if (fluid.isEmpty) "" else fluid.displayName.string
+        return if (fluidTank.lockedState) {
+            name + " " + Component.translatable("supercritical.gui.locked").string
+        } else {
+            name
         }
-        return null
-    }
-
-    override fun setLocked(isLocked: Boolean) {
-        fluidTank.setLock(isLocked)
-    }
-
-    override fun isLocked(): Boolean {
-        return fluidTank.isLocked()
-    }
-
-    override fun getLockedObject(): Fluid? {
-        return fluidTank.getLockedObject()
-    }
-
-    override fun getCoolant(): ICoolantStats? {
-        return this.coolant
-    }
-
-    override fun setCoolant(prop: ICoolantStats?) {
-        this.coolant = prop
-    }
-
-    override fun getFluidTank(): LockableFluidTank {
-        return this.fluidTank
-    }
-
-    override fun getOutputHandler(): ICoolantHandler? {
-        return pairedHatch
     }
 
     override fun onLoad() {
         super.onLoad()
-        subscribeServerTick(Runnable {
-            if (getOffsetTimer() % 5 == 0L && isWorkingEnabled()) {
-                fluidTank.importFromNearby(getFrontFacing())
+        subscribeServerTick {
+            if (offsetTimer % 5 == 0L && isWorkingEnabled) {
+                fluidTank.importFromNearby(frontFacing)
             }
-        })
+        }
     }
 
     override fun saveCustomPersistedData(tag: CompoundTag, forDrop: Boolean) {
         super.saveCustomPersistedData(tag, forDrop)
-        tag.putBoolean("Locked", fluidTank.isLocked())
+        tag.putBoolean("Locked", fluidTank.lockedState)
     }
 
     override fun loadCustomPersistedData(tag: CompoundTag) {
         super.loadCustomPersistedData(tag)
-        fluidTank.setLock(tag.getBoolean("Locked"))
+        fluidTank.lockedState = tag.getBoolean("Locked")
     }
 }

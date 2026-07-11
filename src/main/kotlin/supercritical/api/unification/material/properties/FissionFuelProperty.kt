@@ -11,18 +11,18 @@ import java.util.function.Function
 import java.util.function.Supplier
 
 class FissionFuelProperty : IMaterialProperty, IFissionFuelStats {
-    private var maxTemperature = 0
-    private var duration = 0
-    private var slowNeutronCaptureCrossSection = 0.0
-    private var fastNeutronCaptureCrossSection = 0.0
-    private var slowNeutronFissionCrossSection = 0.0
-    private var fastNeutronFissionCrossSection = 0.0
-    private var neutronGenerationTime = 0.0
-    private var releasedNeutrons = 0.0
-    private var requiredNeutrons = 1.0
-    private var releasedHeatEnergy = 0.0
-    private var decayRate = 0.0
-    private var id: ResourceLocation? = null
+    override var maxTemperature = 0
+    override var duration = 0
+    override var slowNeutronCaptureCrossSection = 0.0
+    override var fastNeutronCaptureCrossSection = 0.0
+    override var slowNeutronFissionCrossSection = 0.0
+    override var fastNeutronFissionCrossSection = 0.0
+    override var neutronGenerationTime = 0.0
+    override var releasedNeutrons = 0.0
+    override var requiredNeutrons = 1.0
+    override var releasedHeatEnergy = 0.0
+    override var decayRate = 0.0
+    private var resourceId: ResourceLocation? = null
     private var depletedFuelSupplier = Function { thermalRatio: Double? -> ItemStack.EMPTY }
     private var allDepletedFuels: Supplier<MutableList<ItemStack?>?> = Supplier { mutableListOf() }
 
@@ -30,60 +30,14 @@ class FissionFuelProperty : IMaterialProperty, IFissionFuelStats {
         properties.ensureSet<DustProperty?>(PropertyKey.DUST, true)
     }
 
-    override fun getMaxTemperature(): Int {
-        return maxTemperature
-    }
-
-    override fun getDuration(): Int {
-        return duration
-    }
-
-    override fun getSlowNeutronCaptureCrossSection(): Double {
-        return slowNeutronCaptureCrossSection
-    }
-
-    override fun getFastNeutronCaptureCrossSection(): Double {
-        return fastNeutronCaptureCrossSection
-    }
-
-    override fun getSlowNeutronFissionCrossSection(): Double {
-        return slowNeutronFissionCrossSection
-    }
-
-    override fun getFastNeutronFissionCrossSection(): Double {
-        return fastNeutronFissionCrossSection
-    }
-
-    override fun getNeutronGenerationTime(): Double {
-        return neutronGenerationTime
-    }
-
-    override fun getReleasedNeutrons(): Double {
-        return releasedNeutrons
-    }
-
-    override fun getRequiredNeutrons(): Double {
-        return requiredNeutrons
-    }
-
-    override fun getReleasedHeatEnergy(): Double {
-        return releasedHeatEnergy
-    }
-
-    override fun getDecayRate(): Double {
-        return decayRate
-    }
-
-    override fun getId(): String {
-        return id.toString()
-    }
+    override val id: String?
+        get() = resourceId?.toString()
 
     val resourceLocation: ResourceLocation
-        get() = id
+        get() = checkNotNull(resourceId) { "Fission fuel id has not been initialized" }
 
-    override fun getDepletedFuels(): MutableList<ItemStack?>? {
-        return allDepletedFuels.get()
-    }
+    override val depletedFuels: MutableList<ItemStack?>?
+        get() = allDepletedFuels.get()
 
     override fun getDepletedFuel(thermalRatio: Double): ItemStack? {
         return depletedFuelSupplier.apply(thermalRatio)
@@ -103,7 +57,7 @@ class FissionFuelProperty : IMaterialProperty, IFissionFuelStats {
         private val property = FissionFuelProperty()
 
         fun id(id: ResourceLocation): Builder {
-            property.id = id
+            property.resourceId = id
             return this
         }
 

@@ -370,7 +370,7 @@ object SCNuclearRecipes {
         while (i < byproducts.size) {
             fission.chancedOutput(
                 TagPrefix.dust,
-                byproducts[i] as Material?, (byproducts[i + 1] as kotlin.Int?)!!, 0
+                byproducts[i] as Material?, byproducts[i + 1] as Int, 0
             )
             i += 2
         }

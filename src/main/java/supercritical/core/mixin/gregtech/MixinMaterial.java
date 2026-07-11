@@ -2,7 +2,6 @@ package supercritical.core.mixin.gregtech;
 
 import com.gregtechceu.gtceu.api.data.chemical.Element;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.Nullable;
@@ -13,7 +12,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import supercritical.api.unification.ElementExtension;
 import supercritical.api.unification.material.MaterialExtension;
-import supercritical.api.unification.material.properties.SCPropertyKey;
 
 @Mixin(value = Material.class, remap = false)
 public abstract class MixinMaterial implements MaterialExtension {
@@ -43,7 +41,9 @@ public abstract class MixinMaterial implements MaterialExtension {
         }
         double decaysPerSecond = 0;
         for (MaterialStack stack : getMaterialComponents()) {
-            decaysPerSecond += stack.amount() * MaterialExtension.Companion.getDecaysPerSecond(stack.material());
+            // Legacy parity (supercritical.mixins.gregtech.MixinMaterial): the per-component contribution is
+            // summed unweighted, NOT multiplied by the component amount.
+            decaysPerSecond += MaterialExtension.Companion.getDecaysPerSecond(stack.material());
         }
         return decaysPerSecond;
     }

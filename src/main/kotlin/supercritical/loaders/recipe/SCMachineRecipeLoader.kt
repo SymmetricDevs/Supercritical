@@ -1,8 +1,10 @@
 package supercritical.loaders.recipe
 
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix
+import com.gregtechceu.gtceu.common.data.GTBlocks
 import com.gregtechceu.gtceu.common.data.GTMaterials
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes
+import com.gregtechceu.gtceu.config.ConfigHolder
 import net.minecraft.world.item.ItemStack
 import supercritical.api.unification.material.SCMaterials
 import supercritical.common.registry.SCBlocks
@@ -14,7 +16,7 @@ object SCMachineRecipeLoader {
                 .inputItems(TagPrefix.plateDouble, SCMaterials.Inconel)
                 .inputItems(TagPrefix.plate, GTMaterials.Steel, 5)
                 .inputItems(TagPrefix.frameGt, GTMaterials.Steel)
-                .outputItems(ItemStack(SCBlocks.REACTOR_VESSEL.get(), 2))
+                .outputItems(ItemStack(SCBlocks.REACTOR_VESSEL.get(), ConfigHolder.INSTANCE.recipes.casingsPerCraft))
                 .EUt(48).duration(280)
                 .buildRawRecipe()
         )
@@ -50,7 +52,7 @@ object SCMachineRecipeLoader {
 
         SCRecipeUtils.addRecipe(
             GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("gas_centrifuge_heater")
-                .inputItems(TagPrefix.pipeLargeFluid, GTMaterials.Polytetrafluoroethylene)
+                .inputItems(GTBlocks.CASING_POLYTETRAFLUOROETHYLENE_PIPE.asStack())
                 .inputItems(TagPrefix.wireGtSingle, GTMaterials.Nichrome, 4)
                 .outputItems(ItemStack(SCBlocks.GAS_CENTRIFUGE_HEATER.get()))
                 .EUt(48).duration(200)
@@ -69,7 +71,7 @@ object SCMachineRecipeLoader {
         SCRecipeUtils.addRecipe(
             GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("spent_fuel_casing")
                 .inputItems(TagPrefix.rod, SCMaterials.BoronCarbide, 8)
-                .outputItems(ItemStack(SCBlocks.SPENT_FUEL_CASING.get(), 2))
+                .outputItems(ItemStack(SCBlocks.SPENT_FUEL_CASING.get(), ConfigHolder.INSTANCE.recipes.casingsPerCraft))
                 .EUt(64).duration(200)
                 .buildRawRecipe()
         )

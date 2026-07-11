@@ -9,14 +9,14 @@ class FuelRod(maxTemperature: Double, thermalConductivity: Double, private var f
     var thermalProportion: Double = 0.0
 
     val duration: Double
-        get() = fuel.getDuration().toDouble()
+        get() = fuel.duration.toDouble()
 
     val neutronGenerationTime: Double
-        get() = fuel.getNeutronGenerationTime()
+        get() = fuel.neutronGenerationTime
 
     fun setFuel(fuel: IFissionFuelStats) {
         this.fuel = fuel
-        this.maxTemperature = fuel.getMaxTemperature().toDouble()
+        this.maxTemperature = fuel.maxTemperature.toDouble()
     }
 
     val depletedFuel: ItemStack?

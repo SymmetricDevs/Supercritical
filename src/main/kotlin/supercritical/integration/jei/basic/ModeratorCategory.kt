@@ -25,24 +25,25 @@ class ModeratorCategory(helpers: IJeiHelpers) : IRecipeCategory<ModeratorInfo?> 
     private val slot: IDrawable
 
     init {
-        val guiHelper = helpers.getGuiHelper()
+        val guiHelper = helpers.guiHelper
         this.icon = guiHelper.createDrawableItemStack(SCMachines.FISSION_REACTOR.asStack())
         this.slot = IGui2IDrawable.toDrawable(GuiTextures.SLOT, 18, 18)
     }
 
     override fun setRecipe(
-        builder: IRecipeLayoutBuilder, recipe: ModeratorInfo,
+        builder: IRecipeLayoutBuilder, recipe: ModeratorInfo?,
         focuses: IFocusGroup
     ) {
-        builder.addSlot(RecipeIngredientRole.INPUT, 78, 9).addItemStack(recipe.stack)
+        val info = recipe ?: return
+        builder.addSlot(RecipeIngredientRole.INPUT, 78, 9).addItemStack(info.stack)
     }
 
     override fun draw(
-        recipe: ModeratorInfo, recipeSlotsView: IRecipeSlotsView,
+        recipe: ModeratorInfo?, recipeSlotsView: IRecipeSlotsView,
         guiGraphics: GuiGraphics, mouseX: Double, mouseY: Double
     ) {
         slot.draw(guiGraphics, 77, 8)
-        recipe.drawInfo(guiGraphics, Minecraft.getInstance())
+        recipe?.drawInfo(guiGraphics, Minecraft.getInstance())
     }
 
     override fun getRecipeType(): RecipeType<ModeratorInfo?> {
@@ -61,7 +62,7 @@ class ModeratorCategory(helpers: IJeiHelpers) : IRecipeCategory<ModeratorInfo?> 
         return 70
     }
 
-    override fun getIcon(): IDrawable? {
+    override fun getIcon(): IDrawable {
         return icon
     }
 
@@ -70,9 +71,10 @@ class ModeratorCategory(helpers: IJeiHelpers) : IRecipeCategory<ModeratorInfo?> 
             RecipeType<ModeratorInfo?>(ResourceLocation(BuildConfig.MOD_ID, "moderator"), ModeratorInfo::class.java)
 
         fun registerRecipes(registry: IRecipeRegistration) {
-            val infos: MutableList<ModeratorInfo?> = ArrayList<ModeratorInfo?>()
-            for (block in ModeratorRegistry.getAllModerators()) {
-                infos.add(ModeratorInfo(block))
+            val infos = buildList<ModeratorInfo?> {
+                for (block in ModeratorRegistry.allModerators) {
+                    if (block != null) add(ModeratorInfo(block))
+                }
             }
             registry.addRecipes<ModeratorInfo?>(RECIPE_TYPE, infos)
         }

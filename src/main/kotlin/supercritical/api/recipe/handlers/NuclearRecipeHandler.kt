@@ -20,7 +20,7 @@ object NuclearRecipeHandler {
     fun register() {
         // GTCEu Modern no longer exposes the old CEu addProcessingHandler hook. Generate the same recipes eagerly for
         // every material that already carries Supercritical's fission-fuel property.
-        for (material in GTCEuAPI.materialManager.getRegisteredMaterials()) {
+        for (material in GTCEuAPI.materialManager.registeredMaterials) {
             if (material.hasProperty<FissionFuelProperty?>(SCPropertyKey.FISSION_FUEL)) {
                 processFuelRod(material, material.getProperty<FissionFuelProperty?>(SCPropertyKey.FISSION_FUEL))
             }
@@ -28,8 +28,8 @@ object NuclearRecipeHandler {
     }
 
     private fun processFuelRod(material: Material, property: FissionFuelProperty?) {
-        val name = material.getName()
-        val fuelItems = SCItems.NUCLEAR_FUEL_ITEMS.get(name)
+        val name = material.name
+        val fuelItems = SCItems.NUCLEAR_FUEL_ITEMS[name]
 
         SCRecipeUtils.addRecipe(
             SCRecipeMaps.SPENT_FUEL_POOL_RECIPES, SCRecipeMaps.SPENT_FUEL_POOL_RECIPES

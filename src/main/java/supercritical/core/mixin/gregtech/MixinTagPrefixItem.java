@@ -1,7 +1,6 @@
 package supercritical.core.mixin.gregtech;
 
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.item.TagPrefixItem;
 import com.gregtechceu.gtceu.api.item.armor.ArmorComponentItem;
@@ -12,6 +11,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -23,34 +23,32 @@ import supercritical.api.unification.material.MaterialExtension;
 import supercritical.api.unification.ore.SCOrePrefix;
 import supercritical.api.unification.tag.TagPrefixExtension;
 
-import java.util.function.DoubleUnaryOperator;
 import java.util.function.Function;
 
 @Mixin(value = TagPrefixItem.class, remap = false)
 public abstract class MixinTagPrefixItem {
 
+    @Final
     @Shadow
     public Material material;
 
+    @Final
     @Shadow
     public TagPrefix tagPrefix;
 
     @Unique
-    private static final DoubleUnaryOperator SC_DEFAULT_HEAT_DAMAGE = temperature ->
-            (float) ((temperature - 1750) / 1000.0F) + 2;
-
-    @Unique
-    private void sc$handleHeatDamage(@NotNull Material material, @NotNull LivingEntity entity) {
+    private void sc$handleHeatDamage(@NotNull LivingEntity entity) {
+        // Legacy applied SC heat damage only to hot depleted fuel rods (the sole prefix with a
+        // heatDamageFunction). Hot-ingot heat damage is handled natively by GTCEu Modern's
+        // TagPrefixItem.inventoryTick (ingotHot + BLAST), so we must not re-apply it here, or it
+        // would damage every BLAST item (steel/aluminium/... ingots, plates, dusts) and
+        // double-apply for ingotHot.
         TagPrefix prefix = tagPrefix;
-        Level level = entity.level();
-        double heatDamage;
-        if (prefix == SCOrePrefix.INSTANCE.getFuelRodHotDepleted()) {
-            heatDamage = 2.0D;
-        } else if (material.hasProperty(PropertyKey.BLAST)) {
-            heatDamage = SC_DEFAULT_HEAT_DAMAGE.applyAsDouble(material.getBlastTemperature());
-        } else {
+        if (prefix != SCOrePrefix.INSTANCE.getFuelRodHotDepleted()) {
             return;
         }
+        Level level = entity.level();
+        double heatDamage = 2.0D;
         ItemStack armor = entity.getItemBySlot(EquipmentSlot.CHEST);
         if (!armor.isEmpty() && armor.getItem() instanceof ArmorComponentItem armorItem) {
             heatDamage *= armorItem.getArmorLogic().getHeatResistance();
@@ -66,7 +64,6 @@ public abstract class MixinTagPrefixItem {
     private void sc$handleRadiationDamage(@NotNull Material material, @NotNull LivingEntity entity) {
         TagPrefix prefix = tagPrefix;
         Function<Double, Double> radiationFunction = TagPrefixExtension.Companion.getRadiationDamageFunction(prefix);
-        if (radiationFunction == null) return;
 
         double radiationDamage = radiationFunction.apply(MaterialExtension.Companion.getDecaysPerSecond(material));
         ItemStack armor = entity.getItemBySlot(EquipmentSlot.CHEST);
@@ -84,7 +81,7 @@ public abstract class MixinTagPrefixItem {
         if (entityIn instanceof LivingEntity entity && entity.tickCount % 20 == 0) {
             Material material = this.material;
             if (material == null || material.isNull()) return;
-            sc$handleHeatDamage(material, entity);
+            sc$handleHeatDamage(entity);
             sc$handleRadiationDamage(material, entity);
         }
     }

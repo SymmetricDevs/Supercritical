@@ -5,30 +5,15 @@ import com.gregtechceu.gtceu.api.capability.recipe.IO
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted
-import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender
-import supercritical.api.metatileentity.multiblock.IFissionReactorHatch
+import net.minecraft.core.BlockPos
+import supercritical.api.machine.multiblock.IFissionReactorHatch
 
 class MetaTileEntityFuelRodExportBus(holder: IMachineBlockEntity, tier: Int) :
     TieredIOPartMachine(holder, tier, IO.OUT), IControllable, IFissionReactorHatch {
-    @Persisted
-    @DescSynced
-    @RequireRerender
-    private var workingEnabled = true
-    val inventory: NotifiableItemStackHandler
+    val inventory: NotifiableItemStackHandler = NotifiableItemStackHandler(this, 1, IO.OUT)
 
-    init {
-        this.inventory = NotifiableItemStackHandler(this, 1, IO.OUT)
-    }
-
-    override fun isWorkingEnabled(): Boolean {
-        return workingEnabled
-    }
-
-    override fun setWorkingEnabled(workingEnabled: Boolean) {
-        this.workingEnabled = workingEnabled
-    }
+    override val hatchPos: BlockPos?
+        get() = pos
 
     override fun checkValidity(depth: Int): Boolean {
         return true
@@ -36,10 +21,11 @@ class MetaTileEntityFuelRodExportBus(holder: IMachineBlockEntity, tier: Int) :
 
     override fun onLoad() {
         super.onLoad()
-        subscribeServerTick(Runnable {
-            if (getOffsetTimer() % 5 == 0L && isWorkingEnabled()) {
-                inventory.exportToNearby(getFrontFacing())
+        subscribeServerTick {
+            if (offsetTimer % 5 == 0L && isWorkingEnabled) {
+                inventory.exportToNearby(frontFacing)
             }
-        })
+        }
     }
+
 }

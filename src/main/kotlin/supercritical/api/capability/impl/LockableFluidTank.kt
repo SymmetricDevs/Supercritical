@@ -9,52 +9,48 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder
 import net.minecraft.world.level.material.Fluid
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction
-import supercritical.api.capability.ILockableHandler
 
-class LockableFluidTank(machine: MetaMachine, capacity: Int, io: IO?) : NotifiableFluidTank(machine, 1, capacity, io),
-    ILockableHandler<Fluid?> {
-    @Persisted
+class LockableFluidTank(machine: MetaMachine, capacity: Int, io: IO?) : NotifiableFluidTank(machine, 1, capacity, io) {
+    @Persisted(key = "locked")
     @DescSynced
-    private var locked = false
+    private var isLockedInternal = false
 
-    @Persisted
+    @Persisted(key = "lockedFluid")
     @DescSynced
-    private var lockedFluid: FluidStack = FluidStack.EMPTY
+    private var lockedFluidStack: FluidStack = FluidStack.EMPTY
+
+    var lockedState: Boolean
+        get() = isLockedInternal
+        set(value) {
+            isLockedInternal = value
+            if (!value) {
+                lockedFluidStack = FluidStack.EMPTY
+            } else if (!getFluidInTank(0).isEmpty) {
+                lockedFluidStack = getFluidInTank(0).copy()
+                lockedFluidStack.amount = 1
+            }
+        }
+
+    val lockedObject: Fluid?
+        get() = if (lockedFluidStack.isEmpty) null else lockedFluidStack.fluid
 
     override fun getFieldHolder(): ManagedFieldHolder {
         return MANAGED_FIELD_HOLDER
     }
 
-    override fun getLockedObject(): Fluid? {
-        return if (lockedFluid.isEmpty()) null else lockedFluid.getFluid()
-    }
-
-    override fun setLock(isLocked: Boolean) {
-        this.locked = isLocked
-        if (!isLocked) {
-            this.lockedFluid = FluidStack.EMPTY
-        } else if (!getFluidInTank(0).isEmpty()) {
-            this.lockedFluid = getFluidInTank(0).copy()
-            this.lockedFluid.setAmount(1)
-        }
-    }
 
     override fun fill(resource: FluidStack, action: FluidAction?): Int {
-        if (locked && !lockedFluid.isEmpty() && resource.getFluid() !== lockedFluid.getFluid()) {
+        if (lockedState && !lockedFluidStack.isEmpty && resource.fluid !== lockedFluidStack.fluid) {
             return 0
         }
         return super.fill(resource, action)
     }
 
     override fun isFluidValid(tank: Int, stack: FluidStack): Boolean {
-        if (locked && !lockedFluid.isEmpty() && stack.getFluid() !== lockedFluid.getFluid()) {
+        if (lockedState && !lockedFluidStack.isEmpty && stack.fluid !== lockedFluidStack.fluid) {
             return false
         }
         return super.isFluidValid(tank, stack)
-    }
-
-    override fun isLocked(): Boolean {
-        return locked
     }
 
     companion object {
