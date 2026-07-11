@@ -16,21 +16,15 @@ import supercritical.api.machine.multiblock.SCMultiblockAbility
 import supercritical.api.recipes.SCRecipeMaps
 import supercritical.api.registries.SCRegistries
 import supercritical.api.util.scId
-import supercritical.common.SCConfigHolder
-import supercritical.common.machine.multiblock.MetaTileEntityFissionReactor
-import supercritical.common.machine.multiblock.MetaTileEntityHeatExchanger
-import supercritical.common.machine.multiblock.MetaTileEntitySpentFuelPool
-import supercritical.common.metatileentities.multi.electric.MetaTileEntityGasCentrifuge
-import supercritical.common.metatileentities.multi.multiblockpart.MetaTileEntityControlRodPort
-import supercritical.common.metatileentities.multi.multiblockpart.MetaTileEntityCoolantExportHatch
-import supercritical.common.metatileentities.multi.multiblockpart.MetaTileEntityCoolantImportHatch
-import supercritical.common.metatileentities.multi.multiblockpart.MetaTileEntityFuelRodExportBus
-import supercritical.common.metatileentities.multi.multiblockpart.MetaTileEntityFuelRodImportBus
-import supercritical.common.metatileentities.multi.multiblockpart.MetaTileEntityModeratorPort
+import supercritical.common.machine.multiblock.FissionReactor
+import supercritical.common.machine.multiblock.HeatExchanger
+import supercritical.common.machine.multiblock.SpentFuelPool
+import supercritical.common.machine.multiblock.electric.GasCentrifuge
+import supercritical.common.machine.multiblock.multiblockpart.*
 
 object SCMachines {
     val FUEL_ROD_INPUT: MachineDefinition = SCRegistries.REGISTRATE
-        .machine("fuel_rod_input") { holder: IMachineBlockEntity -> MetaTileEntityFuelRodImportBus(holder, 4) }
+        .machine("fuel_rod_input") { holder: IMachineBlockEntity -> FuelRodImportBus(holder, 4) }
         .rotationState(RotationState.ALL)
         .tier(GTValues.LV)
         .abilities(SCMultiblockAbility.IMPORT_FUEL_ROD)
@@ -43,7 +37,7 @@ object SCMachines {
         .register()
 
     val FUEL_ROD_OUTPUT: MachineDefinition = SCRegistries.REGISTRATE
-        .machine("fuel_rod_output") { holder: IMachineBlockEntity -> MetaTileEntityFuelRodExportBus(holder, 4) }
+        .machine("fuel_rod_output") { holder: IMachineBlockEntity -> FuelRodExportBus(holder, 4) }
         .rotationState(RotationState.ALL)
         .tier(GTValues.LV)
         .abilities(SCMultiblockAbility.EXPORT_FUEL_ROD)
@@ -56,7 +50,7 @@ object SCMachines {
         .register()
 
     val COOLANT_INPUT: MachineDefinition = SCRegistries.REGISTRATE
-        .machine("coolant_input") { holder: IMachineBlockEntity -> MetaTileEntityCoolantImportHatch(holder, 4) }
+        .machine("coolant_input") { holder: IMachineBlockEntity -> CoolantImportHatch(holder, 4) }
         .rotationState(RotationState.ALL)
         .tier(GTValues.LV)
         .abilities(SCMultiblockAbility.IMPORT_COOLANT)
@@ -69,7 +63,7 @@ object SCMachines {
         .register()
 
     val COOLANT_OUTPUT: MachineDefinition = SCRegistries.REGISTRATE
-        .machine("coolant_output") { holder: IMachineBlockEntity -> MetaTileEntityCoolantExportHatch(holder, 4) }
+        .machine("coolant_output") { holder: IMachineBlockEntity -> CoolantExportHatch(holder, 4) }
         .rotationState(RotationState.ALL)
         .tier(GTValues.LV)
         .abilities(SCMultiblockAbility.EXPORT_COOLANT)
@@ -82,7 +76,7 @@ object SCMachines {
         .register()
 
     val CONTROL_ROD: MachineDefinition = SCRegistries.REGISTRATE
-        .machine("control_rod") { holder: IMachineBlockEntity -> MetaTileEntityControlRodPort(holder, 4, false) }
+        .machine("control_rod") { holder: IMachineBlockEntity -> ControlRodPort(holder, 4, false) }
         .rotationState(RotationState.ALL)
         .tier(GTValues.LV)
         .abilities(SCMultiblockAbility.CONTROL_ROD_PORT)
@@ -96,7 +90,7 @@ object SCMachines {
 
     val CONTROL_ROD_MODERATED: MachineDefinition = SCRegistries.REGISTRATE
         .machine("control_rod_moderated") { holder: IMachineBlockEntity ->
-            MetaTileEntityControlRodPort(
+            ControlRodPort(
                 holder,
                 4,
                 true
@@ -114,7 +108,7 @@ object SCMachines {
         .register()
 
     val MODERATOR_PORT: MachineDefinition = SCRegistries.REGISTRATE
-        .machine("moderator_port") { holder: IMachineBlockEntity -> MetaTileEntityModeratorPort(holder, 4) }
+        .machine("moderator_port") { holder: IMachineBlockEntity -> ModeratorPort(holder, 4) }
         .rotationState(RotationState.ALL)
         .tier(GTValues.LV)
         .abilities(SCMultiblockAbility.MODERATOR_PORT)
@@ -127,11 +121,11 @@ object SCMachines {
         .register()
 
     val FISSION_REACTOR: MultiblockMachineDefinition = SCRegistries.REGISTRATE
-        .multiblock("fission_reactor") { holder: IMachineBlockEntity -> MetaTileEntityFissionReactor(holder) }
+        .multiblock("fission_reactor") { holder: IMachineBlockEntity -> FissionReactor(holder) }
         .rotationState(RotationState.NON_Y_AXIS)
         .allowExtendedFacing(true)
         .pattern { definition: MultiblockMachineDefinition ->
-            MetaTileEntityFissionReactor.buildPattern(
+            FissionReactor.buildPattern(
                 definition,
                 5,
                 1,
@@ -146,29 +140,24 @@ object SCMachines {
         }
         .register()
 
-    val HEAT_EXCHANGER: MultiblockMachineDefinition? =
-        if (SCConfigHolder.INSTANCE.misc.enableHX) MetaTileEntityHeatExchanger.register() else null
+    val HEAT_EXCHANGER: MultiblockMachineDefinition = HeatExchanger.register()
 
-    val SPENT_FUEL_POOL: MultiblockMachineDefinition = MetaTileEntitySpentFuelPool.register()
+    val SPENT_FUEL_POOL: MultiblockMachineDefinition = SpentFuelPool.register()
 
     val GAS_CENTRIFUGE: MultiblockMachineDefinition = SCRegistries.REGISTRATE
-        .multiblock("gas_centrifuge") { holder: IMachineBlockEntity -> MetaTileEntityGasCentrifuge(holder) }
+        .multiblock("gas_centrifuge") { holder: IMachineBlockEntity -> GasCentrifuge(holder) }
         .rotationState(RotationState.NON_Y_AXIS)
         .allowExtendedFacing(false)
         .recipeType(SCRecipeMaps.GAS_CENTRIFUGE_RECIPES)
-        .recipeModifiers({ m, _ ->
-            MetaTileEntityGasCentrifuge.recipeModifier(
-                m
-            )
-        })
+        .recipeModifiers(GasCentrifuge.RECIPE_MODIFIER)
         .pattern { definition: MultiblockMachineDefinition ->
             FactoryBlockPattern.start(RelativeDirection.LEFT, RelativeDirection.UP, RelativeDirection.BACK)
                 .aisle("SI", "HH", "CC", "CC", "CC", "CC", "CC")
                 .aisle("EE", "HH", "CC", "CC", "CC", "CC", "CC").setRepeatable(1, 14)
                 .aisle("OO", "HH", "CC", "CC", "CC", "CC", "CC")
                 .where('S', Predicates.controller(Predicates.blocks(definition.block)))
-                .where('H', Predicates.blocks(SCBlocks.GAS_CENTRIFUGE_HEATER.get()))
-                .where('C', Predicates.blocks(SCBlocks.GAS_CENTRIFUGE_COLUMN.get()))
+                .where('H', Predicates.blocks(ScritBlocks.GAS_CENTRIFUGE_HEATER.get()))
+                .where('C', Predicates.blocks(ScritBlocks.GAS_CENTRIFUGE_COLUMN.get()))
                 .where(
                     'I', Predicates.blocks(GTBlocks.CASING_POLYTETRAFLUOROETHYLENE_PIPE.get())
                         .or(Predicates.abilities(PartAbility.IMPORT_FLUIDS))

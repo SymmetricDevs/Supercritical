@@ -7,7 +7,7 @@ import supercritical.api.nuclear.fission.components.ControlRod
 import supercritical.api.nuclear.fission.components.CoolantChannel
 import supercritical.api.nuclear.fission.components.FuelRod
 import supercritical.api.nuclear.fission.components.ReactorComponent
-import supercritical.common.SCConfigHolder
+import supercritical.common.ScritConfig
 import java.util.*
 import kotlin.math.exp
 import kotlin.math.max
@@ -113,7 +113,7 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
 
                 var prevX = fuelRods[i].x
                 var prevY = fuelRods[i].y
-                val resolution = SCConfigHolder.INSTANCE.nuclear.fissionReactorResolution.toInt()
+                val resolution = ScritConfig.INSTANCE.nuclear.fissionReactorResolution.toInt()
                 for (t in 0..<resolution) {
                     val x = Math.round(
                         (rodTwo.x - rodOne.x) *
@@ -188,7 +188,7 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
 
         val vector = DoubleArray(fuelRods.size)
         Arrays.fill(vector, 1.0)
-        for (i in 0..<SCConfigHolder.INSTANCE.nuclear.fissionReactorPowerIterations) {
+        for (i in 0..<ScritConfig.INSTANCE.nuclear.fissionReactorPowerIterations) {
             normalize(vector)
             multiply(geometricMatrixNeutrons, vector)
         }
@@ -246,7 +246,7 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
             maxPower = calculateMaxPower()
         } else {
             k = 0.00001
-            maxPower = 0.1 * SCConfigHolder.INSTANCE.nuclear.nuclearPowerMultiplier
+            maxPower = 0.1 * ScritConfig.INSTANCE.nuclear.nuclearPowerMultiplier
         }
 
         controlRodFactor = ControlRod.controlRodFactor(effectiveControlRods, controlRodInsertion)
@@ -365,7 +365,7 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
             if (cooledTemperature > this.temperature) continue
 
             val heatRemovedPerLiter = prop.specificHeatCapacity /
-                    SCConfigHolder.INSTANCE.nuclear.fissionCoolantDivisor *
+                    ScritConfig.INSTANCE.nuclear.fissionCoolantDivisor *
                     (cooledTemperature - coolantTemp)
             if (heatRemovedPerLiter <= 0) continue
 
@@ -426,7 +426,7 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
             }
 
             val heatRemovedPerLiter = prop.specificHeatCapacity /
-                    SCConfigHolder.INSTANCE.nuclear.fissionCoolantDivisor *
+                    ScritConfig.INSTANCE.nuclear.fissionCoolantDivisor *
                     (cooledTemperature - coolantTemp)
 
             val heatFluxPerAreaAndTemp: Double = 1 /

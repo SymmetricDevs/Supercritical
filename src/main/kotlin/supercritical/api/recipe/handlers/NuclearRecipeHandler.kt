@@ -13,7 +13,7 @@ import supercritical.api.recipes.SCRecipeMaps
 import supercritical.api.unification.material.properties.FissionFuelProperty
 import supercritical.api.unification.material.properties.SCPropertyKey
 import supercritical.api.unification.ore.SCOrePrefix
-import supercritical.common.registry.SCItems
+import supercritical.common.registry.ScritItems
 import supercritical.loaders.recipe.SCRecipeUtils
 
 object NuclearRecipeHandler {
@@ -29,7 +29,7 @@ object NuclearRecipeHandler {
 
     private fun processFuelRod(material: Material, property: FissionFuelProperty?) {
         val name = material.name
-        val fuelItems = SCItems.NUCLEAR_FUEL_ITEMS[name]
+        val fuelItems = ScritItems.NUCLEAR_FUEL_ITEMS[name]
 
         SCRecipeUtils.addRecipe(
             SCRecipeMaps.SPENT_FUEL_POOL_RECIPES, SCRecipeMaps.SPENT_FUEL_POOL_RECIPES
@@ -60,7 +60,7 @@ object NuclearRecipeHandler {
                         SCOrePrefix.fuelRodDepleted, material
                     )
                 )
-                .outputItems(SCItems.FUEL_CLADDING.get())
+                .outputItems(ScritItems.FUEL_CLADDING.get())
                 .outputItems(
                     itemOrPrefix(
                         if (fuelItems == null) null else fuelItems.depletedFuelPellet.get(),
@@ -113,7 +113,7 @@ object NuclearRecipeHandler {
                         SCOrePrefix.fuelPellet, material, 16
                     )
                 )
-                .inputItems(SCItems.FUEL_CLADDING.get())
+                .inputItems(ScritItems.FUEL_CLADDING.get())
                 .outputItems(
                     itemOrPrefix(
                         if (fuelItems == null) null else fuelItems.fuelRod.get(),

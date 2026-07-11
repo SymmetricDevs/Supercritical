@@ -48,15 +48,15 @@ import supercritical.api.nuclear.fission.components.FuelRod
 import supercritical.api.nuclear.fission.components.Moderator
 import supercritical.api.unification.material.SCMaterials
 import supercritical.api.util.replace
-import supercritical.common.SCConfigHolder
-import supercritical.common.metatileentities.multi.multiblockpart.MetaTileEntityControlRodPort
-import supercritical.common.metatileentities.multi.multiblockpart.MetaTileEntityModeratorPort
-import supercritical.common.registry.SCBlocks
+import supercritical.common.ScritConfig
+import supercritical.common.machine.multiblock.multiblockpart.ControlRodPort
+import supercritical.common.machine.multiblock.multiblockpart.ModeratorPort
+import supercritical.common.registry.ScritBlocks
 import java.util.*
 import java.util.function.Consumer
 import kotlin.math.*
 
-class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(holder), IUIMachine,
+class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(holder), IUIMachine,
     ICustomEnergyCover {
     override fun isRemote(): Boolean = super<MultiblockControllerMachine>.isRemote()
 
@@ -190,7 +190,7 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
         while (i <= 15) {
             pos.move(frontFacing.opposite)
             val state = level.getBlockState(pos)
-            if (state.block === SCBlocks.REACTOR_VESSEL.get()) {
+            if (state.block === ScritBlocks.REACTOR_VESSEL.get()) {
                 break
             }
             val machine = getMachine(level, pos)
@@ -210,7 +210,7 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
         val edge: Boolean
         val state = level.getBlockState(pos)
         val block = state.block
-        if (block === SCBlocks.REACTOR_VESSEL.get()) {
+        if (block === ScritBlocks.REACTOR_VESSEL.get()) {
             edge = true
         } else if (PartAbility.MAINTENANCE.isApplicable(block)) {
             edge = true
@@ -297,20 +297,20 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
             .where('S', Predicates.controller(Predicates.blocks(definition.block)))
             .where(
                 'A', Predicates.blocks(
-                    SCBlocks.FUEL_CHANNEL.get(), SCBlocks.CONTROL_ROD_CHANNEL.get(),
-                    SCBlocks.COOLANT_CHANNEL.get()
+                    ScritBlocks.FUEL_CHANNEL.get(), ScritBlocks.CONTROL_ROD_CHANNEL.get(),
+                    ScritBlocks.COOLANT_CHANNEL.get()
                 )
                     .or(Predicates.air())
                     .or(moderatorPredicate())
                     .or(Predicates.abilities(SCMultiblockAbility.MODERATOR_PORT))
             )
-            .where('I', Predicates.blocks(SCBlocks.REACTOR_VESSEL.get()).or(this.importPredicate))
+            .where('I', Predicates.blocks(ScritBlocks.REACTOR_VESSEL.get()).or(this.importPredicate))
             .where(
-                'O', Predicates.blocks(SCBlocks.REACTOR_VESSEL.get())
+                'O', Predicates.blocks(ScritBlocks.REACTOR_VESSEL.get())
                     .or(Predicates.abilities(SCMultiblockAbility.EXPORT_COOLANT, SCMultiblockAbility.EXPORT_FUEL_ROD))
             )
             .where(
-                'B', Predicates.blocks(SCBlocks.REACTOR_VESSEL.get())
+                'B', Predicates.blocks(ScritBlocks.REACTOR_VESSEL.get())
                     .or(Predicates.abilities(PartAbility.MAINTENANCE).setMinGlobalLimited(1).setMaxGlobalLimited(1))
             )
             .where(' ', Predicates.any())
@@ -509,10 +509,10 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
                     }
                     machine.setInternalFuelRod(component)
                     r.setComponent(x, y, component)
-                } else if (machine is MetaTileEntityControlRodPort) {
+                } else if (machine is ControlRodPort) {
                     val component = ControlRod(100000.0, machine.hasModeratorTip(), 1.0, 800.0)
                     r.setComponent(x, y, component)
-                } else if (machine is MetaTileEntityModeratorPort) {
+                } else if (machine is ModeratorPort) {
                     val moderator = machine.moderator ?: continue
                     val component = Moderator(0.5, 800.0, moderator)
                     r.setComponent(x, y, component)
@@ -643,7 +643,7 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
         // Legacy gates both the meltdown and pressure-explosion checks behind enableMeltdown
         // (updateFormedValid returns early when !enableMeltdown), so disabling meltdown
         // suppresses both failure modes and their world effects.
-        if (!SCConfigHolder.INSTANCE.nuclear.enableMeltdown) return
+        if (!ScritConfig.INSTANCE.nuclear.enableMeltdown) return
 
         val melts = !meltdown && r.temperature > r.maxTemperature
         val explodes = !pressureExplosion && r.pressure > r.maxPressure
@@ -828,7 +828,7 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
     fun canToggle(): Boolean {
         val r = reactor
         return isFormed() && !meltdown && !pressureExplosion && (r != null || !locked)
-                && (!locked || SCConfigHolder.INSTANCE.nuclear.enableMeltdown || (r != null && r.temperature < r.maxTemperature))
+                && (!locked || ScritConfig.INSTANCE.nuclear.enableMeltdown || (r != null && r.temperature < r.maxTemperature))
     }
 
     private fun applyLockedState(locked: Boolean) {
@@ -1139,13 +1139,13 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
                 .where('S', Predicates.controller(Predicates.blocks(definition.block)))
                 .where(
                     'A', Predicates.blocks(
-                        SCBlocks.FUEL_CHANNEL.get(), SCBlocks.CONTROL_ROD_CHANNEL.get(),
-                        SCBlocks.COOLANT_CHANNEL.get()
+                        ScritBlocks.FUEL_CHANNEL.get(), ScritBlocks.CONTROL_ROD_CHANNEL.get(),
+                        ScritBlocks.COOLANT_CHANNEL.get()
                     )
                         .or(Predicates.air())
                 )
                 .where(
-                    'I', Predicates.blocks(SCBlocks.REACTOR_VESSEL.get())
+                    'I', Predicates.blocks(ScritBlocks.REACTOR_VESSEL.get())
                         .or(
                             Predicates.abilities(
                                 SCMultiblockAbility.IMPORT_COOLANT, SCMultiblockAbility.IMPORT_FUEL_ROD,
@@ -1154,7 +1154,7 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
                         )
                 )
                 .where(
-                    'O', Predicates.blocks(SCBlocks.REACTOR_VESSEL.get())
+                    'O', Predicates.blocks(ScritBlocks.REACTOR_VESSEL.get())
                         .or(
                             Predicates.abilities(
                                 SCMultiblockAbility.EXPORT_COOLANT,
@@ -1163,7 +1163,7 @@ class MetaTileEntityFissionReactor(holder: IMachineBlockEntity) : MultiblockCont
                         )
                 )
                 .where(
-                    'B', Predicates.blocks(SCBlocks.REACTOR_VESSEL.get())
+                    'B', Predicates.blocks(ScritBlocks.REACTOR_VESSEL.get())
                         .or(Predicates.abilities(PartAbility.MAINTENANCE).setMinGlobalLimited(1).setMaxGlobalLimited(1))
                 )
                 .where(' ', Predicates.any())

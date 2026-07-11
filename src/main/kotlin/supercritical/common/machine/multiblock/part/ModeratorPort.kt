@@ -1,4 +1,4 @@
-package supercritical.common.metatileentities.multi.multiblockpart
+package supercritical.common.machine.multiblock.multiblockpart
 
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine
@@ -6,9 +6,9 @@ import net.minecraft.core.BlockPos
 import supercritical.api.machine.multiblock.IFissionReactorHatch
 import supercritical.api.nuclear.fission.IModeratorStats
 import supercritical.api.nuclear.fission.ModeratorRegistry
-import supercritical.common.registry.SCBlocks
+import supercritical.common.registry.ScritBlocks
 
-class MetaTileEntityModeratorPort(holder: IMachineBlockEntity, tier: Int) : TieredPartMachine(holder, tier),
+class ModeratorPort(holder: IMachineBlockEntity, tier: Int) : TieredPartMachine(holder, tier),
     IFissionReactorHatch {
     override val hatchPos: BlockPos?
         get() = pos
@@ -35,6 +35,6 @@ class MetaTileEntityModeratorPort(holder: IMachineBlockEntity, tier: Int) : Tier
             }
         }
         pos.move(back)
-        return level.getBlockState(pos).block === SCBlocks.REACTOR_VESSEL.get()
+        return level.getBlockState(pos).block === ScritBlocks.REACTOR_VESSEL.get()
     }
 }

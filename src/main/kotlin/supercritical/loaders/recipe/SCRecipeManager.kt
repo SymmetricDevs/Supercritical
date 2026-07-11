@@ -2,15 +2,15 @@ package supercritical.loaders.recipe
 
 import supercritical.api.recipe.handlers.FluidRecipeHandler
 import supercritical.api.recipe.handlers.NuclearRecipeHandler
-import supercritical.common.SCConfigHolder
+import supercritical.common.ScritConfig
 
 object SCRecipeManager {
     var isLoaded: Boolean = false
         private set
 
     fun load() {
-        if (SCConfigHolder.INSTANCE.misc.disableAllRecipes ||
-            SCConfigHolder.INSTANCE.misc.disableAllMaterials || isLoaded
+        if (ScritConfig.INSTANCE.misc.disableAllRecipes ||
+            ScritConfig.INSTANCE.misc.disableAllMaterials || isLoaded
         ) return
 
         SCMiscRecipes.init()
@@ -31,8 +31,8 @@ object SCRecipeManager {
     }
 
     fun loadLatest() {
-        if (SCConfigHolder.INSTANCE.misc.disableAllRecipes ||
-            SCConfigHolder.INSTANCE.misc.disableAllMaterials
+        if (ScritConfig.INSTANCE.misc.disableAllRecipes ||
+            ScritConfig.INSTANCE.misc.disableAllMaterials
         ) return
         FluidRecipeHandler.runRecipeGeneration()
     }

@@ -8,7 +8,7 @@ import com.gregtechceu.gtceu.common.data.GTRecipeTypes
 import supercritical.api.recipes.SCRecipeMaps
 import supercritical.api.unification.material.SCMaterials
 import supercritical.api.unification.ore.SCOrePrefix
-import supercritical.common.registry.SCItems
+import supercritical.common.registry.ScritItems
 
 object SCNuclearRecipes {
     fun init() {
@@ -333,7 +333,7 @@ object SCNuclearRecipes {
         SCRecipeUtils.addRecipe(
             GTRecipeTypes.ELECTROLYZER_RECIPES,
             GTRecipeTypes.ELECTROLYZER_RECIPES.recipeBuilder(id + "_electrolytic_reprocessing")
-                .notConsumable(SCItems.ANODE_BASKET.get())
+                .notConsumable(ScritItems.ANODE_BASKET.get())
                 .notConsumableFluid(GTMaterials.Salt.getFluid(1000))
                 .inputItems(SCOrePrefix.fuelPelletDepleted, material)
                 .outputItems(SCOrePrefix.dustSpentFuel, material)
@@ -420,7 +420,7 @@ object SCNuclearRecipes {
             GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("anode_basket")
                 .inputItems(TagPrefix.ring, GTMaterials.Titanium, 2)
                 .inputItems(TagPrefix.rod, GTMaterials.Titanium, 16)
-                .outputItems(SCItems.ANODE_BASKET.get())
+                .outputItems(ScritItems.ANODE_BASKET.get())
                 .duration(400).EUt(GTValues.VA[GTValues.LV].toLong())
                 .buildRawRecipe()
         )
@@ -430,7 +430,7 @@ object SCNuclearRecipes {
                 .inputItems(TagPrefix.plate, SCMaterials.Zircaloy, 4)
                 .inputItems(TagPrefix.spring, SCMaterials.Inconel)
                 .inputItems(TagPrefix.round, GTMaterials.StainlessSteel, 2)
-                .outputItems(SCItems.FUEL_CLADDING.get())
+                .outputItems(ScritItems.FUEL_CLADDING.get())
                 .duration(200).EUt(GTValues.VA[GTValues.MV].toLong())
                 .buildRawRecipe()
         )

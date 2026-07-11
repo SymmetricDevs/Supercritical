@@ -1,5 +1,8 @@
 package supercritical.api.util
 
+import com.gregtechceu.gtceu.api.machine.MetaMachine
+import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction
+import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier
 import net.minecraft.resources.ResourceLocation
 import net.minecraftforge.eventbus.api.EventPriority
 import net.minecraftforge.eventbus.api.GenericEvent
@@ -16,3 +19,7 @@ inline fun <T : GenericEvent<out F>, reified F> IEventBus.addGenericListener(
     receiveCancelled: Boolean = false,
     listener: Consumer<T>,
 ) = addGenericListener(F::class.java, priority, receiveCancelled, listener)
+
+inline fun <reified T> nullWrongType(actual: MetaMachine): ModifierFunction {
+    return RecipeModifier.nullWrongType(T::class.java, actual)
+}

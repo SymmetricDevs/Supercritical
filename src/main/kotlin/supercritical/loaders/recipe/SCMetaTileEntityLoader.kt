@@ -9,8 +9,7 @@ import com.gregtechceu.gtceu.common.data.GTRecipeTypes
 import com.gregtechceu.gtceu.data.recipe.CustomTags
 import net.minecraft.world.item.ItemStack
 import supercritical.api.unification.material.SCMaterials
-import supercritical.common.SCConfigHolder
-import supercritical.common.registry.SCBlocks
+import supercritical.common.registry.ScritBlocks
 import supercritical.common.registry.SCMachines
 
 object SCMetaTileEntityLoader {
@@ -18,7 +17,7 @@ object SCMetaTileEntityLoader {
         SCRecipeUtils.addRecipe(
             GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("fission_reactor")
                 .inputItems(CustomTags.EV_CIRCUITS, 4)
-                .inputItems(ItemStack(SCBlocks.REACTOR_VESSEL.get()))
+                .inputItems(ItemStack(ScritBlocks.REACTOR_VESSEL.get()))
                 .inputItems(GTItems.SENSOR_EV.asStack())
                 .inputItems(TagPrefix.rotor, GTMaterials.Steel, 2)
                 .inputItems(TagPrefix.wireGtQuadruple, GTMaterials.AnnealedCopper)
@@ -27,17 +26,15 @@ object SCMetaTileEntityLoader {
                 .buildRawRecipe()
         )
 
-        if (SCConfigHolder.INSTANCE.misc.enableHX) {
-            SCRecipeUtils.addRecipe(
-                GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("heat_exchanger")
-                    .inputItems(CustomTags.HV_CIRCUITS)
-                    .inputItems(TagPrefix.pipeLargeFluid, SCMaterials.Inconel, 2)
-                    .inputItems(ItemStack(GTBlocks.CASING_STEEL_SOLID.get(), 6))
-                    .outputItems(SCMachines.HEAT_EXCHANGER!!.asStack())
-                    .duration(400).EUt(GTValues.VA[GTValues.HV].toLong())
-                    .buildRawRecipe()
-            )
-        }
+        SCRecipeUtils.addRecipe(
+            GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("heat_exchanger")
+                .inputItems(CustomTags.HV_CIRCUITS)
+                .inputItems(TagPrefix.pipeLargeFluid, SCMaterials.Inconel, 2)
+                .inputItems(ItemStack(GTBlocks.CASING_STEEL_SOLID.get(), 6))
+                .outputItems(SCMachines.HEAT_EXCHANGER.asStack())
+                .duration(400).EUt(GTValues.VA[GTValues.HV].toLong())
+                .buildRawRecipe()
+        )
 
         SCRecipeUtils.addRecipe(
             GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("gas_centrifuge")

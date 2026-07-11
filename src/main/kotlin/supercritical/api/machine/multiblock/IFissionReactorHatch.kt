@@ -1,7 +1,7 @@
 package supercritical.api.machine.multiblock
 
 import net.minecraft.core.BlockPos
-import supercritical.common.machine.multiblock.MetaTileEntityFissionReactor
+import supercritical.common.machine.multiblock.FissionReactor
 
 interface IFissionReactorHatch {
     /**
@@ -17,9 +17,9 @@ interface IFissionReactorHatch {
     /**
      * Called by the controller when it forms so the hatch can store a weak reference.
      */
-    fun setController(controller: MetaTileEntityFissionReactor?) {}
+    fun setController(controller: FissionReactor?) {}
 
-    fun getController(): MetaTileEntityFissionReactor? = null
+    fun getController(): FissionReactor? = null
 
     /**
      * @return the stored controller reference, or null if none is stored.

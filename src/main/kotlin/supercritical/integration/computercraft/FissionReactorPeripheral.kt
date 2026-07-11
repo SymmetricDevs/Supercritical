@@ -3,7 +3,7 @@ package supercritical.integration.computercraft
 import dan200.computercraft.api.lua.LuaFunction
 import dan200.computercraft.api.lua.MethodResult
 import dan200.computercraft.api.peripheral.IPeripheral
-import supercritical.common.machine.multiblock.MetaTileEntityFissionReactor
+import supercritical.common.machine.multiblock.FissionReactor
 
 /**
  * CC:Tweaked peripheral wrapping the fission reactor controller. Mirrors the 1.12.2 OpenComputers
@@ -19,7 +19,7 @@ import supercritical.common.machine.multiblock.MetaTileEntityFissionReactor
  * working, with the descriptive `areControlRodsRegulated` / `setControlRodRegulation` names as the
  * primary forms.
  */
-class FissionReactorPeripheral(private val reactor: MetaTileEntityFissionReactor) : IPeripheral {
+class FissionReactorPeripheral(private val reactor: FissionReactor) : IPeripheral {
 
     override fun getType(): String = "fission_reactor"
 

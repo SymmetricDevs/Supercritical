@@ -1,4 +1,4 @@
-package supercritical.common.metatileentities.multi.multiblockpart
+package supercritical.common.machine.multiblock.multiblockpart
 
 import com.gregtechceu.gtceu.api.capability.IControllable
 import com.gregtechceu.gtceu.api.capability.recipe.IO
@@ -20,13 +20,13 @@ import supercritical.api.capability.ICoolantHandler
 import supercritical.api.capability.impl.LockableFluidTank
 import supercritical.api.machine.multiblock.IFissionReactorHatch
 import supercritical.api.nuclear.fission.ICoolantStats
-import supercritical.common.registry.SCBlocks
+import supercritical.common.registry.ScritBlocks
 
-class MetaTileEntityCoolantImportHatch(holder: IMachineBlockEntity, tier: Int) :
+class CoolantImportHatch(holder: IMachineBlockEntity, tier: Int) :
     TieredIOPartMachine(holder, tier, IO.IN), ICoolantHandler, IControllable, IFissionReactorHatch, IUIMachine {
     override val fluidTank: LockableFluidTank
     override var coolant: ICoolantStats? = null
-    private var pairedHatch: MetaTileEntityCoolantExportHatch? = null
+    private var pairedHatch: CoolantExportHatch? = null
 
     init {
         this.fluidTank = LockableFluidTank(this, 16000, IO.IN)
@@ -56,18 +56,18 @@ class MetaTileEntityCoolantImportHatch(holder: IMachineBlockEntity, tier: Int) :
         return pairedHatch != null
     }
 
-    fun getExportHatch(depth: Int): MetaTileEntityCoolantExportHatch? {
+    fun getExportHatch(depth: Int): CoolantExportHatch? {
         val level = level ?: return null
         val pos = (pos ?: return null).mutable()
         val back = frontFacing.opposite
         for (i in 1..<depth) {
             pos.move(back)
-            if (level.getBlockState(pos).block !== SCBlocks.COOLANT_CHANNEL.get()) {
+            if (level.getBlockState(pos).block !== ScritBlocks.COOLANT_CHANNEL.get()) {
                 return null
             }
         }
         pos.move(back)
-        return getMachine(level, pos) as? MetaTileEntityCoolantExportHatch
+        return getMachine(level, pos) as? CoolantExportHatch
     }
 
     override fun createUI(entityPlayer: Player): ModularUI {

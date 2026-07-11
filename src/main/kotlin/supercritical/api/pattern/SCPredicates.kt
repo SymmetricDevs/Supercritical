@@ -16,7 +16,7 @@ import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.FluidType
 import net.minecraftforge.fluids.capability.IFluidHandler
 import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction
-import supercritical.common.SCConfigHolder
+import supercritical.common.ScritConfig
 
 /**
  * Supercritical-specific pattern predicates and helpers.
@@ -48,7 +48,7 @@ object SCPredicates {
             }
         ) {
             // Legacy gated the previewed fluid block on this config (default false -> AIR/hidden).
-            val showFluids = SCConfigHolder.INSTANCE.misc.showFluidsForAutoFillingMultiblocks
+            val showFluids = ScritConfig.INSTANCE.misc.showFluidsForAutoFillingMultiblocks
             arrayOf(BlockInfo.fromBlockState(if (showFluids) stillState else Blocks.AIR.defaultBlockState()))
         }
     }

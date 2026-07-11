@@ -28,8 +28,8 @@ import supercritical.api.unification.material.properties.FissionFuelProperty
 import supercritical.api.unification.material.properties.ModeratorProperty
 import supercritical.api.unification.material.properties.SCPropertyKey
 import supercritical.api.util.scId
-import supercritical.common.SCConfigHolder
-import supercritical.common.registry.SCItems
+import supercritical.common.ScritConfig
+import supercritical.common.registry.ScritItems
 import java.util.List
 
 object SCMaterials {
@@ -82,7 +82,7 @@ object SCMaterials {
     @SubscribeEvent
     fun register(event: MaterialEvent?) {
         registerCoreMaterials()
-        if (SCConfigHolder.INSTANCE.misc.disableAllMaterials) return
+        if (ScritConfig.INSTANCE.misc.disableAllMaterials) return
         registerElementMaterials()
         registerFirstDegreeMaterials()
         registerSecondDegreeMaterials()
@@ -91,7 +91,7 @@ object SCMaterials {
 
     @SubscribeEvent
     fun modifyExistingMaterials(@Suppress("UNUSED_PARAMETER") event: PostMaterialEvent) {
-        val misc = SCConfigHolder.INSTANCE.misc
+        val misc = ScritConfig.INSTANCE.misc
         if (misc.enableMaterialModifications) {
             applyMaterialModifications(includeDistilledWaterCoolant = !misc.disableAllMaterials)
         }
@@ -456,7 +456,7 @@ object SCMaterials {
 
     fun registerFuelItems() {
         for (entry in FUEL_ITEM_ENTRIES) {
-            val fuelItems = SCItems.NUCLEAR_FUEL_ITEMS[entry.fuelItemKey]
+            val fuelItems = ScritItems.NUCLEAR_FUEL_ITEMS[entry.fuelItemKey]
             if (fuelItems != null) {
                 // Legacy parity (CommonProxy.java:124-133): every fuel emits only the hot depleted fuel rod.
                 // The hot -> cold cooling happens via the spent-fuel-pool recipe, not direct emission.

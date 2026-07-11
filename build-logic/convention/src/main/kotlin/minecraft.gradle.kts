@@ -30,6 +30,7 @@ dependencies {
 // Co-locate processed resources with classes so Forge's dev-time mod locator finds META-INF/mods.toml.
 sourceSets.main {
     output.setResourcesDir(java.classesDirectory)
+    resources.srcDir("src/generated/resources")
 }
 
 legacyForge {

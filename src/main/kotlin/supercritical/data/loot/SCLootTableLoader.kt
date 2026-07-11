@@ -9,7 +9,7 @@ import net.minecraft.world.level.storage.loot.entries.LootItem
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue
 import net.minecraftforge.registries.ForgeRegistries
-import supercritical.common.registry.SCBlocks
+import supercritical.common.registry.ScritBlocks
 import java.util.function.BiConsumer
 
 /**
@@ -31,16 +31,16 @@ object SCLootTableLoader {
     fun init(provider: RegistrateLootTableProvider?) {
         provider?.addLootAction(LootContextParamSets.BLOCK) { sink ->
             // Fission casing variants (legacy BlockFissionCasing).
-            selfDrop(sink, SCBlocks.REACTOR_VESSEL.get())
-            selfDrop(sink, SCBlocks.FUEL_CHANNEL.get())
-            selfDrop(sink, SCBlocks.CONTROL_ROD_CHANNEL.get())
-            selfDrop(sink, SCBlocks.COOLANT_CHANNEL.get())
+            selfDrop(sink, ScritBlocks.REACTOR_VESSEL.get())
+            selfDrop(sink, ScritBlocks.FUEL_CHANNEL.get())
+            selfDrop(sink, ScritBlocks.CONTROL_ROD_CHANNEL.get())
+            selfDrop(sink, ScritBlocks.COOLANT_CHANNEL.get())
             // Nuclear / gas-centrifuge casings (legacy BlockNuclearCasing / BlockGasCentrifugeCasing).
-            selfDrop(sink, SCBlocks.SPENT_FUEL_CASING.get())
-            selfDrop(sink, SCBlocks.GAS_CENTRIFUGE_HEATER.get())
-            selfDrop(sink, SCBlocks.GAS_CENTRIFUGE_COLUMN.get())
+            selfDrop(sink, ScritBlocks.SPENT_FUEL_CASING.get())
+            selfDrop(sink, ScritBlocks.GAS_CENTRIFUGE_HEATER.get())
+            selfDrop(sink, ScritBlocks.GAS_CENTRIFUGE_COLUMN.get())
             // Panelling, all 16 dye colors (legacy BlockPanelling dropped itself).
-            for (block in SCBlocks.PANELLING.values) {
+            for (block in ScritBlocks.PANELLING.values) {
                 selfDrop(sink, block.get())
             }
         }

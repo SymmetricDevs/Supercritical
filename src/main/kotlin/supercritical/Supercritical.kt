@@ -13,9 +13,9 @@ import supercritical.api.recipes.SCRecipeMaps
 import supercritical.api.registries.SCRegistries
 import supercritical.api.unification.material.SCMaterials
 import supercritical.api.util.addGenericListener
-import supercritical.common.SCConfigHolder
-import supercritical.common.registry.SCBlocks
-import supercritical.common.registry.SCItems
+import supercritical.common.ScritConfig
+import supercritical.common.registry.ScritBlocks
+import supercritical.common.registry.ScritItems
 import supercritical.common.registry.SCMachines
 import supercritical.data.SCDatagen
 import supercritical.loaders.recipe.SCRecipeManager
@@ -27,12 +27,13 @@ typealias GTMachineEvent = GTCEuAPI.RegisterEvent<ResourceLocation, MachineDefin
 class Supercritical {
 
     init {
-        init()
+        ScritConfig.init()
+        SCDatagen.init()
 
         val modBus = FMLJavaModLoadingContext.get().modEventBus
         SCRegistries.REGISTRATE.registerEventListeners(modBus)
-        SCItems.register(modBus)
-        SCBlocks.register(modBus)
+        ScritItems.register(modBus)
+        ScritBlocks.register(modBus)
         modBus.addGenericListener<GTRecipeEvent, GTRecipeType> { registerRecipeTypes(it) }
         modBus.addGenericListener<GTMachineEvent, MachineDefinition> { registerMachines(it) }
         modBus.addListener<FMLCommonSetupEvent> { commonSetup(it) }
@@ -61,10 +62,5 @@ class Supercritical {
 
     companion object {
         val LOGGER: Logger = LogManager.getLogger(BuildConfig.MOD_ID)
-
-        fun init() {
-            SCConfigHolder.init()
-            SCDatagen.init()
-        }
     }
 }

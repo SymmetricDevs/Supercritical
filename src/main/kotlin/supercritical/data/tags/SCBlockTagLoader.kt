@@ -5,7 +5,7 @@ import net.minecraft.core.registries.Registries
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.tags.TagKey
 import net.minecraft.world.level.block.Block
-import supercritical.common.registry.SCBlocks
+import supercritical.common.registry.ScritBlocks
 
 object SCBlockTagLoader {
     // Legacy VariantBlock casings declared a wrench harvest tool
@@ -19,16 +19,16 @@ object SCBlockTagLoader {
     fun init(provider: IntrinsicImpl<Block>?) {
         val wrench = provider?.addTag(MINEABLE_WITH_WRENCH) ?: return
         // Fission casing variants.
-        wrench.add(SCBlocks.REACTOR_VESSEL.get())
-        wrench.add(SCBlocks.FUEL_CHANNEL.get())
-        wrench.add(SCBlocks.CONTROL_ROD_CHANNEL.get())
-        wrench.add(SCBlocks.COOLANT_CHANNEL.get())
+        wrench.add(ScritBlocks.REACTOR_VESSEL.get())
+        wrench.add(ScritBlocks.FUEL_CHANNEL.get())
+        wrench.add(ScritBlocks.CONTROL_ROD_CHANNEL.get())
+        wrench.add(ScritBlocks.COOLANT_CHANNEL.get())
         // Nuclear / gas-centrifuge casings.
-        wrench.add(SCBlocks.SPENT_FUEL_CASING.get())
-        wrench.add(SCBlocks.GAS_CENTRIFUGE_HEATER.get())
-        wrench.add(SCBlocks.GAS_CENTRIFUGE_COLUMN.get())
+        wrench.add(ScritBlocks.SPENT_FUEL_CASING.get())
+        wrench.add(ScritBlocks.GAS_CENTRIFUGE_HEATER.get())
+        wrench.add(ScritBlocks.GAS_CENTRIFUGE_COLUMN.get())
         // Panelling, all 16 dye colors.
-        for (block in SCBlocks.PANELLING.values) {
+        for (block in ScritBlocks.PANELLING.values) {
             wrench.add(block.get())
         }
     }

@@ -28,14 +28,14 @@ import supercritical.api.pattern.SCPredicates
 import supercritical.api.recipes.SCRecipeMaps
 import supercritical.api.registries.SCRegistries
 import supercritical.api.util.scId
-import supercritical.common.registry.SCBlocks
+import supercritical.common.registry.ScritBlocks
 import kotlin.math.max
 
 /**
  * Spent fuel pool multiblock. Slowly cools spent nuclear fuel by submerging it in water.
  * Pool length is variable and determines maximum recipe parallelism.
  */
-class MetaTileEntitySpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?) :
+class SpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?) :
     WorkableMultiblockMachine(holder, *args), IControllable, IDisplayUIMachine {
     override fun isRemote(): Boolean = super<WorkableMultiblockMachine>.isRemote()
     private var workingEnabled = true
@@ -135,7 +135,7 @@ class MetaTileEntitySpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?
         }
 
         override fun checkMatchedRecipeAvailable(match: GTRecipe?): Boolean {
-            val pool = machine as? MetaTileEntitySpentFuelPool ?: return false
+            val pool = machine as? SpentFuelPool ?: return false
             if (!pool.isWaterFilled) {
                 return false
             }
@@ -252,9 +252,9 @@ class MetaTileEntitySpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?
                 ) //spotless:on
                 .where('S', Predicates.controller(Predicates.blocks(definition.block)))
                 .where('.', Predicates.any())
-                .where('C', Predicates.blocks(SCBlocks.GRAY_PANELLING.get()))
+                .where('C', Predicates.blocks(ScritBlocks.GRAY_PANELLING.get()))
                 .where('W', SCPredicates.fluid(Fluids.WATER))
-                .where('R', Predicates.blocks(SCBlocks.SPENT_FUEL_CASING.get()))
+                .where('R', Predicates.blocks(ScritBlocks.SPENT_FUEL_CASING.get()))
                 .where(
                     'T', Predicates.blocks(GTBlocks.CASING_STAINLESS_CLEAN.get())
                         .or(Predicates.autoAbilities(SCRecipeMaps.SPENT_FUEL_POOL_RECIPES))
@@ -266,7 +266,7 @@ class MetaTileEntitySpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?
 
         fun register(): MultiblockMachineDefinition {
             return SCRegistries.REGISTRATE
-                .multiblock("spent_fuel_pool") { holder: IMachineBlockEntity -> MetaTileEntitySpentFuelPool(holder) }
+                .multiblock("spent_fuel_pool") { holder: IMachineBlockEntity -> SpentFuelPool(holder) }
                 .rotationState(RotationState.NON_Y_AXIS)
                 .allowExtendedFacing(false)
                 .recipeType(SCRecipeMaps.SPENT_FUEL_POOL_RECIPES)
@@ -294,7 +294,7 @@ class MetaTileEntitySpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?
          * Recipe modifier that applies pool-length based parallelism.
          */
         fun poolParallel(machine: MetaMachine?, recipe: GTRecipe): ModifierFunction {
-            if (machine !is MetaTileEntitySpentFuelPool || !machine.isFormed()) {
+            if (machine !is SpentFuelPool || !machine.isFormed()) {
                 return ModifierFunction.IDENTITY
             }
             val parallels = ParallelLogic.getParallelAmount(machine, recipe, machine.maxParallel)

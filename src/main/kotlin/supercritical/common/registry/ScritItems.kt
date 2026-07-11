@@ -15,7 +15,7 @@ import supercritical.api.unification.ore.SCOrePrefix
 import java.util.*
 import java.util.function.Supplier
 
-object SCItems {
+object ScritItems {
     val ITEMS: DeferredRegister<Item> = DeferredRegister.create(ForgeRegistries.ITEMS, BuildConfig.MOD_ID)
 
     val ANODE_BASKET: RegistryObject<Item> = ITEMS.register("anode_basket") { Item(Item.Properties()) }

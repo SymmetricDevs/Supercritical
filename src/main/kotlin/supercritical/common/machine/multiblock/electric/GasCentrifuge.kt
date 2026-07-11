@@ -1,18 +1,20 @@
-package supercritical.common.metatileentities.multi.electric
+package supercritical.common.machine.multiblock.electric
 
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
 import com.gregtechceu.gtceu.api.machine.MetaMachine
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine
+import com.gregtechceu.gtceu.api.recipe.GTRecipe
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier
 import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction
+import supercritical.api.util.nullWrongType
 
-class MetaTileEntityGasCentrifuge(holder: IMachineBlockEntity) : WorkableElectricMultiblockMachine(holder) {
+class GasCentrifuge(holder: IMachineBlockEntity) : WorkableElectricMultiblockMachine(holder) {
     var columnCount: Int = 0
         private set
 
     override fun onStructureFormed() {
         super.onStructureFormed()
-        this.columnCount = pattern
+        columnCount = pattern
             ?.formedRepetitionCount
             ?.getOrNull(1)
             ?: 0
@@ -20,22 +22,18 @@ class MetaTileEntityGasCentrifuge(holder: IMachineBlockEntity) : WorkableElectri
 
     override fun onStructureInvalid() {
         super.onStructureInvalid()
-        this.columnCount = 0
+        columnCount = 0
     }
 
     companion object {
+        val RECIPE_MODIFIER = fun(machine: MetaMachine, recipe: GTRecipe): ModifierFunction {
+            if (machine !is GasCentrifuge) return nullWrongType<GasCentrifuge>(machine)
 
-        fun recipeModifier(machine: MetaMachine?): ModifierFunction {
-            if (machine !is MetaTileEntityGasCentrifuge || !machine.isFormed()) {
-                return ModifierFunction.IDENTITY
-            }
             val parallel = machine.columnCount
-            if (parallel <= 1) {
-                return ModifierFunction.IDENTITY
-            }
+            if (parallel <= 1) return ModifierFunction.IDENTITY
+
             return ModifierFunction.builder()
                 .modifyAllContents(ContentModifier.multiplier(parallel.toDouble()))
-                .eutMultiplier(parallel.toDouble())
                 .parallels(parallel)
                 .build()
         }

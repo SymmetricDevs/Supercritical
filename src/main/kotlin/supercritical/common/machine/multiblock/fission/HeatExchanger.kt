@@ -23,7 +23,7 @@ import supercritical.api.util.scId
  * Heat exchanger multiblock. Converts a hot coolant into a cooled coolant while producing power.
  * Does not require external energy input.
  */
-class MetaTileEntityHeatExchanger(holder: IMachineBlockEntity, vararg args: Any?) :
+class HeatExchanger(holder: IMachineBlockEntity, vararg args: Any?) :
     WorkableMultiblockMachine(holder, *args), IControllable {
     private var workingEnabled = true
 
@@ -71,7 +71,7 @@ class MetaTileEntityHeatExchanger(holder: IMachineBlockEntity, vararg args: Any?
     companion object {
         fun register(): MultiblockMachineDefinition {
             return SCRegistries.REGISTRATE
-                .multiblock("heat_exchanger") { holder: IMachineBlockEntity -> MetaTileEntityHeatExchanger(holder) }
+                .multiblock("heat_exchanger") { holder: IMachineBlockEntity -> HeatExchanger(holder) }
                 .rotationState(RotationState.NON_Y_AXIS)
                 .recipeType(SCRecipeMaps.HEAT_EXCHANGER_RECIPES)
                 .recipeModifiers(GTRecipeModifiers.PARALLEL_HATCH)

@@ -1,4 +1,4 @@
-package supercritical.common.metatileentities.multi.multiblockpart
+package supercritical.common.machine.multiblock.multiblockpart
 
 import com.gregtechceu.gtceu.api.capability.IControllable
 import com.gregtechceu.gtceu.api.capability.recipe.IO
@@ -12,7 +12,7 @@ import supercritical.api.capability.impl.LockableFluidTank
 import supercritical.api.machine.multiblock.IFissionReactorHatch
 import supercritical.api.nuclear.fission.ICoolantStats
 
-class MetaTileEntityCoolantExportHatch(holder: IMachineBlockEntity, tier: Int) :
+class CoolantExportHatch(holder: IMachineBlockEntity, tier: Int) :
     TieredIOPartMachine(holder, tier, IO.OUT), ICoolantHandler, IControllable, IFissionReactorHatch {
     override val fluidTank: LockableFluidTank
     override var coolant: ICoolantStats? = null

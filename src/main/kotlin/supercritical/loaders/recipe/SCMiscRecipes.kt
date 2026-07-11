@@ -7,7 +7,7 @@ import com.gregtechceu.gtceu.common.data.GTRecipeTypes
 import net.minecraft.world.item.DyeColor
 import net.minecraft.world.item.ItemStack
 import supercritical.api.unification.material.SCMaterials
-import supercritical.common.registry.SCBlocks
+import supercritical.common.registry.ScritBlocks
 
 object SCMiscRecipes {
     fun init() {
@@ -15,7 +15,7 @@ object SCMiscRecipes {
             GTRecipeTypes.ASSEMBLER_RECIPES, GTRecipeTypes.ASSEMBLER_RECIPES.recipeBuilder("gray_panelling")
                 .inputItems(TagPrefix.plate, GTMaterials.Steel, 4)
                 .circuitMeta(16)
-                .outputItems(ItemStack(SCBlocks.GRAY_PANELLING.get()))
+                .outputItems(ItemStack(ScritBlocks.GRAY_PANELLING.get()))
                 .EUt(16).duration(120)
                 .buildRawRecipe()
         )
@@ -24,9 +24,9 @@ object SCMiscRecipes {
             SCRecipeUtils.addRecipe(
                 GTRecipeTypes.CHEMICAL_BATH_RECIPES,
                 GTRecipeTypes.CHEMICAL_BATH_RECIPES.recipeBuilder(color.getName() + "_panelling")
-                    .inputItems(ItemStack(SCBlocks.GRAY_PANELLING.get()))
+                    .inputItems(ItemStack(ScritBlocks.GRAY_PANELLING.get()))
                     .inputFluids(GTMaterials.CHEMICAL_DYES[color.ordinal].getFluid(9))
-                    .outputItems(ItemStack(SCBlocks.PANELLING.getValue(color).get()))
+                    .outputItems(ItemStack(ScritBlocks.PANELLING.getValue(color).get()))
                     .EUt(2).duration(10)
                     .buildRawRecipe()
             )

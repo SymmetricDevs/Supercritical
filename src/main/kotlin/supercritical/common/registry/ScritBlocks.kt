@@ -16,7 +16,7 @@ import supercritical.BuildConfig
 import java.util.*
 import java.util.Map
 
-object SCBlocks {
+object ScritBlocks {
     val BLOCKS: DeferredRegister<Block> = DeferredRegister.create(ForgeRegistries.BLOCKS, BuildConfig.MOD_ID)
 
     val REACTOR_VESSEL: RegistryObject<Block> = registerFissionCasing("reactor_vessel")
@@ -97,7 +97,7 @@ object SCBlocks {
 
     private fun registerSimpleBlock(name: String, properties: BlockBehaviour.Properties): RegistryObject<Block> {
         val block = BLOCKS.register(name) { Block(properties) }
-        SCItems.ITEMS.register(name) { BlockItem(block.get(), Item.Properties()) }
+        ScritItems.ITEMS.register(name) { BlockItem(block.get(), Item.Properties()) }
         return block
     }
 }

@@ -6,13 +6,12 @@ import com.gregtechceu.gtceu.common.data.GTMaterials
 import supercritical.api.recipes.SCRecipeMaps
 import supercritical.api.unification.material.properties.CoolantProperty
 import supercritical.api.unification.material.properties.SCPropertyKey
-import supercritical.common.SCConfigHolder
+import supercritical.common.ScritConfig
 import supercritical.loaders.recipe.SCRecipeUtils
 import kotlin.math.ceil
 
 object FluidRecipeHandler {
     fun runRecipeGeneration() {
-        if (!SCConfigHolder.INSTANCE.misc.enableHX) return
         SCRecipeMaps.HEAT_EXCHANGER_RECIPES.beginStagingRecipes()
         for (material in GTCEuAPI.materialManager.registeredMaterials) {
             if (material.hasProperty<CoolantProperty?>(SCPropertyKey.COOLANT)) {
@@ -77,7 +76,7 @@ object FluidRecipeHandler {
     }
 
     private fun calculateCoolantAmount(material: Material, coolant: CoolantProperty, waterAmount: Int): Int {
-        val multiplier = SCConfigHolder.INSTANCE.nuclear.heatExchangerEfficiencyMultiplier
+        val multiplier = ScritConfig.INSTANCE.nuclear.heatExchangerEfficiencyMultiplier
         val hotTemperature = coolant.hotHPCoolant.fluid.getFluidType().temperature
         val coldTemperature = material.fluid.getFluidType().temperature
         return ceil(

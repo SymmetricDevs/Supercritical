@@ -1,4 +1,4 @@
-package supercritical.common.metatileentities.multi.multiblockpart
+package supercritical.common.machine.multiblock.multiblockpart
 
 import com.gregtechceu.gtceu.api.capability.IControllable
 import com.gregtechceu.gtceu.api.capability.recipe.IO
@@ -8,7 +8,7 @@ import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler
 import net.minecraft.core.BlockPos
 import supercritical.api.machine.multiblock.IFissionReactorHatch
 
-class MetaTileEntityFuelRodExportBus(holder: IMachineBlockEntity, tier: Int) :
+class FuelRodExportBus(holder: IMachineBlockEntity, tier: Int) :
     TieredIOPartMachine(holder, tier, IO.OUT), IControllable, IFissionReactorHatch {
     val inventory: NotifiableItemStackHandler = NotifiableItemStackHandler(this, 1, IO.OUT)
 

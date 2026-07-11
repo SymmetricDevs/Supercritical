@@ -1,4 +1,4 @@
-package supercritical.common.metatileentities.multi.multiblockpart
+package supercritical.common.machine.multiblock.multiblockpart
 
 import com.gregtechceu.gtceu.api.capability.IControllable
 import com.gregtechceu.gtceu.api.capability.recipe.IO
@@ -26,13 +26,13 @@ import supercritical.api.machine.multiblock.IFissionReactorHatch
 import supercritical.api.nuclear.fission.FissionFuelRegistry
 import supercritical.api.nuclear.fission.IFissionFuelStats
 import supercritical.api.nuclear.fission.components.FuelRod
-import supercritical.common.machine.multiblock.MetaTileEntityFissionReactor
-import supercritical.common.registry.SCBlocks
+import supercritical.common.machine.multiblock.FissionReactor
+import supercritical.common.registry.ScritBlocks
 
-class MetaTileEntityFuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMachine(holder, tier, IO.IN),
+class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMachine(holder, tier, IO.IN),
     IFuelRodHandler, IControllable, IFissionReactorHatch, IUIMachine {
     override var fuel: IFissionFuelStats? = null
-    private var pairedHatch: MetaTileEntityFuelRodExportBus? = null
+    private var pairedHatch: FuelRodExportBus? = null
     override var partialFuel: IFissionFuelStats? = null
     private var internalFuelRod: FuelRod? = null
     override var depletionPoint = 0.0
@@ -44,7 +44,7 @@ class MetaTileEntityFuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : T
      * legacy partial-fuel display slot.
      */
     private val partialFuelDisplay: ItemStackHandler = object : ItemStackHandler(1) {
-        override fun getStackInSlot(slot: Int): ItemStack = this@MetaTileEntityFuelRodImportBus.lockedObject
+        override fun getStackInSlot(slot: Int): ItemStack = this@FuelRodImportBus.lockedObject
     }
 
     val inventory: NotifiableItemStackHandler
@@ -73,18 +73,18 @@ class MetaTileEntityFuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : T
         return pairedHatch != null
     }
 
-    fun getExportHatch(depth: Int): MetaTileEntityFuelRodExportBus? {
+    fun getExportHatch(depth: Int): FuelRodExportBus? {
         val level = level ?: return null
         val pos = (pos ?: return null).mutable()
         val back = frontFacing.opposite
         for (i in 1..<depth) {
             pos.move(back)
-            if (level.getBlockState(pos).block !== SCBlocks.FUEL_CHANNEL.get()) {
+            if (level.getBlockState(pos).block !== ScritBlocks.FUEL_CHANNEL.get()) {
                 return null
             }
         }
         pos.move(back)
-        return getMachine(level, pos) as? MetaTileEntityFuelRodExportBus
+        return getMachine(level, pos) as? FuelRodExportBus
     }
 
 
@@ -121,10 +121,10 @@ class MetaTileEntityFuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : T
         this.depletionPoint -= fuelDepletion * rod.weight
     }
 
-    override fun getController(): MetaTileEntityFissionReactor? {
+    override fun getController(): FissionReactor? {
         val controllers = getControllers()
         if (controllers.isEmpty()) return null
-        return controllers.firstOrNull() as? MetaTileEntityFissionReactor
+        return controllers.firstOrNull() as? FissionReactor
     }
 
     fun getCurrentDepletionRatio(): Double {
