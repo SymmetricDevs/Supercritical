@@ -3,6 +3,10 @@ package io.github.symmetricdevs.supercritical
 import com.gregtechceu.gtceu.api.addon.GTAddon
 import com.gregtechceu.gtceu.api.addon.IGTAddon
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate
+import io.github.symmetricdevs.supercritical.api.nuclear.fission.FissionReactor
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.ReactorFamilyRegistry
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.families.LegacyPWRFamily
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.geometry.SquareLattice
 import io.github.symmetricdevs.supercritical.common.data.ScritTagPrefixes
 import io.github.symmetricdevs.supercritical.common.data.ScritElements
 import io.github.symmetricdevs.supercritical.common.data.ScritOreVeins
@@ -21,7 +25,14 @@ class ScritAddon : IGTAddon {
         return BuildConfig.MOD_ID
     }
 
-    override fun initializeAddon() {}
+    override fun initializeAddon() {
+        ReactorFamilyRegistry.register(LegacyPWRFamily.id) { geometry, tag ->
+            val lattice = geometry as SquareLattice
+            val core = FissionReactor(lattice.size, lattice.depth, 1.0)
+            if (tag != null) core.load(tag)
+            core
+        }
+    }
 
     override fun registerTagPrefixes() {
         ScritTagPrefixes.init()
