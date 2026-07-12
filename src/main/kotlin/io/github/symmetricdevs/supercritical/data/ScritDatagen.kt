@@ -1,0 +1,31 @@
+package io.github.symmetricdevs.supercritical.data
+
+import com.tterrag.registrate.providers.ProviderType
+import com.tterrag.registrate.providers.RegistrateItemTagsProvider
+import com.tterrag.registrate.providers.RegistrateLangProvider
+import com.tterrag.registrate.providers.RegistrateTagsProvider.IntrinsicImpl
+import com.tterrag.registrate.util.nullness.NonNullConsumer
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.material.Fluid
+import io.github.symmetricdevs.supercritical.common.registry.ScritRegistration
+import io.github.symmetricdevs.supercritical.data.lang.ScritLangHandler
+import io.github.symmetricdevs.supercritical.data.tags.ScritBlockTagLoader
+import io.github.symmetricdevs.supercritical.data.tags.ScritFluidTagLoader
+import io.github.symmetricdevs.supercritical.data.tags.ScritItemTagLoader
+
+object ScritDatagen {
+    fun init() {
+        ScritRegistration.REGISTRATE.addDataGenerator<IntrinsicImpl<Block>?>(
+            ProviderType.BLOCK_TAGS,
+            NonNullConsumer { ScritBlockTagLoader.init(it) })
+        ScritRegistration.REGISTRATE.addDataGenerator<RegistrateItemTagsProvider?>(
+            ProviderType.ITEM_TAGS,
+            NonNullConsumer { ScritItemTagLoader.init(it) })
+        ScritRegistration.REGISTRATE.addDataGenerator<IntrinsicImpl<Fluid?>?>(
+            ProviderType.FLUID_TAGS,
+            NonNullConsumer { ScritFluidTagLoader.init(it) })
+        ScritRegistration.REGISTRATE.addDataGenerator<RegistrateLangProvider?>(
+            ProviderType.LANG,
+            NonNullConsumer { ScritLangHandler.init(it) })
+    }
+}

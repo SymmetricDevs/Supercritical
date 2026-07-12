@@ -1,10 +1,10 @@
 {
-  "package": "supercritical.core.mixin",
+  "package": "io.github.symmetricdevs.supercritical.core.mixin",
   "refmap": "mixins.supercritical.refmap.json",
   "target": "@env(DEFAULT)",
   "minVersion": "0.8",
   "compatibilityLevel": "JAVA_17",
-  "plugin": "supercritical.core.mixin.ScritMixinPlugin",
+  "plugin": "io.github.symmetricdevs.supercritical.core.mixin.ScritMixinPlugin",
   "mixins": [
     "gregtech.MixinElement",
     "gregtech.MixinEnergyDetectorCover",
