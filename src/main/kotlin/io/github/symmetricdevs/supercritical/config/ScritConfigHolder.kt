@@ -70,6 +70,11 @@ class ScritConfig {
         var fissionReactorPowerIterations = 10
 
         @Configurable
+        @Configurable.Comment("Legacy PWR simulation options.")
+        @JvmField
+        var legacyPWR = LegacyPWROptions()
+
+        @Configurable
         @Configurable.Comment(
             "Nuclear coolant heat exchanger recipe efficiency multiplier for balancing purposes.",
             "Default: 0.25"
@@ -82,6 +87,79 @@ class ScritConfig {
         @Configurable.Comment("Whether to enable meltdowns and associated explosions or not.", "Default: true")
         @JvmField
         var enableMeltdown = true
+
+        class LegacyPWROptions {
+            /**
+             * Mirrors the existing [fissionReactorResolution] value so legacy PWR tuning continues
+             * to work without duplicating the backing field. Writes update the original value;
+             * reads observe it.
+             */
+            @get:Configurable
+            @get:Configurable.Comment(
+                "The level of detail to which the legacy PWR solver is analyzed.",
+                "Default: 100"
+            )
+            @get:Configurable.DecimalRange(min = 5.0, max = 10000.0)
+            var resolution: Double
+                get() = fissionReactorResolution
+                set(value) {
+                    fissionReactorResolution = value
+                }
+
+            /**
+             * Mirrors the existing [fissionReactorPowerIterations] value.
+             */
+            @get:Configurable
+            @get:Configurable.Comment(
+                "The number of times the legacy PWR neutron multiplication value is calculated.",
+                "Default: 10"
+            )
+            @get:Configurable.Range(min = 1L, max = 2147483647L)
+            var powerIterations: Int
+                get() = fissionReactorPowerIterations
+                set(value) {
+                    fissionReactorPowerIterations = value
+                }
+
+            /**
+             * Mirrors the existing [fissionCoolantDivisor] value.
+             */
+            @get:Configurable
+            @get:Configurable.Comment(
+                "How much the amount of power required to boil the legacy PWR coolant is divided by.",
+                "Default: 14"
+            )
+            @get:Configurable.DecimalRange(min = 0.1, max = 1000.0)
+            var coolantDivisor: Double
+                get() = fissionCoolantDivisor
+                set(value) {
+                    fissionCoolantDivisor = value
+                }
+
+            /**
+             * Mirrors the existing [nuclearPowerMultiplier] value.
+             */
+            @get:Configurable
+            @get:Configurable.Comment(
+                "Nuclear Max Power multiplier for the legacy PWR for balancing purposes.",
+                "Default: 0.1"
+            )
+            @get:Configurable.DecimalRange(min = 0.0, max = 10000.0)
+            var powerMultiplier: Double
+                get() = nuclearPowerMultiplier
+                set(value) {
+                    nuclearPowerMultiplier = value
+                }
+
+            @Configurable
+            @Configurable.Comment(
+                "Fuel-rod count above which the legacy PWR solver reduces resolution to maintain TPS.",
+                "Default: 256"
+            )
+            @Configurable.Range(min = 1L, max = 2147483647L)
+            @JvmField
+            var coarseGroupThreshold = 256
+        }
     }
 
     class MiscOptions {
