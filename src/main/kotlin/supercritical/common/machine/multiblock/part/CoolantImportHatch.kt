@@ -29,7 +29,11 @@ class CoolantImportHatch(holder: IMachineBlockEntity, tier: Int) :
     private var pairedHatch: CoolantExportHatch? = null
 
     init {
-        this.fluidTank = LockableFluidTank(this, 16000, IO.IN)
+        // capabilityIO = IO.BOTH so the reactor sim can drain cold coolant from this import tank
+        // (NotifiableFluidTank.drain is guarded by canCapOutput(), which is false for IO.IN — that
+        // guard made makeCoolantFlow's drain return EMPTY, skipping the channel and killing the
+        // coolant loop). handlerIO stays IO.IN for routing; pipe-fill (canCapInput) still works.
+        this.fluidTank = LockableFluidTank(this, 16000, IO.IN, IO.BOTH)
     }
 
     override val coolantFrontFacing: Direction

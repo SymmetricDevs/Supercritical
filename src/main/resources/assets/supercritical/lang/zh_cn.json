@@ -1,4 +1,5 @@
 {
+  "itemGroup.supercritical.main": "Supercritical",
   "block.supercritical.reactor_vessel": "反应堆压力壳",
   "block.supercritical.fuel_channel": "燃料通道",
   "block.supercritical.control_rod_channel": "控制棒通道",
@@ -163,6 +164,7 @@
   "supercritical.multiblock.fission_reactor.meltdown": "§c反应堆温度超过上限，熔毁状态已锁定！",
   "supercritical.multiblock.spent_fuel_pool.obstructed": "乏燃料池未灌满水！",
   "supercritical.multiblock.spent_fuel_pool.obstructed.desc": "乏燃料池必须要充满水才能正常运行。",
+  "supercritical.multiblock.spent_fuel_pool.parallel": "§d最大并行：§f%s",
   "gregtech.fluid.molten": "熔融%s",
   "gregtech.material.enriched_uranium_hexafluoride": "低浓缩六氟化铀"
 }

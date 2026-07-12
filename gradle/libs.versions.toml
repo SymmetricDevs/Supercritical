@@ -10,7 +10,7 @@ buildconfig = "6.0.10"
 junit = "6.1.1"
 
 lwjgl = "3.3.2"
-forge = "47.3.0"
+forge = "47.4.0"
 minecraft = "1.20.1"
 parchment = "2023.09.03"
 renderNurse = "0.0.12"

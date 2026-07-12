@@ -63,6 +63,7 @@ public abstract class MixinTagPrefixItem {
     private void sc$handleRadiationDamage(Material material, LivingEntity entity) {
         TagPrefix prefix = tagPrefix;
         Function<Double, Double> radiationFunction = TagPrefixExtension.Companion.getRadiationDamageFunction(prefix);
+        if (radiationFunction == null) return;
 
         double radiationDamage = radiationFunction.apply(MaterialExtension.Companion.getDecaysPerSecond(material));
         ItemStack armor = entity.getItemBySlot(EquipmentSlot.CHEST);

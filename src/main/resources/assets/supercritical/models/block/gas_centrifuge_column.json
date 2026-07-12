@@ -1,6 +1,7 @@
 {
 	"parent": "minecraft:block/block",
 	"textures": {
+		"particle": "#side",
 		"side": "supercritical:block/gas_centrifuge_column_side",
 		"end": "supercritical:block/gas_centrifuge_column_end"
 	},

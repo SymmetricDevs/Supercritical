@@ -39,14 +39,14 @@ open class LockableItemStackHandler(machine: MetaMachine, io: IO) : NotifiableIt
     }
 
     override fun insertItem(slot: Int, stack: ItemStack, simulate: Boolean): ItemStack {
-        if (locked && !lockedObject.isEmpty && !ItemStack.isSameItem(lockedObject, stack)) {
+        if (locked && !ItemStack.isSameItem(lockedObject, stack)) {
             return stack
         }
         return super.insertItem(slot, stack, simulate)
     }
 
     override fun isItemValid(slot: Int, stack: ItemStack): Boolean {
-        if (locked && !lockedObject.isEmpty && !ItemStack.isSameItem(lockedObject, stack)) {
+        if (locked && !ItemStack.isSameItem(lockedObject, stack)) {
             return false
         }
         return super.isItemValid(slot, stack)

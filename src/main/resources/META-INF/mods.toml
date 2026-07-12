@@ -14,7 +14,7 @@ authors = "SymmetricDevs"
 [[dependencies.supercritical]]
 modId = "forge"
 mandatory = true
-versionRange = "[47,)"
+versionRange = "[47.4,)"
 ordering = "NONE"
 side = "BOTH"
 

@@ -1,16 +1,12 @@
 package supercritical.common.machine.multiblock.fission
 
-import com.gregtechceu.gtceu.api.capability.IControllable
 import com.gregtechceu.gtceu.api.data.RotationState
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition
-import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine
-import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic
 import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern
 import com.gregtechceu.gtceu.api.pattern.Predicates
-import com.gregtechceu.gtceu.api.recipe.GTRecipe
 import com.gregtechceu.gtceu.common.data.GTBlocks
 import com.gregtechceu.gtceu.common.data.GTMaterials
 import com.gregtechceu.gtceu.common.data.GTRecipeModifiers
@@ -25,33 +21,6 @@ import supercritical.util.scId
  */
 class HeatExchanger(holder: IMachineBlockEntity, vararg args: Any?) :
     WorkableMultiblockMachine(holder, *args) {
-
-    override fun createRecipeLogic(vararg args: Any?): RecipeLogic {
-        return HeatExchangerRecipeLogic(this)
-    }
-
-    override fun getRecipeLogic(): HeatExchangerRecipeLogic {
-        return super.getRecipeLogic() as HeatExchangerRecipeLogic
-    }
-
-    class HeatExchangerRecipeLogic(machine: IRecipeLogicMachine) : RecipeLogic(machine) {
-
-        override fun checkMatchedRecipeAvailable(match: GTRecipe?): Boolean {
-            val modified = machine.fullModifyRecipe(match)
-            if (modified != null) {
-                val recipeMatch = checkRecipe(modified)
-                if (recipeMatch.isSuccess) {
-                    setupRecipe(modified)
-                }
-                if (lastRecipe != null && status == Status.WORKING) {
-                    lastOriginRecipe = match
-                    lastFailedMatches = null
-                    return true
-                }
-            }
-            return false
-        }
-    }
 
     companion object {
         fun register(): MultiblockMachineDefinition {

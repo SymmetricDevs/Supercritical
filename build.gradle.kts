@@ -10,9 +10,30 @@ plugins {
 }
 
 repositories {
-    maven {
-        name = "CC:Tweaked Maven"
-        url = uri("https://maven.squiddev.cc")
+    exclusiveContent { // ScalaLanguageProvider
+        forRepository {
+            maven {
+                name = "Azure-SLP"
+                url = uri("https://pkgs.dev.azure.com/Kotori316/minecraft/_packaging/mods/maven/v1")
+            }
+        }
+        filter {
+            includeModule("com.kotori316", "scalablecatsforce")
+            includeModule("org.typelevel", "cats-core_3")
+            includeModule("org.typelevel", "cats-kernel_3")
+            includeModule("org.typelevel", "cats-free_3")
+        }
+    }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "OC:CE Maven"
+                url = uri("https://maven.akkiserver.uk/releases/")
+            }
+        }
+        filter {
+            includeModule("li.cil.oc", "opencomputers")
+        }
     }
 }
 
@@ -22,7 +43,10 @@ dependencies {
     modCompileOnlyApi(deps.registrate)
     modCompileOnlyApi(deps.configuration)
     modCompileOnlyApi(variantOf(deps.gtceu) { classifier("slim") }) { isTransitive = false }
+    modCompileOnlyApi(deps.openComputersCE)
     compileOnly(deps.bundles.ccTweaked.api)
+    compileOnly(deps.cats)
+    compileOnly(deps.scala3)
 
     modRuntimeOnly(deps.configuration) // Forces a newer version of ldlib that contains ConfigFormats#YAML
     modRuntimeOnly(deps.ldlib) // Forces a newer version of ldlib that contains SliderWidget
@@ -30,4 +54,6 @@ dependencies {
     modRuntimeOnly(deps.bundles.jade)
     modRuntimeOnly(deps.gtceu)
     modRuntimeOnly(deps.ccTweaked.forge)
+    modRuntimeOnly(variantOf(deps.scalableCatsForce) { classifier("with-library") }) { isTransitive = false }
+    modRuntimeOnly(deps.openComputersCE)
 }

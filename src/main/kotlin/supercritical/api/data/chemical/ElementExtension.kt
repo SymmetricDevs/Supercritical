@@ -7,10 +7,4 @@ package supercritical.api.data.chemical
  */
 interface ElementExtension {
     var halfLifeSeconds: Double
-
-    val halfLifeSecondsLong: Long
-        /**
-         * Convenience helper for legacy callers that expect a long value.
-         */
-        get() = this.halfLifeSeconds.toLong()
 }

@@ -129,6 +129,8 @@ class SpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?) :
                 val recipeMatch = checkRecipe(modified)
                 if (recipeMatch.isSuccess) {
                     setupRecipe(modified)
+                } else {
+                    RecipeLogic.putFailureReason(this, match, recipeMatch.reason())
                 }
                 if (lastRecipe != null && status == Status.WORKING) {
                     lastOriginRecipe = match

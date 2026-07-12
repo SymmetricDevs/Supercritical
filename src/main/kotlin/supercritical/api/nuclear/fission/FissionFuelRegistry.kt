@@ -1,11 +1,13 @@
 package supercritical.api.nuclear.fission
 
+import com.gregtechceu.gtceu.utils.ItemStackHashStrategy
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap
 import net.minecraft.world.item.ItemStack
 import java.util.*
 
 object FissionFuelRegistry {
     private val IDENTIFIED_FUELS: MutableMap<String?, IFissionFuelStats?> = linkedMapOf()
-    private val FUELS: MutableMap<ItemStack, IFissionFuelStats?> = linkedMapOf()
+    private val FUELS: MutableMap<ItemStack, IFissionFuelStats?> = Object2ObjectOpenCustomHashMap(ItemStackHashStrategy.comparingAllButCount())
 
     fun registerFuel(item: ItemStack, fuel: IFissionFuelStats) {
         IDENTIFIED_FUELS[fuel.id] = fuel
@@ -20,7 +22,7 @@ object FissionFuelRegistry {
 
     fun getFissionFuel(stack: ItemStack): IFissionFuelStats? {
         if (stack.isEmpty) return null
-        return FUELS.entries.firstOrNull { ItemStack.isSameItemSameTags(it.key, stack) }?.value
+        return FUELS[stack]
     }
 
     val allFissionableRods: MutableCollection<ItemStack>

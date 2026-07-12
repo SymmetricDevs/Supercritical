@@ -10,7 +10,8 @@ import net.minecraft.world.level.material.Fluid
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.capability.IFluidHandler
 
-class LockableFluidTank(machine: MetaMachine, capacity: Int, io: IO?) : NotifiableFluidTank(machine, 1, capacity, io) {
+class LockableFluidTank(machine: MetaMachine, capacity: Int, io: IO?, capabilityIO: IO? = io) :
+    NotifiableFluidTank(machine, 1, capacity, io, capabilityIO) {
     @Persisted(key = "locked")
     @DescSynced
     private var isLockedInternal = false
@@ -43,7 +44,14 @@ class LockableFluidTank(machine: MetaMachine, capacity: Int, io: IO?) : Notifiab
         if (lockedState && !lockedFluidStack.isEmpty && resource.fluid !== lockedFluidStack.fluid) {
             return 0
         }
-        return super.fill(resource, action)
+        val filled = super.fill(resource, action)
+        if (lockedState && action == IFluidHandler.FluidAction.EXECUTE
+            && lockedFluidStack.isEmpty && getFluidInTank(0).amount > 0
+        ) {
+            lockedFluidStack = getFluidInTank(0).copy()
+            lockedFluidStack.amount = 1
+        }
+        return filled
     }
 
     override fun isFluidValid(tank: Int, stack: FluidStack): Boolean {

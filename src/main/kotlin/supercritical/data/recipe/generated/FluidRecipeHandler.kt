@@ -24,13 +24,13 @@ object FluidRecipeHandler {
     fun processCoolant(material: Material, coolant: CoolantProperty) {
         var waterAmount = 6
         var coolantAmount = calculateCoolantAmount(material, coolant, waterAmount)
-        addHeatExchangerRecipe("small_" + material.name + "_water", 1, waterAmount, coolantAmount, false)
-        addHeatExchangerRecipe("small_" + material.name + "_distilled_water", 1, waterAmount, coolantAmount, true)
+        addHeatExchangerRecipe(material, coolant, "small_" + material.name + "_water", 1, waterAmount, coolantAmount, false)
+        addHeatExchangerRecipe(material, coolant, "small_" + material.name + "_distilled_water", 1, waterAmount, coolantAmount, true)
 
         waterAmount = 600
         coolantAmount = calculateCoolantAmount(material, coolant, waterAmount)
-        addHeatExchangerRecipe("large_" + material.name + "_water", 2, waterAmount, coolantAmount, false)
-        addHeatExchangerRecipe("large_" + material.name + "_distilled_water", 2, waterAmount, coolantAmount, true)
+        addHeatExchangerRecipe(material, coolant, "large_" + material.name + "_water", 2, waterAmount, coolantAmount, false)
+        addHeatExchangerRecipe(material, coolant, "large_" + material.name + "_distilled_water", 2, waterAmount, coolantAmount, true)
 
         ScritRecipeUtils.addRecipe(
             ScritRecipeTypes.HEAT_EXCHANGER_RECIPES, ScritRecipeTypes.HEAT_EXCHANGER_RECIPES
@@ -44,31 +44,17 @@ object FluidRecipeHandler {
     }
 
     private fun addHeatExchangerRecipe(
-        id: String, circuit: Int, waterAmount: Int, coolantAmount: Int,
+        material: Material, coolant: CoolantProperty, id: String, circuit: Int, waterAmount: Int, coolantAmount: Int,
         distilled: Boolean
     ) {
         val water = if (distilled) GTMaterials.DistilledWater else GTMaterials.Water
-        // Re-resolve from the recipe id prefix because GTCEu's builder does not carry external closure state.
-        var coolantMaterial: Material? = null
-        var coolant: CoolantProperty? = null
-        val materialName =
-            id.substring(id.indexOf('_') + 1, id.lastIndexOf(if (distilled) "_distilled_water" else "_water"))
-        for (material in GTCEuAPI.materialManager.registeredMaterials) {
-            if (material.name == materialName && material.hasProperty<CoolantProperty?>(ScritPropertyKey.COOLANT)) {
-                coolantMaterial = material
-                coolant = material.getProperty<CoolantProperty?>(ScritPropertyKey.COOLANT)
-                break
-            }
-        }
-        if (coolantMaterial == null || coolant == null) return
-
         ScritRecipeUtils.addRecipe(
             ScritRecipeTypes.HEAT_EXCHANGER_RECIPES, ScritRecipeTypes.HEAT_EXCHANGER_RECIPES.recipeBuilder(id)
                 .duration(1)
                 .circuitMeta(circuit)
                 .inputFluids(coolant.hotHPCoolant.getFluid(coolantAmount), water.getFluid(waterAmount))
                 .outputFluids(
-                    coolantMaterial.getFluid(coolantAmount),
+                    material.getFluid(coolantAmount),
                     GTMaterials.Steam.getFluid(Math.toIntExact(waterAmount * 160L))
                 )
                 .buildRawRecipe()

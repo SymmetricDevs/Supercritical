@@ -34,6 +34,7 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.Explosion
 import net.minecraft.world.level.Level
 import net.minecraftforge.event.ForgeEventFactory
+import supercritical.Supercritical
 import supercritical.api.capability.ICoolantHandler
 import supercritical.api.capability.IFuelRodHandler
 import supercritical.api.cover.ICustomEnergyCover
@@ -163,6 +164,16 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
         super.onStructureInvalid()
         if (locked) {
             unlockAll()
+        }
+        // Legacy reset the sim's thermal/power state on structure invalidation, so an overheating
+        // reactor defuses when broken (otherwise it re-melts immediately on reform). Mirrors
+        // resetFailureState()'s thermal reset below.
+        val r = reactor
+        if (r != null) {
+            r.isOn = false
+            r.temperature = FissionReactor.ROOM_TEMPERATURE
+            r.pressure = FissionReactor.STANDARD_PRESSURE
+            r.power = 0.0
         }
     }
 
@@ -413,19 +424,61 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
 
     private fun verifyCorrectness(): Boolean {
         var foundFuel = false
+        // [SC-DEBUG] temporary debug logging for the "missing coolant" startup bug; remove once
+        // the issue is confirmed fixed.
+        val debugCoolantHandlers = parts.filterIsInstance<ICoolantHandler>()
+        Supercritical.LOGGER.info(
+            "[SC-DEBUG] verifyCorrectness: {} total part(s); {} coolant handler(s) ({} import, {} export)",
+            parts.size, debugCoolantHandlers.size,
+            debugCoolantHandlers.count { it.outputHandler !== it },
+            debugCoolantHandlers.count { it.outputHandler === it }
+        )
         for (part in parts) {
             if (part is ICoolantHandler) {
-                val lockedFluid = part.lockedObject
-                if (lockedFluid != null) {
-                    val stats = CoolantRegistry.getCoolant(lockedFluid)
+                // Legacy 1.12.2 validated coolant by iterating the TOP (import) layer by position,
+                // so export hatches were never checked here. The modern port iterates `parts`
+                // (import + export), so explicitly skip export hatches: their outputHandler is
+                // themselves, and they legitimately start empty (hot coolant is produced during
+                // operation). Without this skip an empty export hatch always blocks startup.
+                if (part.outputHandler === part) {
+                    continue
+                }
+                // Legacy's LockableFluidTank kept `lockedFluid` in sync with the tank on every
+                // fill(), so getLockedObject() returned the current fluid even before lockAll().
+                // The modern LockableFluidTank only populates lockedObject inside the lock setter,
+                // which runs AFTER this check (verifyCorrectness() precedes lockAll() in
+                // lockAndPrepareReactor). Fall back to the fluid actually in the tank, otherwise a
+                // filled-but-unlocked hatch (e.g. distilled water just pumped in) reads null and
+                // wrongly reports MISSING_COOLANT.
+                val tankFluid = part.fluidTank.getFluidInTank(0)
+                val hatchFluid = part.lockedObject ?: (if (tankFluid.isEmpty) null else tankFluid.fluid)
+                val coolantStat = hatchFluid?.let { CoolantRegistry.getCoolant(it) }
+                Supercritical.LOGGER.info(
+                    "[SC-DEBUG] coolant import hatch @ {}: fluid={} amount={} lockedObject={} resolved={} registeredCoolant={}",
+                    part.hatchPos,
+                    if (tankFluid.isEmpty) "empty" else tankFluid.fluid,
+                    tankFluid.amount,
+                    part.lockedObject,
+                    hatchFluid,
+                    coolantStat != null
+                )
+                if (hatchFluid != null) {
                     if (part.outputHandler == null && !part.checkValidity(this.height - 1)) {
+                        Supercritical.LOGGER.info(
+                            "[SC-DEBUG] -> INVALID_COMPONENT: hatch @ {} has no paired export",
+                            part.hatchPos
+                        )
                         setLockingState(LockingState.INVALID_COMPONENT)
                         return false
                     }
-                    if (stats != null) {
+                    if (coolantStat != null) {
                         continue
                     }
                 }
+                Supercritical.LOGGER.info(
+                    "[SC-DEBUG] -> MISSING_COOLANT: hatch @ {} resolved fluid={} registeredCoolant={}",
+                    part.hatchPos, hatchFluid, coolantStat != null
+                )
                 this.unlockAll()
                 setLockingState(LockingState.MISSING_COOLANT)
                 return false

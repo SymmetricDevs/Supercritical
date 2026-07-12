@@ -1,4 +1,5 @@
 {
+  "itemGroup.supercritical.main": "Supercritical",
   "block.supercritical.reactor_vessel": "Reactor Vessel",
   "block.supercritical.fuel_channel": "Fuel Channel",
   "block.supercritical.control_rod_channel": "Control Rod Channel",
@@ -163,6 +164,7 @@
   "supercritical.multiblock.fission_reactor.meltdown": "§cReactor temperature limit exceeded; meltdown state latched!",
   "supercritical.multiblock.spent_fuel_pool.obstructed": "The pool is not filled!",
   "supercritical.multiblock.spent_fuel_pool.obstructed.desc": "The pool must be filled with water to function.",
+  "supercritical.multiblock.spent_fuel_pool.parallel": "§dMax Parallel: §f%s",
   "gregtech.fluid.molten": "Molten %s",
   "gregtech.material.enriched_uranium_hexafluoride": "Low Enriched Uranium Hexafluoride"
 }

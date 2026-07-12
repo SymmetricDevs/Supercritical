@@ -5,24 +5,20 @@ import java.util.function.Function
 
 /**
  * Extends GTCEu Modern's [TagPrefix] to include
- * radiation damage behaviour for Supercritical nuclear items.
+ * radiation damage behavior for Supercritical nuclear items.
  */
-typealias damageFunction = Function<Double, Double>
+typealias DamageFunction = Function<Double, Double>
 
 interface TagPrefixExtension {
 
-    var radiationDamageFunction: damageFunction
+    var radiationDamageFunction: DamageFunction?
 
     companion object {
-        fun getRadiationDamageFunction(prefix: TagPrefix): damageFunction {
-            return (prefix as Any? as TagPrefixExtension).radiationDamageFunction
-        }
 
-        fun setRadiationDamageFunction(
-            prefix: TagPrefix,
-            function: damageFunction
-        ) {
-            (prefix as Any? as TagPrefixExtension).radiationDamageFunction = function
-        }
+        var TagPrefix.radiationDamageFunction: DamageFunction?
+            set(value) {
+                (this as TagPrefixExtension).radiationDamageFunction = value
+            }
+            get() = (this as TagPrefixExtension).radiationDamageFunction
     }
 }

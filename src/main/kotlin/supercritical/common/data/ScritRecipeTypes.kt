@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.common.data.GTRecipeTypes
 import com.gregtechceu.gtceu.common.data.GTSoundEntries
 import net.minecraftforge.registries.ForgeRegistries
 import supercritical.util.scId
-import java.util.*
 
 object ScritRecipeTypes {
     const val HEAT_EXCHANGER_ID: String = "heat_exchanger"
@@ -24,8 +23,6 @@ object ScritRecipeTypes {
         get() = checkNotNull(spentFuelPoolRecipes) { "Spent fuel pool recipe type has not been initialized" }
     val GAS_CENTRIFUGE_RECIPES: GTRecipeType
         get() = checkNotNull(gasCentrifugeRecipes) { "Gas centrifuge recipe type has not been initialized" }
-
-    private val RECIPE_MAPS: MutableMap<String?, RecipeMapInfo?> = linkedMapOf()
 
     private var initialized = false
 
@@ -44,10 +41,6 @@ object ScritRecipeTypes {
             .setMaxIOSize(0, 0, 1, 2)
             .setSound(GTSoundEntries.CENTRIFUGE)
 
-        register(HEAT_EXCHANGER_ID, HEAT_EXCHANGER_RECIPES, 1, 0, 2, 2)
-        register(SPENT_FUEL_POOL_ID, SPENT_FUEL_POOL_RECIPES, 1, 1, 1, 1)
-        register(GAS_CENTRIFUGE_ID, GAS_CENTRIFUGE_RECIPES, 0, 0, 1, 2)
-
         initialized = true
     }
 
@@ -63,29 +56,4 @@ object ScritRecipeTypes {
         GTRegistries.RECIPE_TYPES.register(recipeType.registryName, recipeType)
         return recipeType
     }
-
-    private fun register(
-        id: String?,
-        recipeType: GTRecipeType?,
-        itemInputs: Int,
-        itemOutputs: Int,
-        fluidInputs: Int,
-        fluidOutputs: Int
-    ) {
-        RECIPE_MAPS.put(id, RecipeMapInfo(id, recipeType, itemInputs, itemOutputs, fluidInputs, fluidOutputs))
-    }
-
-    fun all(): MutableMap<String?, RecipeMapInfo?> {
-        return Collections.unmodifiableMap(RECIPE_MAPS)
-    }
-
-    @JvmRecord
-    data class RecipeMapInfo(
-        val id: String?,
-        val recipeType: GTRecipeType?,
-        val itemInputs: Int,
-        val itemOutputs: Int,
-        val fluidInputs: Int,
-        val fluidOutputs: Int
-    )
 }

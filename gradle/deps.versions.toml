@@ -10,6 +10,11 @@ jade-addons = "5.5.1+forge"
 
 ccTweaked = "1.120.0"
 
+cats = "2.10.0-kotori"
+scala3 = "3.3.1"
+scalableCatsForce = "3.3.1-build-0"
+openComputersCE = "1.20.1-1.9.0-beta-2"
+
 [libraries]
 ldlib = { module = "com.lowdragmc.ldlib:ldlib-forge-1.20.1", version.ref = "ldlib" }
 registrate = { module = "com.tterrag.registrate:Registrate", version.ref = "registrate" }
@@ -26,6 +31,11 @@ ccTweaked-core-api = { module = "cc.tweaked:cc-tweaked-1.20.1-core-api", version
 ccTweaked-common-api = { module = "cc.tweaked:cc-tweaked-1.20.1-common-api", version.ref = "ccTweaked" }
 ccTweaked-forge-api = { module = "cc.tweaked:cc-tweaked-1.20.1-forge-api", version.ref = "ccTweaked" }
 ccTweaked-forge = { module = "cc.tweaked:cc-tweaked-1.20.1-forge", version.ref = "ccTweaked" }
+
+cats = { module = "org.typelevel:cats-core_3", version.ref = "cats" }
+scala3 = { module = "org.scala-lang:scala3-library_3", version.ref = "scala3" }
+scalableCatsForce = { module = "com.kotori316:scalablecatsforce", version.ref = "scalableCatsForce" }
+openComputersCE = {module="li.cil.oc:opencomputers", version.ref="openComputersCE"}
 
 [bundles]
 jei = ["jei-common-api", "jei-forge-api", "jei-forge-impl"]

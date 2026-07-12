@@ -113,8 +113,8 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
 
                 var prevX = fuelRods[i].x
                 var prevY = fuelRods[i].y
-                val resolution = ScritConfig.INSTANCE.nuclear.fissionReactorResolution.toInt()
-                for (t in 0..<resolution) {
+                val resolution = ScritConfig.INSTANCE.nuclear.fissionReactorResolution
+                for (t in 0 until Math.ceil(resolution).toInt()) {
                     val x = Math.round(
                         (rodTwo.x - rodOne.x) *
                                 (t.toDouble() / resolution) + fuelRods[i].x
@@ -155,9 +155,9 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
                     }
                 }
 
-                mij /= resolution.toDouble()
-                faij /= resolution.toDouble()
-                saij /= resolution.toDouble()
+                mij /= resolution
+                faij /= resolution
+                saij /= resolution
 
                 val dist = rodOne.getDistance(rodTwo)
                 val unabsorbedFast = exp(-faij * dist) / dist
@@ -236,7 +236,7 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         decayNeutrons = 0.0
 
         for (rod in fuelRods) {
-            neutronToPowerConversion += rod.getFuel().releasedHeatEnergy / rod.getFuel().releasedNeutrons
+            neutronToPowerConversion += rod.getFuel().releasedHeatEnergy / rod.getFuel().requiredNeutrons
             decayNeutrons += rod.getFuel().decayRate
         }
         computeCoolantWeights()
@@ -661,7 +661,10 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
 
         protected fun responseFunction(target: Double, current: Double, criticalRate: Double): Double {
             var current = current
-            if (current < 0) current = if (criticalRate < 1) 0.0 else 0.1
+            if (current < 0) {
+                if (criticalRate < 1) return 0.0
+                current = 0.1
+            }
             val expDecay = exp(-criticalRate)
             return current * expDecay + target * (1 - expDecay)
         }
