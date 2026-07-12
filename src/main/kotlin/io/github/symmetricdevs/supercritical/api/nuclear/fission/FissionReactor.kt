@@ -7,6 +7,10 @@ import io.github.symmetricdevs.supercritical.api.nuclear.fission.components.Cont
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.components.CoolantChannel
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.components.FuelRod
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.components.ReactorComponent
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.*
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.control.LegacyControlRodBank
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.families.LegacyPWRFamily
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.geometry.SquareLattice
 import io.github.symmetricdevs.supercritical.config.ScritConfig
 import java.util.*
 import kotlin.math.exp
@@ -14,23 +18,48 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
-class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Double) {
+class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Double) : ReactorCore {
     // ----- structure -----
-    private val reactorLayout: Array<Array<ReactorComponent?>>
+    private val reactorLayout: Array<Array<ReactorComponent?>> = Array(size) { arrayOfNulls(size) }
     private val reactorRadius: Double
     private val surfaceArea: Double
     private val exteriorPressure: Double = STANDARD_PRESSURE
     private val envTemperature: Double = ROOM_TEMPERATURE
 
+    // ----- ReactorCore API -----
+    override val family = LegacyPWRFamily
+    private val squareLattice = SquareLattice(size, reactorDepth, reactorLayout)
+    override val geometry: ReactorGeometry get() = squareLattice
+    override val state: ReactorState
+        get() = ReactorState(
+            neutronFlux = neutronFlux,
+            power = power,
+            temperature = temperature,
+            prevTemperature = prevTemperature,
+            pressure = pressure,
+            fuelDepletion = fuelDepletion,
+            accumulatedHydrogen = accumulatedHydrogen,
+            neutronPoisonAmount = neutronPoisonAmount,
+            decayProductsAmount = decayProductsAmount,
+            isOn = isOn
+        )
+    override val limits: ReactorLimits
+        get() = ReactorLimits(
+            maxTemperature = this@FissionReactor.maxTemperature,
+            maxPressure = this@FissionReactor.maxPressure,
+            maxPower = this@FissionReactor.maxPower
+        )
+    override val control: ControlMechanism = LegacyControlRodBank(this)
+
     // ----- component collections -----
     val fuelRods: MutableList<FuelRod> = arrayListOf()
     val controlRods: MutableList<ControlRod> = arrayListOf()
     val coolantChannels: MutableList<CoolantChannel> = arrayListOf()
-    private val effectiveControlRods: MutableList<ControlRod> = arrayListOf()
+    internal val effectiveControlRods: MutableList<ControlRod> = arrayListOf()
 
     // ----- mutable physics state -----
     private var k = 0.0
-    var kEff: Double = 0.0
+    override var kEff: Double = 0.0
     private var controlRodFactor = 0.0
     private var neutronToPowerConversion = 0.0
     private var decayNeutrons = 0.0
@@ -42,28 +71,27 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
     var temperature: Double = ROOM_TEMPERATURE
     private var prevTemperature = 0.0
     var pressure: Double = STANDARD_PRESSURE
-    var fuelDepletion: Double = -1.0
-    var accumulatedHydrogen: Double = 0.0
+    override var fuelDepletion: Double = -1.0
+    override var accumulatedHydrogen: Double = 0.0
 
     // ----- coolant-derived -----
-    private var coolantBaseTemperature = 0.0
+    internal var coolantBaseTemperature = 0.0
     private var coolantBoilingPointStandardPressure = 0.0
-    private var coolantExitTemperature = 0.0
+    internal var coolantExitTemperature = 0.0
     private var coolantHeatOfVaporization = 0.0
     private var coolantMass = 0.0
     private var structuralMass: Double
     var fuelMass: Double = 0.0
 
     // ----- limits / config -----
-    var maxTemperature: Double = 2000.0
-    var maxPressure: Double = 15000000.0
-    var maxPower: Double = 3.0
+    override var maxTemperature: Double = 2000.0
+    override var maxPressure: Double = 15000000.0
+    override var maxPower: Double = 3.0
     var controlRodInsertion: Double
     var controlRodRegulationOn: Boolean = true
     var isOn: Boolean = false
 
     init {
-        reactorLayout = Array(size) { arrayOfNulls(size) }
         reactorRadius = size.toDouble() / 2 + 1.5
         this.controlRodInsertion = max(0.001, controlRodInsertion)
         surfaceArea = (reactorRadius * reactorRadius) * Math.PI * 2 + reactorDepth * reactorRadius * Math.PI * 2
@@ -118,7 +146,7 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
     fun prepareInitialConditions() {
         coolantBaseTemperature = 0.0
         coolantBoilingPointStandardPressure = 0.0
-        coolantExitTemperature = 0.0
+        this.coolantExitTemperature = 0.0
         coolantHeatOfVaporization = 0.0
         weightedGenerationTime = 0.0
 
@@ -501,15 +529,6 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
 
     // ===================== tick updates =====================
 
-    fun tick() {
-        if (!this.isOn || fuelRods.isEmpty()) return
-        updatePower()
-        updateTemperature()
-        updatePressure()
-        updateNeutronPoisoning()
-        regulateControlRods()
-    }
-
     fun updatePower() {
         if (this.isOn) {
             this.neutronFlux += this.totalDecayNeutrons
@@ -555,6 +574,39 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
 
     val totalDecayNeutrons: Double
         get() = this.neutronPoisonAmount * 0.05 + this.decayProductsAmount * 0.1 + this.decayNeutrons
+
+    // ===================== ReactorCore API =====================
+
+    override fun precompute() {
+        prepareThermalProperties()
+        computeGeometry()
+    }
+
+    override fun tick() {
+        if (!this.isOn || fuelRods.isEmpty()) return
+        updatePower()
+        updateTemperature()
+        updatePressure()
+        updateNeutronPoisoning()
+        regulateControlRods()
+    }
+
+    override fun save(tag: CompoundTag): CompoundTag {
+        val inner = serializeNBT()
+        for (key in inner.allKeys) {
+            val value = inner.get(key) ?: continue
+            tag.put(key, value)
+        }
+        tag.putString("Family", "supercritical:pwr")
+        tag.putInt("Version", 1)
+        return tag
+    }
+
+    override fun load(tag: CompoundTag) {
+        require(tag.getString("Family") == "supercritical:pwr") { "Unknown reactor family: ${tag.getString("Family")}" }
+        tag.getInt("Version")
+        deserializeNBT(tag)
+    }
 
     fun regulateControlRods() {
         if (!this.isOn || !this.controlRodRegulationOn) return
@@ -628,7 +680,7 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         this.controlRodFactor = ControlRod.controlRodFactor(effectiveControlRods, this.controlRodInsertion)
     }
 
-    fun turnOff() {
+    override fun turnOff() {
         this.isOn = false
         this.maxPower = 0.0
         this.k = 0.0

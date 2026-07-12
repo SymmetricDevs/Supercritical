@@ -88,18 +88,12 @@ class ScritConfig {
         @JvmField
         var enableMeltdown = true
 
-        class LegacyPWROptions {
+        inner class LegacyPWROptions {
             /**
              * Mirrors the existing [fissionReactorResolution] value so legacy PWR tuning continues
              * to work without duplicating the backing field. Writes update the original value;
              * reads observe it.
              */
-            @get:Configurable
-            @get:Configurable.Comment(
-                "The level of detail to which the legacy PWR solver is analyzed.",
-                "Default: 100"
-            )
-            @get:Configurable.DecimalRange(min = 5.0, max = 10000.0)
             var resolution: Double
                 get() = fissionReactorResolution
                 set(value) {
@@ -109,12 +103,6 @@ class ScritConfig {
             /**
              * Mirrors the existing [fissionReactorPowerIterations] value.
              */
-            @get:Configurable
-            @get:Configurable.Comment(
-                "The number of times the legacy PWR neutron multiplication value is calculated.",
-                "Default: 10"
-            )
-            @get:Configurable.Range(min = 1L, max = 2147483647L)
             var powerIterations: Int
                 get() = fissionReactorPowerIterations
                 set(value) {
@@ -124,12 +112,6 @@ class ScritConfig {
             /**
              * Mirrors the existing [fissionCoolantDivisor] value.
              */
-            @get:Configurable
-            @get:Configurable.Comment(
-                "How much the amount of power required to boil the legacy PWR coolant is divided by.",
-                "Default: 14"
-            )
-            @get:Configurable.DecimalRange(min = 0.1, max = 1000.0)
             var coolantDivisor: Double
                 get() = fissionCoolantDivisor
                 set(value) {
@@ -139,12 +121,6 @@ class ScritConfig {
             /**
              * Mirrors the existing [nuclearPowerMultiplier] value.
              */
-            @get:Configurable
-            @get:Configurable.Comment(
-                "Nuclear Max Power multiplier for the legacy PWR for balancing purposes.",
-                "Default: 0.1"
-            )
-            @get:Configurable.DecimalRange(min = 0.0, max = 10000.0)
             var powerMultiplier: Double
                 get() = nuclearPowerMultiplier
                 set(value) {
