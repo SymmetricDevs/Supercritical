@@ -136,6 +136,20 @@ class LegacyEigenvalueNeutronics(private val reactor: FissionReactor) : Neutroni
         addToEffectiveLists: Boolean,
         controlRodsInserted: Boolean
     ) {
+        // REUSE CONTRACT — the three matrices are scratch buffers sized once in precompute() and
+        // reused across precomputes and across the two computeK() calls within one precompute.
+        // Correctness depends on two properties, which MUST hold for every future edit:
+        //   1. Every OFF-DIAGONAL cell neutrons[i][j] / neutrons[j][i] (i != j) is written exactly
+        //      once below, unconditionally, after the ray-trace loop. runPowerIteration reads every
+        //      cell via multiply(), so a skipped write would leak a value from a previous call.
+        //   2. The DIAGONAL neutrons[i][i] is NEVER written and must stay 0.0 (the value a fresh
+        //      DoubleArray has), so its contribution to multiply() is zero — matching legacy, which
+        //      reallocated the matrix every call.
+        // fast/slow are only written when addToEffectiveLists is true and only read in the same call
+        // (by assignRodWeightsAndThermalProportions); the second computeK call neither writes nor
+        // reads them, so their diagonal-stays-0.0 property carries over from initial allocation.
+        // If a future change adds a distance/visibility cutoff that could skip an off-diagonal
+        // write, zero the matrices here first (Arrays.fill each row) before relying on this.
         val fuelRods = reactor.fuelRods
         val reactorLayout = reactor.reactorLayout
         val resolution = ScritConfig.INSTANCE.nuclear.fissionReactorResolution
