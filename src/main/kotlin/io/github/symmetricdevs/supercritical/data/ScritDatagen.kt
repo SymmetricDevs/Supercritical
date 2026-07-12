@@ -1,30 +1,21 @@
 package io.github.symmetricdevs.supercritical.data
 
 import com.tterrag.registrate.providers.ProviderType
-import com.tterrag.registrate.providers.RegistrateItemTagsProvider
-import com.tterrag.registrate.providers.RegistrateLangProvider
-import com.tterrag.registrate.providers.RegistrateTagsProvider.IntrinsicImpl
 import com.tterrag.registrate.util.nullness.NonNullConsumer
-import net.minecraft.world.level.block.Block
-import net.minecraft.world.level.material.Fluid
 import io.github.symmetricdevs.supercritical.common.registry.ScritRegistration
 import io.github.symmetricdevs.supercritical.data.lang.ScritLangHandler
-import io.github.symmetricdevs.supercritical.data.tags.ScritBlockTagLoader
-import io.github.symmetricdevs.supercritical.data.tags.ScritFluidTagLoader
-import io.github.symmetricdevs.supercritical.data.tags.ScritItemTagLoader
+import io.github.symmetricdevs.supercritical.data.tags.FluidTagLoader
+import io.github.symmetricdevs.supercritical.data.tags.ItemTagLoader
 
 object ScritDatagen {
     fun init() {
-        ScritRegistration.REGISTRATE.addDataGenerator<IntrinsicImpl<Block>?>(
-            ProviderType.BLOCK_TAGS,
-            NonNullConsumer { ScritBlockTagLoader.init(it) })
-        ScritRegistration.REGISTRATE.addDataGenerator<RegistrateItemTagsProvider?>(
+        ScritRegistration.REGISTRATE.addDataGenerator(
             ProviderType.ITEM_TAGS,
-            NonNullConsumer { ScritItemTagLoader.init(it) })
-        ScritRegistration.REGISTRATE.addDataGenerator<IntrinsicImpl<Fluid?>?>(
+            NonNullConsumer { ItemTagLoader.init(it) })
+        ScritRegistration.REGISTRATE.addDataGenerator(
             ProviderType.FLUID_TAGS,
-            NonNullConsumer { ScritFluidTagLoader.init(it) })
-        ScritRegistration.REGISTRATE.addDataGenerator<RegistrateLangProvider?>(
+            NonNullConsumer { FluidTagLoader.init(it) })
+        ScritRegistration.REGISTRATE.addDataGenerator(
             ProviderType.LANG,
             NonNullConsumer { ScritLangHandler.init(it) })
     }

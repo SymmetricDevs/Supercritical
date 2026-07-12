@@ -206,7 +206,16 @@ class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMac
 
     override fun saveCustomPersistedData(tag: CompoundTag, forDrop: Boolean) {
         super.saveCustomPersistedData(tag, forDrop)
+        // lockableInventory is a plain field (not @Persisted on the machine, and no Kotlin
+        // subclass declares its own MANAGED_FIELD_HOLDER), so LDLib never serializes the trait's
+        // @Persisted storage/lockedObject. Persist them manually so fuel rods in the slot — and
+        // the locked-rod sample used for the display slot + lock filter — survive reload.
+        tag.put("Inventory", lockableInventory.storage.serializeNBT())
         tag.putBoolean("Locked", lockableInventory.locked)
+        val lockedObj = lockableInventory.lockedObject
+        if (!lockedObj.isEmpty) {
+            tag.put("LockedObject", lockedObj.save(CompoundTag()))
+        }
         val partialFuelId = partialFuel?.id
         if (!partialFuelId.isNullOrBlank()) tag.putString("PartialFuel", partialFuelId)
         tag.putDouble("DepletionPoint", depletionPoint)
@@ -214,7 +223,18 @@ class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMac
 
     override fun loadCustomPersistedData(tag: CompoundTag) {
         super.loadCustomPersistedData(tag)
+        // Restore the slot BEFORE flipping `locked`: the LockableItemStackHandler.locked setter
+        // re-derives `lockedObject` from getStackInSlot(0), so it must see the persisted rods or
+        // it blanks the sample. `lockedObject` is then re-applied below to cover the legitimate
+        // "rod already extracted into partialFuel, slot empty" case where the sample rod must
+        // still survive (otherwise insertItem rejects every stack because EMPTY != anything).
+        if (tag.contains("Inventory")) {
+            lockableInventory.storage.deserializeNBT(tag.getCompound("Inventory"))
+        }
         lockableInventory.locked = tag.getBoolean("Locked")
+        if (tag.contains("LockedObject")) {
+            lockableInventory.lockedObject = ItemStack.of(tag.getCompound("LockedObject"))
+        }
         if (tag.contains("PartialFuel")) {
             this.partialFuel = FissionFuelRegistry.getFissionFuel(tag.getString("PartialFuel"))
         }

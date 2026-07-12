@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.common.data.GTMaterialItems
 import com.gregtechceu.gtceu.common.data.GTMaterials
 import com.tterrag.registrate.util.entry.ItemEntry
 import net.minecraft.world.item.Item
-import io.github.symmetricdevs.supercritical.api.data.chemical.ore.ScritOrePrefix
 import io.github.symmetricdevs.supercritical.common.registry.ScritRegistration
 import java.util.*
 import java.util.function.Supplier
@@ -47,15 +46,15 @@ object ScritItems {
         materialSupplier: Supplier<Material>
     ) {
         items[materialName] = NuclearFuelItems(
-            itemSupplier(ScritOrePrefix.fuelRod, materialSupplier),
-            itemSupplier(ScritOrePrefix.fuelRodDepleted, materialSupplier),
-            itemSupplier(ScritOrePrefix.fuelRodHotDepleted, materialSupplier),
-            itemSupplier(ScritOrePrefix.fuelPelletRaw, materialSupplier),
-            itemSupplier(ScritOrePrefix.fuelPellet, materialSupplier),
-            itemSupplier(ScritOrePrefix.fuelPelletDepleted, materialSupplier),
-            itemSupplier(ScritOrePrefix.dustSpentFuel, materialSupplier),
-            itemSupplier(ScritOrePrefix.dustBredFuel, materialSupplier),
-            itemSupplier(ScritOrePrefix.dustFissionByproduct, materialSupplier)
+            itemSupplier(ScritTagPrefixes.fuelRod, materialSupplier),
+            itemSupplier(ScritTagPrefixes.fuelRodDepleted, materialSupplier),
+            itemSupplier(ScritTagPrefixes.fuelRodHotDepleted, materialSupplier),
+            itemSupplier(ScritTagPrefixes.fuelPelletRaw, materialSupplier),
+            itemSupplier(ScritTagPrefixes.fuelPellet, materialSupplier),
+            itemSupplier(ScritTagPrefixes.fuelPelletDepleted, materialSupplier),
+            itemSupplier(ScritTagPrefixes.dustSpentFuel, materialSupplier),
+            itemSupplier(ScritTagPrefixes.dustBredFuel, materialSupplier),
+            itemSupplier(ScritTagPrefixes.dustFissionByproduct, materialSupplier)
         )
     }
 

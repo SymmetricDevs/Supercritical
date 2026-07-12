@@ -9,6 +9,7 @@ import io.github.symmetricdevs.supercritical.api.nuclear.fission.components.Fuel
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.components.ReactorComponent
 import io.github.symmetricdevs.supercritical.config.ScritConfig
 import java.util.*
+import org.apache.logging.log4j.LogManager
 import kotlin.math.exp
 import kotlin.math.max
 import kotlin.math.min
@@ -211,7 +212,15 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
             }
         }
 
-        kCalc *= reactorDepth / (1.0 + reactorDepth)
+        val preLeakage = kCalc
+        val leakageFactor = reactorDepth / (1.0 + reactorDepth)
+        kCalc *= leakageFactor
+        if (COOLANT_DEBUG) {
+            COOLANT_LOGGER.info(
+                "[SC-PHYSICS] computeK(addToEff=$addToEffectiveLists,rodsIn=$controlRodsInserted): " +
+                "kCalc(preLeakage)=$preLeakage leakageFactor=$leakageFactor depth=$reactorDepth kCalc(result)=$kCalc"
+            )
+        }
         return kCalc
     }
 
@@ -229,6 +238,16 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
 
         k = computeK(true, false)
         val kExperimental = computeK(false, true)
+
+        if (COOLANT_DEBUG) {
+            COOLANT_LOGGER.info(
+                "[SC-PHYSICS] computeGeometry: fuelRods=${fuelRods.size} controlRods=${controlRods.size} " +
+                "coolantChannels=${coolantChannels.size} gridSize=${reactorLayout.size} depth=$reactorDepth " +
+                "k(bare,rodsOut)=$k kExp(rodsIn)=$kExperimental " +
+                "rodWorth=${((k - 1) / k) - ((kExperimental - 1) / kExperimental)} " +
+                "neutronToPowerConv=$neutronToPowerConversion"
+            )
+        }
 
         computeControlRodWeights(((k - 1) / k) - ((kExperimental - 1) / kExperimental))
 
@@ -343,15 +362,26 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
     fun makeCoolantFlow(): Double {
         var heatRemoved = 0.0
         coolantMass = 0.0
+        val outcomes = linkedMapOf<String, Int>()
+        var flowTotal = 0
+        fun bump(key: String) {
+            outcomes[key] = (outcomes[key] ?: 0) + 1
+        }
         for (channel in coolantChannels) {
             val input = channel.inputHandler
             val output = channel.outputHandler
-            if (input == null || output == null) continue
+            if (input == null || output == null) {
+                bump("NULL(in=${input != null},out=${output != null})")
+                continue
+            }
 
             val inputTank = input.fluidTank
             val outputTank = output.fluidTank
             val drained = inputTank.drain(16000, FluidAction.SIMULATE)
-            if (drained.isEmpty) continue
+            if (drained.isEmpty) {
+                bump("EMPTY(inAmt=${inputTank.getFluidInTank(0).amount})")
+                continue
+            }
 
             val available = drained.amount
             val prop = channel.coolant
@@ -362,12 +392,18 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
                 "Coolant must define a hot coolant fluid for coolant flow"
             }
             val cooledTemperature = hotCoolant.getFluidType().temperature
-            if (cooledTemperature > this.temperature) continue
+            if (cooledTemperature > this.temperature) {
+                bump("TEMP_GATE(reactor=${temperature.toInt()}K<hot=${cooledTemperature.toInt()}K)")
+                continue
+            }
 
             val heatRemovedPerLiter = prop.specificHeatCapacity /
                     ScritConfig.INSTANCE.nuclear.fissionCoolantDivisor *
                     (cooledTemperature - coolantTemp)
-            if (heatRemovedPerLiter <= 0) continue
+            if (heatRemovedPerLiter <= 0) {
+                bump("HEAT_GATE(hpl=$heatRemovedPerLiter)")
+                continue
+            }
 
             val heatFluxPerAreaAndTemp: Double = 1 /
                     (1 / prop.coolingFactor + coolantWallThickness / thermalConductivity)
@@ -387,6 +423,8 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
             val hotFluid = FluidStack(hotCoolant, actualFlowRate)
             inputTank.drain(actualFlowRate, FluidAction.EXECUTE)
             outputTank.fill(hotFluid, FluidAction.EXECUTE)
+            flowTotal += actualFlowRate
+            bump("FLOW=$actualFlowRate(w=${channel.weight},ideal=${idealFluidUsed.toInt()},cap=$remainingSpace)")
 
             if (prop.accumulatesHydrogen() &&
                 this.temperature > zircaloyHydrogenReactionTemperature
@@ -405,6 +443,15 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         }
         this.coolantMass /= 1000.0
         this.accumulatedHydrogen *= 0.98
+        if (COOLANT_DEBUG) {
+            val summary = if (outcomes.isEmpty()) "(no channels)"
+                else outcomes.entries.joinToString(", ") { "${it.key}x${it.value}" }
+            COOLANT_LOGGER.info(
+                "[SC-COOLANT] ch=${coolantChannels.size} flow=${flowTotal}mB " +
+                "power=${"%.4g".format(power)} kEff=${"%.4f".format(kEff)} " +
+                "flux=${"%.3g".format(neutronFlux)} temp=${temperature.toInt()}K | $summary"
+            )
+        }
         return heatRemoved
     }
 
@@ -646,6 +693,14 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         const val STANDARD_PRESSURE: Double = 101325.0
         const val ROOM_TEMPERATURE: Double = 273.0
         const val AIR_BOILING_POINT: Double = 78.8
+
+        // [SC-DEBUG] temporary instrumentation for the "reactor not consuming/outputting coolant"
+        // report. Task #75 removes this together with the verifyCorrectness debug block. Emits one
+        // summary line per makeCoolantFlow() call: which gate each channel hit, plus the reactor's
+        // power/kEff/flux/temperature, so a cold subcritical reactor (TEMP_GATE on every channel) is
+        // distinguishable from a geometry problem (NULL/EMPTY) from a zero-weight channel (FLOW=0).
+        const val COOLANT_DEBUG = true
+        private val COOLANT_LOGGER = LogManager.getLogger("Supercritical")
 
         var thermalConductivity: Double = 45.0 // W/(m K), for steel
         var wallThickness: Double = 0.1 // m

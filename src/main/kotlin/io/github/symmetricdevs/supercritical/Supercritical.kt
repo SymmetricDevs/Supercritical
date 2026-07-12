@@ -3,24 +3,17 @@ package io.github.symmetricdevs.supercritical
 import com.gregtechceu.gtceu.api.GTCEuAPI
 import com.gregtechceu.gtceu.api.machine.MachineDefinition
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType
-import io.github.symmetricdevs.supercritical.BuildConfig
+import io.github.symmetricdevs.supercritical.common.data.*
+import io.github.symmetricdevs.supercritical.common.registry.ScritRegistration
+import io.github.symmetricdevs.supercritical.config.ScritConfig
+import io.github.symmetricdevs.supercritical.data.ScritDatagen
+import io.github.symmetricdevs.supercritical.util.addGenericListener
 import net.minecraft.resources.ResourceLocation
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import io.github.symmetricdevs.supercritical.common.registry.ScritRegistration
-import io.github.symmetricdevs.supercritical.config.ScritConfig
-import io.github.symmetricdevs.supercritical.data.ScritDatagen
-import io.github.symmetricdevs.supercritical.data.recipe.ScritRecipeManager
-import io.github.symmetricdevs.supercritical.util.addGenericListener
-import io.github.symmetricdevs.supercritical.common.data.ScritBlocks
-import io.github.symmetricdevs.supercritical.common.data.ScritCreativeTabs
-import io.github.symmetricdevs.supercritical.common.data.ScritItems
-import io.github.symmetricdevs.supercritical.common.data.ScritMachines
-import io.github.symmetricdevs.supercritical.common.data.ScritMaterials
-import io.github.symmetricdevs.supercritical.common.data.ScritRecipeTypes
 
 typealias GTRecipeEvent = GTCEuAPI.RegisterEvent<ResourceLocation, GTRecipeType>
 typealias GTMachineEvent = GTCEuAPI.RegisterEvent<ResourceLocation, MachineDefinition>
@@ -32,7 +25,7 @@ class Supercritical {
         ScritConfig.init()
         ScritDatagen.init()
 
-        val modBus = FMLJavaModLoadingContext.get().modEventBus
+        @Suppress("removal") val modBus = FMLJavaModLoadingContext.get().modEventBus
         ScritRegistration.REGISTRATE.registerEventListeners(modBus)
         // Create the Supercritical creative tab and mark it current so all subsequently
         // registered SC blocks/items/machines are tagged into it (GTCEu's GTMachines does the same).
@@ -59,12 +52,14 @@ class Supercritical {
     }
 
     private fun commonSetup(event: FMLCommonSetupEvent) {
-        event.enqueueWork { ScritRecipeManager.load() }
+        // Fission-fuel items, moderators and coolants are registered at runtime here, after their
+        // material properties have been attached during GTCEu's MaterialEvent / PostMaterialEvent.
+        // Recipes themselves are now generated through datagen (ScritRecipes via IGTAddon.addRecipes),
+        // so there is no longer any runtime recipe loading here.
         event.enqueueWork { ScritMaterials.registerFuelItems() }
         event.enqueueWork {
             ScritMaterials.registerModerators()
             ScritMaterials.registerCoolants()
-            ScritRecipeManager.loadLatest()
         }
     }
 

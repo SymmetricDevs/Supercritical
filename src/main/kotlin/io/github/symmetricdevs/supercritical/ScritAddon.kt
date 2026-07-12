@@ -3,11 +3,13 @@ package io.github.symmetricdevs.supercritical
 import com.gregtechceu.gtceu.api.addon.GTAddon
 import com.gregtechceu.gtceu.api.addon.IGTAddon
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate
-import io.github.symmetricdevs.supercritical.BuildConfig
-import io.github.symmetricdevs.supercritical.api.data.chemical.ore.ScritOrePrefix
+import io.github.symmetricdevs.supercritical.common.data.ScritTagPrefixes
 import io.github.symmetricdevs.supercritical.common.data.ScritElements
 import io.github.symmetricdevs.supercritical.common.data.ScritOreVeins
+import io.github.symmetricdevs.supercritical.common.data.ScritRecipes
 import io.github.symmetricdevs.supercritical.common.registry.ScritRegistration
+import net.minecraft.data.recipes.FinishedRecipe
+import java.util.function.Consumer
 
 @GTAddon
 class ScritAddon : IGTAddon {
@@ -15,14 +17,14 @@ class ScritAddon : IGTAddon {
         return ScritRegistration.REGISTRATE
     }
 
-    override fun initializeAddon() {}
-
     override fun addonModId(): String {
         return BuildConfig.MOD_ID
     }
 
+    override fun initializeAddon() {}
+
     override fun registerTagPrefixes() {
-        ScritOrePrefix.init()
+        ScritTagPrefixes.init()
     }
 
     override fun registerOreVeins() {
@@ -31,5 +33,9 @@ class ScritAddon : IGTAddon {
 
     override fun registerElements() {
         ScritElements.init()
+    }
+
+    override fun addRecipes(provider: Consumer<FinishedRecipe>) {
+        ScritRecipes.init(provider)
     }
 }

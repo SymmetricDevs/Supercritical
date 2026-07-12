@@ -13,16 +13,12 @@ object ScritRecipeTypes {
     const val SPENT_FUEL_POOL_ID: String = "spent_fuel_pool"
     const val GAS_CENTRIFUGE_ID: String = "gas_centrifuge"
 
-    private var heatExchangerRecipes: GTRecipeType? = null
-    private var spentFuelPoolRecipes: GTRecipeType? = null
-    private var gasCentrifugeRecipes: GTRecipeType? = null
-
-    val HEAT_EXCHANGER_RECIPES: GTRecipeType
-        get() = checkNotNull(heatExchangerRecipes) { "Heat exchanger recipe type has not been initialized" }
-    val SPENT_FUEL_POOL_RECIPES: GTRecipeType
-        get() = checkNotNull(spentFuelPoolRecipes) { "Spent fuel pool recipe type has not been initialized" }
-    val GAS_CENTRIFUGE_RECIPES: GTRecipeType
-        get() = checkNotNull(gasCentrifugeRecipes) { "Gas centrifuge recipe type has not been initialized" }
+    lateinit var HEAT_EXCHANGER_RECIPES: GTRecipeType
+        private set
+    lateinit var SPENT_FUEL_POOL_RECIPES: GTRecipeType
+        private set
+    lateinit var GAS_CENTRIFUGE_RECIPES: GTRecipeType
+        private set
 
     private var initialized = false
 
@@ -30,14 +26,14 @@ object ScritRecipeTypes {
     fun init() {
         if (initialized) return
 
-        heatExchangerRecipes = registerRecipeType(HEAT_EXCHANGER_ID, GTRecipeTypes.MULTIBLOCK)
+        HEAT_EXCHANGER_RECIPES = registerRecipeType(HEAT_EXCHANGER_ID, GTRecipeTypes.MULTIBLOCK)
             .setMaxIOSize(1, 0, 2, 2)
             .setSound(GTSoundEntries.COOLING)
 
-        spentFuelPoolRecipes = registerRecipeType(SPENT_FUEL_POOL_ID, GTRecipeTypes.MULTIBLOCK)
+        SPENT_FUEL_POOL_RECIPES = registerRecipeType(SPENT_FUEL_POOL_ID, GTRecipeTypes.MULTIBLOCK)
             .setMaxIOSize(1, 1, 1, 1)
 
-        gasCentrifugeRecipes = registerRecipeType(GAS_CENTRIFUGE_ID, GTRecipeTypes.MULTIBLOCK)
+        GAS_CENTRIFUGE_RECIPES = registerRecipeType(GAS_CENTRIFUGE_ID, GTRecipeTypes.MULTIBLOCK)
             .setMaxIOSize(0, 0, 1, 2)
             .setSound(GTSoundEntries.CENTRIFUGE)
 

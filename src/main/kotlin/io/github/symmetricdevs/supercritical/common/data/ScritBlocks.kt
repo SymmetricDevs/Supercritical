@@ -3,10 +3,15 @@ package io.github.symmetricdevs.supercritical.common.data
 import com.google.common.collect.ImmutableMap
 import com.gregtechceu.gtceu.api.block.ActiveBlock
 import com.gregtechceu.gtceu.api.block.property.GTBlockStateProperties
+import com.gregtechceu.gtceu.data.recipe.CustomTags
 import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
 import com.tterrag.registrate.util.entry.BlockEntry
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer
+import io.github.symmetricdevs.supercritical.common.block.ScritColumnBlock
+import io.github.symmetricdevs.supercritical.common.data.ScritBlocks.init
+import io.github.symmetricdevs.supercritical.common.registry.ScritRegistration
+import io.github.symmetricdevs.supercritical.util.scId
 import net.minecraft.core.Direction
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.DyeColor
@@ -15,10 +20,6 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.material.MapColor
-import io.github.symmetricdevs.supercritical.common.block.ScritColumnBlock
-import io.github.symmetricdevs.supercritical.common.data.ScritBlocks.init
-import io.github.symmetricdevs.supercritical.common.registry.ScritRegistration
-import io.github.symmetricdevs.supercritical.util.scId
 
 /**
  * Supercritical's plain blocks (7 casings + 16 dyed panelling variants), registered via GTCEu's
@@ -52,7 +53,7 @@ object ScritBlocks {
     ) { ctx, prov ->
         // Centered non-full-block pillar (10x16x10); #side on the 4 vertical faces, #end on top/bottom.
         val pillar = prov.models().getBuilder(ctx.name)
-            .parent(prov.models().getExistingFile(ResourceLocation("minecraft", "block/block")))
+            .parent(prov.models().getExistingFile(ResourceLocation.fromNamespaceAndPath("minecraft", "block/block")))
             .texture("side", scId("block/gas_centrifuge_column_side"))
             .texture("end", scId("block/gas_centrifuge_column_end"))
             .element()
@@ -118,6 +119,7 @@ object ScritBlocks {
                 if (noOcclusion) it.noOcclusion()
                 it
             }
+            .tag(CustomTags.MINEABLE_WITH_WRENCH)
         return (if (blockstate != null) builder.blockstate(blockstate) else builder)
             .simpleItem()
             .register()
@@ -161,6 +163,7 @@ object ScritBlocks {
                             .requiresCorrectToolForDrops()
                             .mapColor(color)
                     }
+                    .tag(CustomTags.MINEABLE_WITH_WRENCH)
                     .simpleItem()
                     .register()
             )

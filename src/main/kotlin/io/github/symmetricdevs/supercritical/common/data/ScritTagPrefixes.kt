@@ -1,4 +1,4 @@
-package io.github.symmetricdevs.supercritical.api.data.chemical.ore
+package io.github.symmetricdevs.supercritical.common.data
 
 import com.gregtechceu.gtceu.api.data.chemical.material.Material
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix
@@ -10,7 +10,7 @@ import net.minecraft.network.chat.Component
 import java.util.function.BiConsumer
 import java.util.function.Function
 
-object ScritOrePrefix {
+object ScritTagPrefixes {
     val fuelRod: TagPrefix = TagPrefix("fuelRod")
         .materialIconType(ScritMaterialIconType.fuelRod)
         .unificationEnabled(true)

@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import io.github.symmetricdevs.supercritical.api.items.armor.ArmorLogicExtension;
 import io.github.symmetricdevs.supercritical.api.data.chemical.material.MaterialExtension;
-import io.github.symmetricdevs.supercritical.api.data.chemical.ore.ScritOrePrefix;
+import io.github.symmetricdevs.supercritical.common.data.ScritTagPrefixes;
 import io.github.symmetricdevs.supercritical.api.data.chemical.tag.TagPrefixExtension;
 
 import java.util.function.Function;
@@ -43,7 +43,7 @@ public abstract class MixinTagPrefixItem {
         // would damage every BLAST item (steel/aluminium/... ingots, plates, dusts) and
         // double-apply for ingotHot.
         TagPrefix prefix = tagPrefix;
-        if (prefix != ScritOrePrefix.INSTANCE.getFuelRodHotDepleted()) {
+        if (prefix != ScritTagPrefixes.INSTANCE.getFuelRodHotDepleted()) {
             return;
         }
         Level level = entity.level();

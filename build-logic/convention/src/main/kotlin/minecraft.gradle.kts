@@ -109,7 +109,7 @@ if (generateTags) {
         useKotlinOutput()
         buildConfigField("MOD_ID", modId)
         buildConfigField("MOD_NAME", modName)
-        buildConfigField("net.minecraft.resources.ResourceLocation", "TEMPLATE_RL", "ResourceLocation(MOD_ID, \"\")")
+        buildConfigField("net.minecraft.resources.ResourceLocation", "TEMPLATE_RL", "ResourceLocation.fromNamespaceAndPath(MOD_ID, \"\")")
     }
 }
 

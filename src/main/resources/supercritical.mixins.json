@@ -8,7 +8,6 @@
   "mixins": [
     "gregtech.MixinElement",
     "gregtech.MixinEnergyDetectorCover",
-    "gregtech.MixinGTRecipeType",
     "gregtech.MixinIArmorLogic",
     "gregtech.MixinMaterial",
     "gregtech.MixinTagPrefix",
