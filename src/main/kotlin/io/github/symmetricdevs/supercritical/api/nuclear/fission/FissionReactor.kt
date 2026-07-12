@@ -1,8 +1,6 @@
 package io.github.symmetricdevs.supercritical.api.nuclear.fission
 
 import net.minecraft.nbt.CompoundTag
-import net.minecraftforge.fluids.FluidStack
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.components.ControlRod
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.components.CoolantChannel
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.components.FuelRod
@@ -11,6 +9,9 @@ import io.github.symmetricdevs.supercritical.api.nuclear.reactor.*
 import io.github.symmetricdevs.supercritical.api.nuclear.reactor.control.LegacyControlRodBank
 import io.github.symmetricdevs.supercritical.api.nuclear.reactor.families.LegacyPWRFamily
 import io.github.symmetricdevs.supercritical.api.nuclear.reactor.geometry.SquareLattice
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.pwr.LegacyEigenvalueNeutronics
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.pwr.LegacyPWRThermalHydraulics
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.pwr.SolidRodFuelCycle
 import io.github.symmetricdevs.supercritical.config.ScritConfig
 import java.util.*
 import kotlin.math.exp
@@ -20,11 +21,11 @@ import kotlin.math.sqrt
 
 class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Double) : ReactorCore {
     // ----- structure -----
-    private val reactorLayout: Array<Array<ReactorComponent?>> = Array(size) { arrayOfNulls(size) }
+    internal val reactorLayout: Array<Array<ReactorComponent?>> = Array(size) { arrayOfNulls(size) }
     private val reactorRadius: Double
-    private val surfaceArea: Double
-    private val exteriorPressure: Double = STANDARD_PRESSURE
-    private val envTemperature: Double = ROOM_TEMPERATURE
+    internal val surfaceArea: Double
+    internal val exteriorPressure: Double = STANDARD_PRESSURE
+    internal val envTemperature: Double = ROOM_TEMPERATURE
 
     // ----- ReactorCore API -----
     override val family = LegacyPWRFamily
@@ -57,30 +58,39 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
     val coolantChannels: MutableList<CoolantChannel> = arrayListOf()
     internal val effectiveControlRods: MutableList<ControlRod> = arrayListOf()
 
+    // ----- physics kernels (internal collaborators; this class is still the ReactorCore) -----
+    // Typed against the kernel abstractions where only interface methods are used; the thermal
+    // kernel is referenced by its concrete type so updateTemperature/updatePressure can reach its
+    // step methods. The legacy formulas live in the kernels; FissionReactor remains the legacy PWR
+    // core ("re-implement, not wrap").
+    private val neutronics: NeutronicsKernel = LegacyEigenvalueNeutronics(this)
+    private val thermal: LegacyPWRThermalHydraulics = LegacyPWRThermalHydraulics(this)
+    private val fuelCycle: FuelCycle = SolidRodFuelCycle(this)
+
     // ----- mutable physics state -----
-    private var k = 0.0
+    internal var k = 0.0
     override var kEff: Double = 0.0
-    private var controlRodFactor = 0.0
-    private var neutronToPowerConversion = 0.0
-    private var decayNeutrons = 0.0
-    private var neutronPoisonAmount = 0.0
-    private var decayProductsAmount = 0.0
-    private var weightedGenerationTime = 2.0
+    internal var controlRodFactor = 0.0
+    internal var neutronToPowerConversion = 0.0
+    internal var decayNeutrons = 0.0
+    internal var neutronPoisonAmount = 0.0
+    internal var decayProductsAmount = 0.0
+    internal var weightedGenerationTime = 2.0
     var neutronFlux: Double = 0.0
     var power: Double = 0.0
     var temperature: Double = ROOM_TEMPERATURE
-    private var prevTemperature = 0.0
+    internal var prevTemperature = 0.0
     var pressure: Double = STANDARD_PRESSURE
     override var fuelDepletion: Double = -1.0
     override var accumulatedHydrogen: Double = 0.0
 
     // ----- coolant-derived -----
     internal var coolantBaseTemperature = 0.0
-    private var coolantBoilingPointStandardPressure = 0.0
+    internal var coolantBoilingPointStandardPressure = 0.0
     internal var coolantExitTemperature = 0.0
     private var coolantHeatOfVaporization = 0.0
-    private var coolantMass = 0.0
-    private var structuralMass: Double
+    internal var coolantMass = 0.0
+    internal var structuralMass: Double
     var fuelMass: Double = 0.0
 
     // ----- limits / config -----
@@ -192,189 +202,14 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         this.fuelDepletion = 0.0
     }
 
-    // ===================== geometry / eigenvalue =====================
+    // ===================== geometry helpers =====================
+    // The eigenvalue machinery (computeK, fillGeometricMatrices, runPowerIteration,
+    // applyLeakageFactor, assignRodWeightsAndThermalProportions) and the reusable matrices live in
+    // LegacyEigenvalueNeutronics. The two helpers below stay here because they mutate this class's
+    // own component collections (effectiveControlRods / coolant-channel weights) and are invoked by
+    // the kernels during precompute.
 
-    fun computeGeometry() {
-        effectiveControlRods.clear()
-
-        if (fuelRods.isEmpty()) {
-            k = 0.0
-            kEff = 0.0
-            maxPower = 0.0
-            controlRodFactor = 0.0
-            prepareInitialConditions()
-            return
-        }
-
-        k = computeK(true, false)
-        val kExperimental = computeK(false, true)
-
-        computeControlRodWeights(((k - 1) / k) - ((kExperimental - 1) / kExperimental))
-
-        neutronToPowerConversion = 0.0
-        decayNeutrons = 0.0
-
-        for (rod in fuelRods) {
-            neutronToPowerConversion += rod.getFuel().releasedHeatEnergy / rod.getFuel().requiredNeutrons
-            decayNeutrons += rod.getFuel().decayRate
-        }
-        computeCoolantWeights()
-
-        if (fuelRods.size > 1) {
-            neutronToPowerConversion /= fuelRods.size.toDouble()
-            maxPower = calculateMaxPower()
-        } else {
-            k = 0.00001
-            maxPower = 0.1 * ScritConfig.INSTANCE.nuclear.nuclearPowerMultiplier
-        }
-
-        controlRodFactor = ControlRod.controlRodFactor(effectiveControlRods, controlRodInsertion)
-
-        prepareInitialConditions()
-    }
-
-    fun computeK(addToEffectiveLists: Boolean, controlRodsInserted: Boolean): Double {
-        val neutrons = Array(fuelRods.size) { DoubleArray(fuelRods.size) }
-        val fast = Array(fuelRods.size) { DoubleArray(fuelRods.size) }
-        val slow = Array(fuelRods.size) { DoubleArray(fuelRods.size) }
-        fillGeometricMatrices(neutrons, fast, slow, addToEffectiveLists, controlRodsInserted)
-        val vector = runPowerIteration(neutrons)
-        val kCalc = getMagnitude(vector)
-        if (addToEffectiveLists) {
-            assignRodWeightsAndThermalProportions(vector, fast, slow)
-        }
-        return applyLeakageFactor(kCalc)
-    }
-
-    private fun fillGeometricMatrices(
-        neutrons: Array<DoubleArray>,
-        fast: Array<DoubleArray>,
-        slow: Array<DoubleArray>,
-        addToEffectiveLists: Boolean,
-        controlRodsInserted: Boolean
-    ) {
-        for (i in fuelRods.indices) {
-            for (j in 0..<i) {
-                var moderation = 0.0
-                var slowAbsorption = 0.0
-                var fastAbsorption = 0.0
-                val rodOne = fuelRods[i]
-                val rodTwo = fuelRods[j]
-
-                var prevX = rodOne.x
-                var prevY = rodOne.y
-                val resolution = ScritConfig.INSTANCE.nuclear.fissionReactorResolution
-                for (t in 0 until Math.ceil(resolution).toInt()) {
-                    val x = Math.round(
-                        (rodTwo.x - rodOne.x) *
-                                (t.toDouble() / resolution) + fuelRods[i].x
-                    ).toInt()
-                    val y = Math.round(
-                        (rodTwo.y - rodOne.y) *
-                                (t.toDouble() / resolution) + fuelRods[i].y
-                    ).toInt()
-                    if (x < 0 || x > reactorLayout.size - 1 || y < 0 || y > reactorLayout.size - 1) {
-                        continue
-                    }
-                    val component = reactorLayout[x][y]
-
-                    if (component == null) {
-                        continue
-                    }
-
-                    if (!component.samePositionAs(fuelRods[i]) &&
-                        !component.samePositionAs(fuelRods[j])
-                    ) {
-                        slowAbsorption += component.getAbsorptionFactor(controlRodsInserted, true)
-                        fastAbsorption += component.getAbsorptionFactor(controlRodsInserted, false)
-                    }
-
-                    if (component.moderationFactor > 0) {
-                        moderation += component.moderationFactor
-                        slowAbsorption = (fastAbsorption + slowAbsorption) / 2
-                    }
-
-                    if (!addToEffectiveLists || (x == prevX && y == prevY)) {
-                        continue
-                    }
-                    prevX = x
-                    prevY = y
-
-                    if (component is ControlRod) {
-                        component.addFuelRodPair()
-                    }
-                }
-
-                moderation /= resolution
-                fastAbsorption /= resolution
-                slowAbsorption /= resolution
-
-                val dist = rodOne.getDistance(rodTwo)
-                val unabsorbedFast = exp(-fastAbsorption * dist) / dist
-                val unabsorbedSlow = exp(-slowAbsorption * dist) / dist
-                var fastFlux = exp(-moderation * dist) / dist
-                val slowFlux = (1 / dist - fastFlux) * unabsorbedSlow
-                fastFlux = fastFlux * unabsorbedFast
-
-                var slowNeutronFissionMultiplier = rodTwo.getFuel().slowFissionMultiplier
-                var fastNeutronFissionMultiplier = rodTwo.getFuel().fastFissionMultiplier
-                neutrons[i][j] = slowFlux * slowNeutronFissionMultiplier +
-                        fastFlux * fastNeutronFissionMultiplier
-
-                slowNeutronFissionMultiplier = rodOne.getFuel().slowFissionMultiplier
-                fastNeutronFissionMultiplier = rodOne.getFuel().fastFissionMultiplier
-                neutrons[j][i] = slowFlux * slowNeutronFissionMultiplier +
-                        fastFlux * fastNeutronFissionMultiplier
-
-                if (addToEffectiveLists) {
-                    fast[i][j] = fastFlux * rodTwo.getFuel().fastNeutronCaptureCrossSection
-                    slow[i][j] = slowFlux * rodTwo.getFuel().slowNeutronCaptureCrossSection
-
-                    fast[j][i] = fastFlux * rodOne.getFuel().fastNeutronCaptureCrossSection
-                    slow[j][i] = slowFlux * rodOne.getFuel().slowNeutronCaptureCrossSection
-                }
-            }
-        }
-    }
-
-    private fun runPowerIteration(matrix: Array<DoubleArray>): DoubleArray {
-        val vector = DoubleArray(fuelRods.size)
-        Arrays.fill(vector, 1.0)
-        for (i in 0..<ScritConfig.INSTANCE.nuclear.fissionReactorPowerIterations) {
-            normalize(vector)
-            multiply(matrix, vector)
-        }
-        return vector
-    }
-
-    private fun assignRodWeightsAndThermalProportions(
-        vector: DoubleArray,
-        fastMatrix: Array<DoubleArray>,
-        slowMatrix: Array<DoubleArray>
-    ) {
-        linearNormalize(vector)
-        for (i in fuelRods.indices) {
-            fuelRods[i].weight = vector[i]
-        }
-        val fastVector = vector.copyOf(vector.size)
-        val slowVector = vector.copyOf(vector.size)
-        multiply(fastMatrix, fastVector)
-        multiply(slowMatrix, slowVector)
-        for (i in fuelRods.indices) {
-            if (slowVector[i] + fastVector[i] == 0.0) {
-                fuelRods[i].thermalProportion = 0.0
-            } else {
-                fuelRods[i].thermalProportion = (slowVector[i] / (slowVector[i] + fastVector[i]))
-            }
-        }
-    }
-
-    private fun applyLeakageFactor(kCalc: Double): Double {
-        val leakageFactor = reactorDepth / (1.0 + reactorDepth)
-        return kCalc * leakageFactor
-    }
-
-    protected fun computeCoolantWeights() {
+    internal fun computeCoolantWeights() {
         for (rod in fuelRods) {
             for (i in 0..3) {
                 val x = rod.x + dx[i]
@@ -388,7 +223,7 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         }
     }
 
-    protected fun computeControlRodWeights(totalWorth: Double) {
+    internal fun computeControlRodWeights(totalWorth: Double) {
         var totalWeight = 0.0
         for (rod in controlRods) {
             rod.computeWeightFromFuelRodMap()
@@ -400,170 +235,24 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         ControlRod.normalizeWeights(effectiveControlRods, totalWeight, totalWorth)
     }
 
-    fun calculateMaxPower(): Double {
-        val hypotheticalTemperature = min(maxTemperature, zircaloyHydrogenReactionTemperature)
-        var heatRemoved = 0.0
-        for (channel in coolantChannels) {
-            val prop = channel.coolant
-            val coolantTemp = coolantInletTemp(prop)
-
-            val hotCoolant = requireNotNull(prop.hotCoolant) {
-                "Coolant must define a hot coolant fluid for maximum-power calculation"
-            }
-            val cooledTemperature = hotCoolant.getFluidType().temperature
-            if (cooledTemperature > hypotheticalTemperature) {
-                continue
-            }
-
-            val heatRemovedPerLiter = heatRemovedPerLiter(prop, coolantTemp, cooledTemperature)
-            val idealFluidUsed =
-                idealCoolantHeatFlux(prop, channel.weight, hypotheticalTemperature, cooledTemperature) / heatRemovedPerLiter
-
-            heatRemoved += idealFluidUsed * heatRemovedPerLiter
-        }
-        val timeConstant = thermalTimeConstant()
-
-        return ((hypotheticalTemperature - envTemperature) * (timeConstant * (this.coolantMass +
-                this.structuralMass + this.fuelMass)) + heatRemoved) / 1e6
-    }
-
-    // ===================== coolant flow =====================
-
-    fun makeCoolantFlow(): Double {
-        var heatRemoved = 0.0
-        coolantMass = 0.0
-        for (channel in coolantChannels) {
-            val input = channel.inputHandler
-            val output = channel.outputHandler
-            if (input == null || output == null) {
-                continue
-            }
-
-            val inputTank = input.fluidTank
-            val outputTank = output.fluidTank
-            val drained = inputTank.drain(16000, FluidAction.SIMULATE)
-            if (drained.isEmpty) {
-                continue
-            }
-
-            val available = drained.amount
-            val prop = channel.coolant
-            val coolantTemp = coolantInletTemp(prop)
-            val hotCoolant = requireNotNull(prop.hotCoolant) {
-                "Coolant must define a hot coolant fluid for coolant flow"
-            }
-            val cooledTemperature = hotCoolant.getFluidType().temperature
-            if (cooledTemperature > this.temperature) {
-                continue
-            }
-
-            val heatRemovedPerLiter = heatRemovedPerLiter(prop, coolantTemp, cooledTemperature)
-            if (heatRemovedPerLiter <= 0) {
-                continue
-            }
-
-            val idealFluidUsed =
-                idealCoolantHeatFlux(prop, channel.weight, this.temperature, cooledTemperature) / heatRemovedPerLiter
-            val cappedFluidUsed = min(available.toDouble(), idealFluidUsed)
-
-            val remainingSpace = outputTank.getTankCapacity(0) - outputTank.getFluidInTank(0).amount
-            val actualFlowRate = min(
-                remainingSpace,
-                (cappedFluidUsed + channel.partialCoolant).toInt()
-            )
-            channel.partialCoolant += cappedFluidUsed - actualFlowRate
-
-            val hotFluid = FluidStack(hotCoolant, actualFlowRate)
-            inputTank.drain(actualFlowRate, FluidAction.EXECUTE)
-            outputTank.fill(hotFluid, FluidAction.EXECUTE)
-
-            if (prop.accumulatesHydrogen() &&
-                this.temperature > zircaloyHydrogenReactionTemperature
-            ) {
-                val boilingPoint = coolantBoilingPoint(prop)
-                if (this.temperature > boilingPoint) {
-                    this.accumulatedHydrogen += (this.temperature - boilingPoint) / boilingPoint
-                } else if (actualFlowRate < min(remainingSpace.toDouble(), idealFluidUsed)) {
-                    this.accumulatedHydrogen += (this.temperature - zircaloyHydrogenReactionTemperature) /
-                            zircaloyHydrogenReactionTemperature
-                }
-            }
-
-            this.coolantMass += cappedFluidUsed * prop.mass
-            heatRemoved += cappedFluidUsed * heatRemovedPerLiter
-        }
-        this.coolantMass /= 1000.0
-        this.accumulatedHydrogen *= 0.98
-        return heatRemoved
-    }
-
-    protected fun coolantBoilingPoint(): Double {
-        return this.coolantBoilingPointStandardPressure
-    }
-
-    protected fun coolantBoilingPoint(coolant: ICoolantStats): Double {
-        if (coolant.boilingPoint == 0.0) {
-            return coolantBoilingPoint()
-        }
-        return coolant.boilingPoint
-    }
-
-    private fun coolantInletTemp(prop: ICoolantStats): Int {
-        val original = CoolantRegistry.originalFluid(prop)
-        return if (original == null) ROOM_TEMPERATURE.toInt() else original.getFluidType().temperature
-    }
-
-    private fun heatRemovedPerLiter(prop: ICoolantStats, coolantTemp: Int, cooledTemperature: Int): Double =
-        prop.specificHeatCapacity / ScritConfig.INSTANCE.nuclear.fissionCoolantDivisor * (cooledTemperature - coolantTemp)
-
-    private fun coolantHeatFluxPerArea(prop: ICoolantStats): Double =
-        1 / (1 / prop.coolingFactor + coolantWallThickness / thermalConductivity)
-
-    private fun idealCoolantHeatFlux(
-        prop: ICoolantStats, weight: Double, refTemp: Double, cooledTemperature: Int
-    ): Double =
-        coolantHeatFluxPerArea(prop) * weight * reactorDepth * (refTemp - cooledTemperature)
-
-    private fun thermalTimeConstant(): Double =
-        specificHeatCapacity * (1 / convectiveHeatTransferCoefficient + wallThickness / thermalConductivity) / this.surfaceArea
-
     // ===================== tick updates =====================
 
     fun updatePower() {
-        if (this.isOn) {
-            this.neutronFlux += this.totalDecayNeutrons
-            this.kEff =
-                1 / ((1 / this.k) + powerDefectCoefficient * (this.power / this.maxPower) + neutronPoisonAmount * crossSectionRatio / surfaceArea + controlRodFactor)
-            this.kEff = max(0.0, this.kEff)
-
-            val inverseReactorPeriod = (this.kEff - 1) / weightedGenerationTime
-
-            this.neutronFlux *= exp(inverseReactorPeriod)
-
-            this.fuelDepletion += this.neutronFlux * reactorDepth
-            this.decayProductsAmount += max(neutronFlux, 0.0) / 250000
-
-            this.power = this.neutronFlux * this.neutronToPowerConversion
-        } else {
-            this.neutronFlux *= 0.5
-            this.power *= 0.5
+        // Legacy updatePower body lives in LegacyEigenvalueNeutronics.solve (point kinetics) plus
+        // SolidRodFuelCycle.step (fuelDepletion). solve handles both the isOn and !isOn branches;
+        // depletion only accrues while running, matching legacy.
+        neutronics.solve(state, 1.0)
+        if (isOn) {
+            fuelCycle.step(state, neutronFlux, reactorDepth.toDouble())
         }
     }
 
     fun updateTemperature() {
-        this.prevTemperature = this.temperature
-        this.temperature = responseFunctionTemperature(envTemperature, this.temperature, this.power * 1e6, 0.0)
-        this.temperature = min(maxTemperature, temperature)
-        val heatRemoved = this.makeCoolantFlow()
-        this.temperature = responseFunctionTemperature(envTemperature, prevTemperature, this.power * 1e6, heatRemoved)
-        this.temperature = max(this.temperature, this.coolantBaseTemperature)
+        thermal.updateTemperatureStep()
     }
 
     fun updatePressure() {
-        this.pressure = responseFunction(
-            if (!(this.temperature <= this.coolantBoilingPoint()) && this.isOn) 1000.0 * R * this.temperature else this.exteriorPressure,
-            this.pressure, 0.2
-        )
+        thermal.updatePressureStep()
     }
 
     fun updateNeutronPoisoning() {
@@ -579,7 +268,21 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
 
     override fun precompute() {
         prepareThermalProperties()
-        computeGeometry()
+        effectiveControlRods.clear()
+        if (fuelRods.isEmpty()) {
+            k = 0.0
+            kEff = 0.0
+            maxPower = 0.0
+            controlRodFactor = 0.0
+            prepareInitialConditions()
+            return
+        }
+        // Legacy computeGeometry decomposed into its neutronics slice (eigenvalue + control-rod
+        // worth + neutronToPowerConversion + decayNeutrons + controlRodFactor) and its thermal
+        // slice (computeCoolantWeights + maxPower + prepareInitialConditions). Running the
+        // neutronics slice first is value-safe: see task-5-report.md parity table.
+        neutronics.precompute(geometry)
+        thermal.precompute(geometry)
     }
 
     override fun tick() {
@@ -650,21 +353,6 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         }
     }
 
-    protected fun responseFunctionTemperature(
-        envTemperature: Double, currentTemperature: Double, heatAdded: Double,
-        heatAbsorbed: Double
-    ): Double {
-        var currentTemperature = currentTemperature
-        var heatAbsorbed = heatAbsorbed
-        currentTemperature = max(0.1, currentTemperature)
-        heatAbsorbed = max(0.0, heatAbsorbed)
-        val timeConstant = thermalTimeConstant()
-        val expDecay = exp(-timeConstant)
-        val effectiveEnvTemperature = envTemperature +
-                (heatAdded - heatAbsorbed) / (timeConstant * (this.coolantMass + this.structuralMass + this.fuelMass))
-        return currentTemperature * expDecay + effectiveEnvTemperature * (1 - expDecay)
-    }
-
     // ===================== safety =====================
 
     fun checkForMeltdown(): Boolean {
@@ -724,7 +412,7 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
 
     /**
      * Faithful port of legacy FissionReactor#deserializeNBT. Restores the fields written by
-     * [serializeNBT]. Should be called after [computeGeometry] so structural properties are fresh.
+     * [serializeNBT]. Should be called after precompute so structural properties are fresh.
      */
     fun deserializeNBT(tag: CompoundTag) {
         temperature = tag.getDouble("Temperature")
@@ -762,7 +450,7 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         var crossSectionRatio: Double = 4.0 // ratio between the cross section for typical fuels and xenon-135
         var zircaloyHydrogenReactionTemperature: Double = 1500.0 // K
 
-        protected fun responseFunction(target: Double, current: Double, criticalRate: Double): Double {
+        internal fun responseFunction(target: Double, current: Double, criticalRate: Double): Double {
             var current = current
             if (current < 0) {
                 if (criticalRate < 1) return 0.0

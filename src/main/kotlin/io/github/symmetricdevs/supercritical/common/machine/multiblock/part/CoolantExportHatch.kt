@@ -27,7 +27,7 @@ class CoolantExportHatch(holder: IMachineBlockEntity, tier: Int) :
     override var coolant: ICoolantStats? = null
 
     init {
-        // capabilityIO = IO.BOTH so the reactor sim (FissionReactor.makeCoolantFlow) can push hot
+        // capabilityIO = IO.BOTH so the reactor sim (LegacyPWRThermalHydraulics.makeCoolantFlow) can push hot
         // coolant into this output tank via the public fill(). NotifiableFluidTank.fill is guarded
         // by canCapInput(), which is false for IO.OUT — a pure-OUT tank silently rejects the sim's
         // fill (returns 0), so no hot coolant is ever stored and exportToNearby has nothing to push.
