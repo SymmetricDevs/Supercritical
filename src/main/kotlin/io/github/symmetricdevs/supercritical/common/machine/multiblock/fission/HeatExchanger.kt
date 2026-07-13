@@ -1,5 +1,6 @@
 package io.github.symmetricdevs.supercritical.common.machine.multiblock.fission
 
+import com.gregtechceu.gtceu.GTCEu
 import com.gregtechceu.gtceu.api.data.RotationState
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition
@@ -10,7 +11,6 @@ import com.gregtechceu.gtceu.api.pattern.Predicates
 import com.gregtechceu.gtceu.common.data.GTBlocks
 import com.gregtechceu.gtceu.common.data.GTMaterials
 import com.gregtechceu.gtceu.common.data.GTRecipeModifiers
-import net.minecraft.resources.ResourceLocation
 import io.github.symmetricdevs.supercritical.common.data.ScritRecipeTypes
 import io.github.symmetricdevs.supercritical.common.registry.ScritRegistration
 import io.github.symmetricdevs.supercritical.util.scId
@@ -46,7 +46,7 @@ class HeatExchanger(holder: IMachineBlockEntity, vararg args: Any?) :
                         .build()
                 }
                 .workableCasingModel(
-                    ResourceLocation("gtceu", "block/casings/solid/machine_casing_solid_steel"),
+                    GTCEu.id("block/casings/solid/machine_casing_solid_steel"),
                     scId("block/multiblock/heat_exchanger")
                 )
                 .register()

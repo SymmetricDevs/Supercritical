@@ -6,8 +6,8 @@ import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder
-import net.minecraft.world.item.ItemStack
 import io.github.symmetricdevs.supercritical.api.capability.ILockableHandler
+import net.minecraft.world.item.ItemStack
 
 open class LockableItemStackHandler(machine: MetaMachine, io: IO) : NotifiableItemStackHandler(
     machine, 1, io, if (io.support(
@@ -18,20 +18,20 @@ open class LockableItemStackHandler(machine: MetaMachine, io: IO) : NotifiableIt
 
     @Persisted
     @DescSynced
-    override var locked: Boolean = false
-        set(locked) {
-            field = locked
-            if (locked && !getStackInSlot(0).isEmpty) {
-                lockedObject = getStackInSlot(0).copy()
-                lockedObject.setCount(1)
+    override var lockIntent: Boolean = false
+        set(lockIntent) {
+            field = lockIntent
+            if (lockIntent && !getStackInSlot(0).isEmpty) {
+                stack = getStackInSlot(0).copy()
+                stack.setCount(1)
             } else {
-                lockedObject = ItemStack.EMPTY
+                stack = ItemStack.EMPTY
             }
         }
 
     @Persisted
     @DescSynced
-    override var lockedObject: ItemStack = ItemStack.EMPTY
+    override var stack: ItemStack = ItemStack.EMPTY
 
 
     override fun getFieldHolder(): ManagedFieldHolder {
@@ -39,14 +39,14 @@ open class LockableItemStackHandler(machine: MetaMachine, io: IO) : NotifiableIt
     }
 
     override fun insertItem(slot: Int, stack: ItemStack, simulate: Boolean): ItemStack {
-        if (locked && !ItemStack.isSameItem(lockedObject, stack)) {
+        if (lockIntent && !ItemStack.isSameItem(this@LockableItemStackHandler.stack, stack)) {
             return stack
         }
         return super.insertItem(slot, stack, simulate)
     }
 
     override fun isItemValid(slot: Int, stack: ItemStack): Boolean {
-        if (locked && !ItemStack.isSameItem(lockedObject, stack)) {
+        if (lockIntent && !ItemStack.isSameItem(this@LockableItemStackHandler.stack, stack)) {
             return false
         }
         return super.isItemValid(slot, stack)

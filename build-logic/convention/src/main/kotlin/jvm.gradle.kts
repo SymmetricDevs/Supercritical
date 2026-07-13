@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     java
     alias(libs.plugins.kotlin.jvm)
@@ -8,6 +10,12 @@ val utf8: String = Charsets.UTF_8.name()
 
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = utf8
+}
+
+val compileKotlin = tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        freeCompilerArgs = listOf("-XXLanguage:+ContextParameters")
+    }
 }
 
 tasks.javadoc {

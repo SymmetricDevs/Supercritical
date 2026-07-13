@@ -1,13 +1,12 @@
 package io.github.symmetricdevs.supercritical.api.data.chemical.material.property
 
 import com.gregtechceu.gtceu.api.data.chemical.material.Material
-import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidProperty
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.IMaterialProperty
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.MaterialProperties
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKey
-import net.minecraft.world.level.material.Fluid
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.ICoolantStats
+import net.minecraft.world.level.material.Fluid
 
 class CoolantProperty(
     material: Material,
@@ -22,16 +21,12 @@ class CoolantProperty(
     override var accumulatesHydrogen = false
     override var slowAbsorptionFactor = 0.0
     override var fastAbsorptionFactor = 0.0
-    override val mass: Double
+    override val mass: Double = material.mass.toDouble()
     override val hotCoolant: Fluid?
         get() = hotHPCoolant.fluid
 
-    init {
-        mass = material.mass.toDouble()
-    }
-
     override fun verifyProperty(properties: MaterialProperties) {
-        properties.ensureSet<FluidProperty?>(PropertyKey.FLUID, true)
+        properties.ensureSet(PropertyKey.FLUID, true)
     }
 
     fun setHotHPCoolant(hotHPCoolant: Material): CoolantProperty {

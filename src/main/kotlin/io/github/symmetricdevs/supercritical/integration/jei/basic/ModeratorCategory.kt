@@ -1,7 +1,12 @@
 package io.github.symmetricdevs.supercritical.integration.jei.basic
 
 import com.gregtechceu.gtceu.api.gui.GuiTextures
+import com.lowdragmc.lowdraglib.gui.widget.LabelWidget
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup
 import com.lowdragmc.lowdraglib.jei.IGui2IDrawable
+import io.github.symmetricdevs.supercritical.api.nuclear.fission.ModeratorRegistry
+import io.github.symmetricdevs.supercritical.common.data.ScritMachines
+import io.github.symmetricdevs.supercritical.util.scId
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder
 import mezz.jei.api.gui.drawable.IDrawable
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView
@@ -12,15 +17,14 @@ import mezz.jei.api.recipe.RecipeType
 import mezz.jei.api.recipe.category.IRecipeCategory
 import mezz.jei.api.registration.IRecipeCatalystRegistration
 import mezz.jei.api.registration.IRecipeRegistration
-import net.minecraft.client.Minecraft
+import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.chat.Component
-import net.minecraft.resources.ResourceLocation
-import io.github.symmetricdevs.supercritical.BuildConfig
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.ModeratorRegistry
-import io.github.symmetricdevs.supercritical.common.data.ScritMachines
 
-class ModeratorCategory(helpers: IJeiHelpers) : IRecipeCategory<ModeratorInfo?> {
+private fun Component.withDefaultColor(): Component =
+    if (style.color == null) copy().withStyle(ChatFormatting.BLACK) else this
+
+class ModeratorCategory(helpers: IJeiHelpers) : IRecipeCategory<ModeratorInfo> {
     private val icon: IDrawable
     private val slot: IDrawable
 
@@ -31,22 +35,26 @@ class ModeratorCategory(helpers: IJeiHelpers) : IRecipeCategory<ModeratorInfo?> 
     }
 
     override fun setRecipe(
-        builder: IRecipeLayoutBuilder, recipe: ModeratorInfo?,
+        builder: IRecipeLayoutBuilder, recipe: ModeratorInfo,
         focuses: IFocusGroup
     ) {
-        val info = recipe ?: return
-        builder.addSlot(RecipeIngredientRole.INPUT, 78, 9).addItemStack(info.stack)
+        builder.addSlot(RecipeIngredientRole.INPUT, 78, 9).addItemStack(recipe.stack)
     }
 
     override fun draw(
-        recipe: ModeratorInfo?, recipeSlotsView: IRecipeSlotsView,
+        recipe: ModeratorInfo, recipeSlotsView: IRecipeSlotsView,
         guiGraphics: GuiGraphics, mouseX: Double, mouseY: Double
     ) {
         slot.draw(guiGraphics, 77, 8)
-        recipe?.drawInfo(guiGraphics, Minecraft.getInstance())
+
+        val group = WidgetGroup(0, 0, width, height)
+        recipe.textLines.forEachIndexed { index, line ->
+            group.addWidget(LabelWidget(0, 40 + index * 10, line.withDefaultColor()).setDropShadow(false))
+        }
+        group.drawInBackground(guiGraphics, mouseX.toInt(), mouseY.toInt(), 0f)
     }
 
-    override fun getRecipeType(): RecipeType<ModeratorInfo?> {
+    override fun getRecipeType(): RecipeType<ModeratorInfo> {
         return RECIPE_TYPE
     }
 
@@ -67,16 +75,16 @@ class ModeratorCategory(helpers: IJeiHelpers) : IRecipeCategory<ModeratorInfo?> 
     }
 
     companion object {
-        val RECIPE_TYPE: RecipeType<ModeratorInfo?> =
-            RecipeType<ModeratorInfo?>(ResourceLocation(BuildConfig.MOD_ID, "moderator"), ModeratorInfo::class.java)
+        val RECIPE_TYPE: RecipeType<ModeratorInfo> =
+            RecipeType<ModeratorInfo>(scId("moderator"), ModeratorInfo::class.java)
 
         fun registerRecipes(registry: IRecipeRegistration) {
-            val infos = buildList<ModeratorInfo?> {
+            val infos = buildList<ModeratorInfo> {
                 for (block in ModeratorRegistry.allModerators) {
                     if (block != null) add(ModeratorInfo(block))
                 }
             }
-            registry.addRecipes<ModeratorInfo?>(RECIPE_TYPE, infos)
+            registry.addRecipes<ModeratorInfo>(RECIPE_TYPE, infos)
         }
 
         fun registerRecipeCatalysts(registration: IRecipeCatalystRegistration) {

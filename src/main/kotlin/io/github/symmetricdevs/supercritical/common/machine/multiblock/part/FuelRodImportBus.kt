@@ -15,12 +15,6 @@ import com.lowdragmc.lowdraglib.gui.util.ClickData
 import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget
 import com.lowdragmc.lowdraglib.gui.widget.ComponentPanelWidget
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget
-import net.minecraft.core.BlockPos
-import net.minecraft.nbt.CompoundTag
-import net.minecraft.network.chat.Component
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.item.ItemStack
-import net.minecraftforge.items.ItemStackHandler
 import io.github.symmetricdevs.supercritical.api.capability.IFuelRodHandler
 import io.github.symmetricdevs.supercritical.api.machine.multiblock.IFissionReactorHatch
 import io.github.symmetricdevs.supercritical.api.machine.trait.LockableItemStackHandler
@@ -29,8 +23,14 @@ import io.github.symmetricdevs.supercritical.api.nuclear.ecs.components.FuelRodC
 import io.github.symmetricdevs.supercritical.api.nuclear.ecs.components.ReactorComponentTypes
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.FissionFuelRegistry
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.IFissionFuelStats
-import io.github.symmetricdevs.supercritical.common.machine.multiblock.fission.FissionReactor
 import io.github.symmetricdevs.supercritical.common.data.ScritBlocks
+import io.github.symmetricdevs.supercritical.common.machine.multiblock.fission.FissionReactor
+import net.minecraft.core.BlockPos
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.ItemStack
+import net.minecraftforge.items.ItemStackHandler
 
 class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMachine(holder, tier, IO.IN),
     IFuelRodHandler, IControllable, IFissionReactorHatch, IUIMachine, IMachineLife {
@@ -46,7 +46,7 @@ class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMac
      * legacy partial-fuel display slot.
      */
     private val partialFuelDisplay: ItemStackHandler = object : ItemStackHandler(1) {
-        override fun getStackInSlot(slot: Int): ItemStack = this@FuelRodImportBus.lockedObject
+        override fun getStackInSlot(slot: Int): ItemStack = this@FuelRodImportBus.stack
     }
 
     val inventory: NotifiableItemStackHandler by ::lockableInventory
@@ -60,13 +60,14 @@ class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMac
     override val hatchPos: BlockPos?
         get() = pos
 
-    override var locked: Boolean
-        get() = lockableInventory.locked
+    override var lockIntent: Boolean
+        get() = lockableInventory.lockIntent
         set(value) {
-            if (depletionPoint == 0.0) lockableInventory.locked = value
+            if (depletionPoint == 0.0) lockableInventory.lockIntent = value
         }
 
-    override val lockedObject: ItemStack by lockableInventory::lockedObject
+    override val stack: ItemStack
+            by lockableInventory::stack
 
     override fun checkValidity(depth: Int): Boolean = getExportHatch(depth) != null
 
@@ -155,7 +156,7 @@ class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMac
         setPartialFuel(null)
         depletionPoint = 0.0
         // depletionPoint is now 0, so the property setter is no longer guarded out.
-        locked = false
+        lockIntent = false
     }
 
     override fun createUI(entityPlayer: Player): ModularUI {
@@ -229,8 +230,8 @@ class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMac
         // @Persisted storage/lockedObject. Persist them manually so fuel rods in the slot — and
         // the locked-rod sample used for the display slot + lock filter — survive reload.
         tag.put("Inventory", lockableInventory.storage.serializeNBT())
-        tag.putBoolean("Locked", lockableInventory.locked)
-        val lockedObj = lockableInventory.lockedObject
+        tag.putBoolean("Locked", lockableInventory.lockIntent)
+        val lockedObj = lockableInventory.stack
         if (!lockedObj.isEmpty) {
             tag.put("LockedObject", lockedObj.save(CompoundTag()))
         }
@@ -249,9 +250,9 @@ class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMac
         if (tag.contains("Inventory")) {
             lockableInventory.storage.deserializeNBT(tag.getCompound("Inventory"))
         }
-        lockableInventory.locked = tag.getBoolean("Locked")
+        lockableInventory.lockIntent = tag.getBoolean("Locked")
         if (tag.contains("LockedObject")) {
-            lockableInventory.lockedObject = ItemStack.of(tag.getCompound("LockedObject"))
+            lockableInventory.stack = ItemStack.of(tag.getCompound("LockedObject"))
         }
         if (tag.contains("PartialFuel")) {
             this.partialFuel = FissionFuelRegistry.getFissionFuel(tag.getString("PartialFuel"))

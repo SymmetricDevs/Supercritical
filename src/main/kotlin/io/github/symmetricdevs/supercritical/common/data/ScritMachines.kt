@@ -1,5 +1,6 @@
 package io.github.symmetricdevs.supercritical.common.data
 
+import com.gregtechceu.gtceu.GTCEu
 import com.gregtechceu.gtceu.api.GTValues
 import com.gregtechceu.gtceu.api.data.RotationState
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
@@ -11,21 +12,16 @@ import com.gregtechceu.gtceu.api.pattern.Predicates
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection
 import com.gregtechceu.gtceu.common.data.GTBlocks
 import com.gregtechceu.gtceu.common.data.models.GTMachineModels
-import net.minecraft.network.chat.Component
-import net.minecraft.resources.ResourceLocation
 import io.github.symmetricdevs.supercritical.api.machine.multiblock.ScritMultiblockAbility
 import io.github.symmetricdevs.supercritical.common.machine.multiblock.electric.GasCentrifuge
 import io.github.symmetricdevs.supercritical.common.machine.multiblock.fission.FissionReactor
 import io.github.symmetricdevs.supercritical.common.machine.multiblock.fission.HeatExchanger
 import io.github.symmetricdevs.supercritical.common.machine.multiblock.fission.SpentFuelPool
+import io.github.symmetricdevs.supercritical.common.machine.multiblock.part.*
 import io.github.symmetricdevs.supercritical.common.registry.ScritRegistration
+import io.github.symmetricdevs.supercritical.config.ScritConfig
 import io.github.symmetricdevs.supercritical.util.scId
-import io.github.symmetricdevs.supercritical.common.machine.multiblock.part.ControlRodPort
-import io.github.symmetricdevs.supercritical.common.machine.multiblock.part.CoolantExportHatch
-import io.github.symmetricdevs.supercritical.common.machine.multiblock.part.CoolantImportHatch
-import io.github.symmetricdevs.supercritical.common.machine.multiblock.part.FuelRodExportBus
-import io.github.symmetricdevs.supercritical.common.machine.multiblock.part.FuelRodImportBus
-import io.github.symmetricdevs.supercritical.common.machine.multiblock.part.ModeratorPort
+import net.minecraft.network.chat.Component
 
 object ScritMachines {
     val FUEL_ROD_INPUT: MachineDefinition = ScritRegistration.REGISTRATE
@@ -128,7 +124,7 @@ object ScritMachines {
     val FISSION_REACTOR: MultiblockMachineDefinition = ScritRegistration.REGISTRATE
         .multiblock("fission_reactor") { holder: IMachineBlockEntity -> FissionReactor(holder) }
         .rotationState(RotationState.NON_Y_AXIS)
-        .allowExtendedFacing(true)
+        .allowExtendedFacing(ScritConfig.INSTANCE.misc.allowExtendedFacingForFissionReactor)
         .pattern { definition: MultiblockMachineDefinition ->
             FissionReactor.buildPattern(
                 definition,
@@ -181,7 +177,7 @@ object ScritMachines {
                 .build()
         }
         .workableCasingModel(
-            ResourceLocation("gtceu", "block/casings/pipe/machine_casing_pipe_polytetrafluoroethylene"),
+            GTCEu.id("block/casings/pipe/machine_casing_pipe_polytetrafluoroethylene"),
             scId("block/multiblock/gas_centrifuge")
         )
         .tooltipBuilder { _, tooltip ->
@@ -189,7 +185,7 @@ object ScritMachines {
         }
         .register()
 
-    fun ensureInitialized() {
+    fun init() {
         // no-op; referencing this class triggers static machine registration.
     }
 }

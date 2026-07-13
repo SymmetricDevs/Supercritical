@@ -1,5 +1,6 @@
 package io.github.symmetricdevs.supercritical.common.machine.multiblock.fission
 
+import com.gregtechceu.gtceu.GTCEu
 import com.gregtechceu.gtceu.api.capability.IControllable
 import com.gregtechceu.gtceu.api.data.RotationState
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
@@ -18,18 +19,18 @@ import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection
 import com.gregtechceu.gtceu.api.recipe.GTRecipe
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier
 import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction
-import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic
-import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier
 import com.gregtechceu.gtceu.common.data.GTBlocks
+import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced
+import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted
+import io.github.symmetricdevs.supercritical.api.pattern.ScritPredicates
+import io.github.symmetricdevs.supercritical.common.data.ScritBlocks
+import io.github.symmetricdevs.supercritical.common.data.ScritRecipeTypes
+import io.github.symmetricdevs.supercritical.common.registry.ScritRegistration
+import io.github.symmetricdevs.supercritical.util.nullWrongType
+import io.github.symmetricdevs.supercritical.util.scId
 import net.minecraft.core.BlockPos
-import net.minecraft.resources.ResourceLocation
 import net.minecraft.network.chat.Component
 import net.minecraft.world.level.material.Fluids
-import io.github.symmetricdevs.supercritical.api.pattern.ScritPredicates
-import io.github.symmetricdevs.supercritical.common.data.ScritRecipeTypes
-import io.github.symmetricdevs.supercritical.common.data.ScritBlocks
-import io.github.symmetricdevs.supercritical.common.registry.ScritRegistration
-import io.github.symmetricdevs.supercritical.util.scId
 import kotlin.math.max
 
 /**
@@ -43,7 +44,10 @@ class SpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?) :
         private set
     private var waterPositions: MutableList<BlockPos>? = null
     private var waterFillSubscription: TickableSubscription? = null
-    var poolLength: Int = 1
+
+    @Persisted
+    @DescSynced
+    var poolLength: Int = 0
         private set
 
     override fun createRecipeLogic(vararg args: Any?): RecipeLogic {
@@ -57,7 +61,7 @@ class SpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?) :
     override fun onStructureFormed() {
         super.onStructureFormed()
         val wp = multiblockState.matchContext
-            .getOrDefault<ArrayList<BlockPos>>(ScritPredicates.FLUID_BLOCKS_KEY, arrayListOf())
+            .getOrDefault<ArrayList<BlockPos>>(ScritPredicates.FLUID_TO_FILL, arrayListOf())
         this.waterPositions = wp
         wp.sortWith(compareBy { it.y })
         this.isWaterFilled = wp.isEmpty()
@@ -144,13 +148,24 @@ class SpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?) :
 
     companion object {
         const val PARALLEL_PER_LENGTH: Int = 32
+        val RECIPE_MODIFIER = fun(machine: MetaMachine, recipe: GTRecipe): ModifierFunction {
+            if (machine !is SpentFuelPool) return nullWrongType<SpentFuelPool>(machine)
+
+            val parallel = machine.poolLength * PARALLEL_PER_LENGTH
+            if (parallel <= 1) return ModifierFunction.IDENTITY
+
+            return ModifierFunction.builder()
+                .modifyAllContents(ContentModifier.multiplier(parallel.toDouble()))
+                .parallels(parallel)
+                .build()
+        }
 
         private fun buildPattern(definition: MultiblockMachineDefinition): BlockPattern {
             return FactoryBlockPattern.start(
                 RelativeDirection.BACK,
                 RelativeDirection.UP,
                 RelativeDirection.RIGHT
-            ) // spotless:off
+            )
                 .aisle(
                     "CCCCCCCCCC",
                     "CCCCCCCCCC",
@@ -236,11 +251,11 @@ class SpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?) :
                     "CCCCCCCCCC",
                     "CCCCCCCCCC",
                     "TTTTTTTTTT"
-                ) //spotless:on
+                )
                 .where('S', Predicates.controller(Predicates.blocks(definition.block)))
                 .where('.', Predicates.any())
                 .where('C', Predicates.blocks(ScritBlocks.GRAY_PANELLING.get()))
-                .where('W', ScritPredicates.fluid(Fluids.WATER))
+                .where('W', ScritPredicates.fluidFill(Fluids.WATER))
                 .where('R', Predicates.blocks(ScritBlocks.SPENT_FUEL_CASING.get()))
                 .where(
                     'T', Predicates.blocks(GTBlocks.CASING_STAINLESS_CLEAN.get())
@@ -257,15 +272,13 @@ class SpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?) :
                 .rotationState(RotationState.NON_Y_AXIS)
                 .allowExtendedFacing(false)
                 .recipeType(ScritRecipeTypes.SPENT_FUEL_POOL_RECIPES)
-                .recipeModifiers(RecipeModifier { machine: MetaMachine, recipe: GTRecipe ->
-                    poolParallel(machine, recipe)
-                })
+                .recipeModifiers(SpentFuelPool.RECIPE_MODIFIER)
                 .pattern { definition: MultiblockMachineDefinition -> buildPattern(definition) }
                 .workableCasingModel(
-                    ResourceLocation("gtceu", "block/casings/solid/machine_casing_clean_stainless_steel"),
+                    GTCEu.id("block/casings/solid/machine_casing_clean_stainless_steel"),
                     scId("block/multiblock/spent_fuel_pool")
                 )
-                .tooltipBuilder { _, tooltip: MutableList<Component?> ->
+                .tooltipBuilder { _, tooltip: MutableList<Component> ->
                     tooltip.add(
                         Component.translatable(
                             "supercritical.machine.spent_fuel_pool.tooltip.parallel",
@@ -275,22 +288,6 @@ class SpentFuelPool(holder: IMachineBlockEntity, vararg args: Any?) :
                     tooltip.add(Component.translatable("supercritical.machine.fluid_auto_fill.tooltip"))
                 }
                 .register()
-        }
-
-        /**
-         * Recipe modifier that applies pool-length based parallelism.
-         */
-        fun poolParallel(machine: MetaMachine?, recipe: GTRecipe): ModifierFunction {
-            if (machine !is SpentFuelPool || !machine.isFormed()) {
-                return ModifierFunction.IDENTITY
-            }
-            val parallels = ParallelLogic.getParallelAmount(machine, recipe, machine.maxParallel)
-            if (parallels <= 1) return ModifierFunction.IDENTITY
-            return ModifierFunction.builder()
-                .modifyAllContents(ContentModifier.multiplier(parallels.toDouble()))
-                .eutMultiplier(parallels.toDouble())
-                .parallels(parallels)
-                .build()
         }
     }
 }

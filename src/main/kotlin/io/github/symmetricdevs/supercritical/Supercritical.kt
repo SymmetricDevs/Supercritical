@@ -48,7 +48,7 @@ class Supercritical {
     }
 
     private fun registerMachines(event: GTMachineEvent) {
-        ScritMachines.ensureInitialized()
+        ScritMachines.init()
     }
 
     private fun commonSetup(event: FMLCommonSetupEvent) {

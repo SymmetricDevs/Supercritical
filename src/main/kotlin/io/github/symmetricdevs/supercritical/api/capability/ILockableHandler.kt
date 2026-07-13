@@ -2,7 +2,7 @@ package io.github.symmetricdevs.supercritical.api.capability
 
 interface ILockableHandler<T> {
 
-    var locked: Boolean
+    var lockIntent: Boolean
 
-    val lockedObject: T
+    val stack: T
 }

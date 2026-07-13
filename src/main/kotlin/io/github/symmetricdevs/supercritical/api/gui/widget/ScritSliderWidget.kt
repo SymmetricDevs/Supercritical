@@ -17,10 +17,10 @@ import java.util.function.Consumer
  * (the responder is server-only; the client copy leaves it null and only ever *sends* actions).
  */
 class ScritSliderWidget : SliderWidget {
+
     @Volatile
     private var responder: Consumer<Float>? = null
 
-    constructor() : super()
     constructor(x: Int, y: Int, w: Int, h: Int) : super(x, y, w, h)
 
     fun setResponder(responder: Consumer<Float>?) {

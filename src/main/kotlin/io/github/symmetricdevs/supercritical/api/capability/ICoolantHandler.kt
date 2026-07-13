@@ -1,11 +1,11 @@
 package io.github.symmetricdevs.supercritical.api.capability
 
-import net.minecraft.core.Direction
-import net.minecraft.world.level.material.Fluid
 import io.github.symmetricdevs.supercritical.api.machine.multiblock.IFissionReactorHatch
 import io.github.symmetricdevs.supercritical.api.machine.trait.LockableFluidTank
+import net.minecraft.core.Direction
+import net.minecraftforge.fluids.FluidStack
 
-interface ICoolantHandler : ILockableHandler<Fluid?>, IFissionReactorHatch {
+interface ICoolantHandler : ILockableHandler<FluidStack>, IFissionReactorHatch {
 
     val fluidTank: LockableFluidTank
 

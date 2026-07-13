@@ -6,6 +6,7 @@ import dev.toma.configuration.config.Configurable
 import dev.toma.configuration.config.UpdateRestrictions
 import dev.toma.configuration.config.format.ConfigFormats
 import io.github.symmetricdevs.supercritical.BuildConfig
+import io.github.symmetricdevs.supercritical.config.ScritConfig.Companion.init
 
 /**
  * Mirrors GTCEu's [com.gregtechceu.gtceu.config.ConfigHolder]: a plain class annotated with
@@ -70,11 +71,6 @@ class ScritConfig {
         var fissionReactorPowerIterations = 10
 
         @Configurable
-        @Configurable.Comment("Legacy PWR simulation options.")
-        @JvmField
-        var legacyPWR = LegacyPWROptions()
-
-        @Configurable
         @Configurable.Comment(
             "Nuclear coolant heat exchanger recipe efficiency multiplier for balancing purposes.",
             "Default: 0.25"
@@ -88,54 +84,6 @@ class ScritConfig {
         @JvmField
         var enableMeltdown = true
 
-        inner class LegacyPWROptions {
-            /**
-             * Mirrors the existing [fissionReactorResolution] value so legacy PWR tuning continues
-             * to work without duplicating the backing field. Writes update the original value;
-             * reads observe it.
-             */
-            var resolution: Double
-                get() = fissionReactorResolution
-                set(value) {
-                    fissionReactorResolution = value
-                }
-
-            /**
-             * Mirrors the existing [fissionReactorPowerIterations] value.
-             */
-            var powerIterations: Int
-                get() = fissionReactorPowerIterations
-                set(value) {
-                    fissionReactorPowerIterations = value
-                }
-
-            /**
-             * Mirrors the existing [fissionCoolantDivisor] value.
-             */
-            var coolantDivisor: Double
-                get() = fissionCoolantDivisor
-                set(value) {
-                    fissionCoolantDivisor = value
-                }
-
-            /**
-             * Mirrors the existing [nuclearPowerMultiplier] value.
-             */
-            var powerMultiplier: Double
-                get() = nuclearPowerMultiplier
-                set(value) {
-                    nuclearPowerMultiplier = value
-                }
-
-            @Configurable
-            @Configurable.Comment(
-                "Fuel-rod count above which the legacy PWR solver reduces resolution to maintain TPS.",
-                "Default: 256"
-            )
-            @Configurable.Range(min = 1L, max = 2147483647L)
-            @JvmField
-            var coarseGroupThreshold = 256
-        }
     }
 
     class MiscOptions {
@@ -164,11 +112,6 @@ class ScritConfig {
         @Configurable.UpdateRestriction(UpdateRestrictions.GAME_RESTART)
         @JvmField
         var disableAllMaterials = false
-
-        @Configurable
-        @Configurable.Comment("Make auto-filled fluid block show up in JEI / in-world preview.", "Default: false")
-        @JvmField
-        var showFluidsForAutoFillingMultiblocks = false
 
         @Configurable
         @Configurable.Comment("Allow extended facing for Fission Reactor.", "Default: false")

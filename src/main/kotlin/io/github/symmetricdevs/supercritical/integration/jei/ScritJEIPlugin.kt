@@ -1,21 +1,19 @@
 package io.github.symmetricdevs.supercritical.integration.jei
 
+import io.github.symmetricdevs.supercritical.integration.jei.basic.CoolantCategory
+import io.github.symmetricdevs.supercritical.integration.jei.basic.FissionFuelCategory
+import io.github.symmetricdevs.supercritical.integration.jei.basic.ModeratorCategory
+import io.github.symmetricdevs.supercritical.util.scId
 import mezz.jei.api.IModPlugin
 import mezz.jei.api.JeiPlugin
 import mezz.jei.api.registration.IRecipeCatalystRegistration
 import mezz.jei.api.registration.IRecipeCategoryRegistration
 import mezz.jei.api.registration.IRecipeRegistration
 import net.minecraft.resources.ResourceLocation
-import io.github.symmetricdevs.supercritical.BuildConfig
-import io.github.symmetricdevs.supercritical.integration.jei.basic.CoolantCategory
-import io.github.symmetricdevs.supercritical.integration.jei.basic.FissionFuelCategory
-import io.github.symmetricdevs.supercritical.integration.jei.basic.ModeratorCategory
 
 @JeiPlugin
 class ScritJEIPlugin : IModPlugin {
-    override fun getPluginUid(): ResourceLocation {
-        return ResourceLocation(BuildConfig.MOD_ID, "jei_plugin")
-    }
+    override fun getPluginUid(): ResourceLocation = scId("jei_plugin")
 
     override fun registerCategories(registration: IRecipeCategoryRegistration) {
         val helpers = registration.jeiHelpers

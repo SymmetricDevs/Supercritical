@@ -31,11 +31,14 @@ import io.github.symmetricdevs.supercritical.api.machine.multiblock.IFissionReac
 import io.github.symmetricdevs.supercritical.api.machine.multiblock.ScritMultiblockAbility
 import io.github.symmetricdevs.supercritical.api.nuclear.ecs.resources.CoolantInventoryBridge
 import io.github.symmetricdevs.supercritical.api.nuclear.ecs.resources.FuelInventoryBridge
-import io.github.symmetricdevs.supercritical.api.nuclear.reactor.events.FuelFailureEvent
-import io.github.symmetricdevs.supercritical.api.nuclear.reactor.events.FuelFailureReason
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.CoolantRegistry
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.FissionFuelRegistry
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.ModeratorRegistry
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.ReactorCore
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.ReactorFamilyRegistry
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.events.FuelFailureEvent
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.events.FuelFailureReason
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.families.LegacyPWRFamily
 import io.github.symmetricdevs.supercritical.common.data.ScritBlocks
 import io.github.symmetricdevs.supercritical.common.data.ScritMaterials
 import io.github.symmetricdevs.supercritical.common.machine.multiblock.part.ControlRodPort
@@ -54,9 +57,6 @@ import net.minecraftforge.event.ForgeEventFactory
 import java.util.*
 import java.util.function.Consumer
 import kotlin.math.*
-import io.github.symmetricdevs.supercritical.api.nuclear.reactor.ReactorCore
-import io.github.symmetricdevs.supercritical.api.nuclear.reactor.ReactorFamilyRegistry
-import io.github.symmetricdevs.supercritical.api.nuclear.reactor.families.LegacyPWRFamily
 
 class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(holder), IFancyUIMachine,
     ICustomEnergyCover {
@@ -287,10 +287,10 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
 
     private fun lockAll() {
         for (handler in this.coolantHandlers) {
-            handler.locked = true
+            handler.lockIntent = true
         }
         for (handler in this.fuelRodHandlers) {
-            handler.locked = true
+            handler.lockIntent = true
         }
     }
 
@@ -300,17 +300,17 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
             val depletion = r.fuelDepletion
             for (handler in this.fuelRodHandlers) {
                 handler.resetDepletion(depletion)
-                handler.locked = false
+                handler.lockIntent = false
             }
         } else {
             for (handler in this.fuelRodHandlers) {
-                handler.locked = false
+                handler.lockIntent = false
             }
         }
         for (handler in this.coolantHandlers) {
-            handler.locked = false
+            handler.lockIntent = false
         }
-        (r)?.let {
+        r?.let {
             it.isOn = false
             it.resetFuelDepletion()
         }
@@ -355,22 +355,22 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
                 // filled-but-unlocked hatch (e.g. distilled water just pumped in) reads null and
                 // wrongly reports MISSING_COOLANT.
                 val tankFluid = part.fluidTank.getFluidInTank(0)
-                val hatchFluid = part.lockedObject ?: (if (tankFluid.isEmpty) null else tankFluid.fluid)
+                val sample = part.stack
+                val hatchFluid = when {
+                    !sample.isEmpty -> sample.fluid
+                    !tankFluid.isEmpty -> tankFluid.fluid
+                    else -> null
+                }
                 val coolantStat = hatchFluid?.let { CoolantRegistry.getCoolant(it) }
-                if (hatchFluid != null) {
-                    if (part.outputHandler == null && !part.checkValidity(this.height - 1)) {
-                        return failVerification(LockingState.INVALID_COMPONENT, false)
-                    }
-                    if (coolantStat != null) {
-                        continue
-                    }
+                if (part.outputHandler == null && !part.checkValidity(this.height - 1)) {
+                    return failVerification(LockingState.INVALID_COMPONENT, false)
+                }
+                if (coolantStat != null) {
+                    continue
                 }
                 return failVerification(LockingState.MISSING_COOLANT, true)
             } else if (part is IFuelRodHandler) {
-                val inputHandler = part.inputStackHandler
-                if (inputHandler == null) {
-                    return failVerification(LockingState.MISSING_FUEL, true)
-                }
+                val inputHandler = part.inputStackHandler ?: return failVerification(LockingState.MISSING_FUEL, true)
                 val lockedFuel = inputHandler.getStackInSlot(0)
                 if (!lockedFuel.isEmpty) {
                     val stats = FissionFuelRegistry.getFissionFuel(lockedFuel)
@@ -434,8 +434,7 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
                     .move(frontFacing.opposite, j)
                     .move(this.reactorUp, heightTop)
                     .immutable()
-                val machine = getMachine(level, currentPos)
-                when (machine) {
+                when (val machine = getMachine(level, currentPos)) {
                     is ICoolantHandler -> addCoolantComponent(machine, x, y, r)
                     is IFuelRodHandler -> addFuelRodComponent(machine, x, y, r)
                     is ControlRodPort -> addControlRodComponent(machine, x, y, r)
@@ -446,8 +445,8 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
     }
 
     private fun addCoolantComponent(machine: ICoolantHandler, x: Int, y: Int, r: ReactorCore) {
-        val lockedFluid = machine.lockedObject
-        val stats = CoolantRegistry.getCoolant(lockedFluid) ?: return
+        val lockedFluid = machine.stack
+        val stats = CoolantRegistry.getCoolant(lockedFluid.fluid) ?: return
         val outputHandler = machine.outputHandler
         r.setCoolantChannel(x, y, stats, 100050.0, 0.0, 1000.0)
         r.world.resources.get<CoolantInventoryBridge>()!!.register(x, y, machine, outputHandler)
@@ -678,7 +677,7 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
         )
     }
 
-    private fun reactorCenterXZ(): BlockPos.MutableBlockPos =
+    private fun reactorCenterXZ(): MutableBlockPos =
         pos.mutable().move(frontFacing.opposite, diameter / 2)
 
     private fun detonate(level: Level, x: Double, y: Double, z: Double, radius: Float, fire: Boolean) {

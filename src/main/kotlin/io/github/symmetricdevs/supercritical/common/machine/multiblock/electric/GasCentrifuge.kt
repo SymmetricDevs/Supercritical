@@ -6,9 +6,14 @@ import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMa
 import com.gregtechceu.gtceu.api.recipe.GTRecipe
 import com.gregtechceu.gtceu.api.recipe.content.ContentModifier
 import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction
+import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced
+import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted
 import io.github.symmetricdevs.supercritical.util.nullWrongType
 
 class GasCentrifuge(holder: IMachineBlockEntity) : WorkableElectricMultiblockMachine(holder) {
+
+    @Persisted
+    @DescSynced
     var columnCount: Int = 0
         private set
 
@@ -36,6 +41,10 @@ class GasCentrifuge(holder: IMachineBlockEntity) : WorkableElectricMultiblockMac
                 .modifyAllContents(ContentModifier.multiplier(parallel.toDouble()))
                 .parallels(parallel)
                 .build()
+        }
+
+        fun register() {
+
         }
     }
 }

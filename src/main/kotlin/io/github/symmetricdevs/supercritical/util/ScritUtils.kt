@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.data.worldgen.generator.veins.ClassicVeinGenera
 import com.gregtechceu.gtceu.api.machine.MetaMachine
 import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier
-import com.gregtechceu.gtceu.common.data.GTMaterials
 import com.gregtechceu.gtceu.common.data.GTOres
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder
 import io.github.symmetricdevs.supercritical.BuildConfig
@@ -43,6 +42,8 @@ inline fun GTOreDefinition.surfaceIndicator(crossinline config: SurfaceIndicator
     return this.surfaceIndicatorGenerator { config(it) }
 }
 
-fun GTRecipeBuilder.outputFluids(material: Material, amount: Int): GTRecipeBuilder = outputFluids(material.getFluid(amount))
+fun GTRecipeBuilder.outputFluids(material: Material, amount: Int): GTRecipeBuilder =
+    outputFluids(material.getFluid(amount))
 
-fun GTRecipeBuilder.notConsumableFluid(material: Material, amount: Int): GTRecipeBuilder = notConsumableFluid(material.getFluid(amount))
+fun GTRecipeBuilder.notConsumableFluid(material: Material, amount: Int): GTRecipeBuilder =
+    notConsumableFluid(material.getFluid(amount))
