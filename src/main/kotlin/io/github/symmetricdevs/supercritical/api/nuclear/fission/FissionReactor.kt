@@ -1,6 +1,5 @@
 package io.github.symmetricdevs.supercritical.api.nuclear.fission
 
-import net.minecraft.nbt.CompoundTag
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.components.ControlRod
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.components.CoolantChannel
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.components.FuelRod
@@ -12,7 +11,7 @@ import io.github.symmetricdevs.supercritical.api.nuclear.reactor.geometry.Square
 import io.github.symmetricdevs.supercritical.api.nuclear.reactor.pwr.LegacyEigenvalueNeutronics
 import io.github.symmetricdevs.supercritical.api.nuclear.reactor.pwr.LegacyPWRThermalHydraulics
 import io.github.symmetricdevs.supercritical.api.nuclear.reactor.pwr.SolidRodFuelCycle
-import io.github.symmetricdevs.supercritical.config.ScritConfig
+import net.minecraft.nbt.CompoundTag
 import java.util.*
 import kotlin.math.exp
 import kotlin.math.max
@@ -22,7 +21,7 @@ import kotlin.math.sqrt
 class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Double) : ReactorCore {
     // ----- structure -----
     internal val reactorLayout: Array<Array<ReactorComponent?>> = Array(size) { arrayOfNulls(size) }
-    private val reactorRadius: Double
+    private val reactorRadius: Double = size.toDouble() / 2 + 1.5
     internal val surfaceArea: Double
     internal val exteriorPressure: Double = STANDARD_PRESSURE
     internal val envTemperature: Double = ROOM_TEMPERATURE
@@ -102,7 +101,6 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
     var isOn: Boolean = false
 
     init {
-        reactorRadius = size.toDouble() / 2 + 1.5
         this.controlRodInsertion = max(0.001, controlRodInsertion)
         surfaceArea = (reactorRadius * reactorRadius) * Math.PI * 2 + reactorDepth * reactorRadius * Math.PI * 2
         structuralMass = reactorDepth * reactorRadius * reactorRadius * Math.PI * 300
@@ -138,16 +136,22 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
                 component.setPos(x, y)
                 maxTemperature = min(maxTemperature, component.maxTemperature)
                 structuralMass += component.mass
-                if (component is FuelRod) {
-                    component.index = fuelIndex++
-                    fuelRods.add(component)
-                } else if (component is ControlRod) {
-                    component.index = controlIndex++
-                    controlRods.add(component)
-                } else if (component is CoolantChannel) {
-                    component.index = coolantIndex++
-                    component.weight = 0.0
-                    coolantChannels.add(component)
+                when (component) {
+                    is FuelRod -> {
+                        component.index = fuelIndex++
+                        fuelRods.add(component)
+                    }
+
+                    is ControlRod -> {
+                        component.index = controlIndex++
+                        controlRods.add(component)
+                    }
+
+                    is CoolantChannel -> {
+                        component.index = coolantIndex++
+                        component.weight = 0.0
+                        coolantChannels.add(component)
+                    }
                 }
             }
         }
@@ -175,10 +179,10 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
             val hotCoolant = requireNotNull(prop.hotCoolant) { "Coolant must define a hot coolant fluid" }
 
             if (original != null) {
-                coolantBaseTemperature += original.getFluidType().temperature.toDouble()
+                coolantBaseTemperature += original.fluidType.temperature.toDouble()
             }
             coolantBoilingPointStandardPressure += prop.boilingPoint
-            coolantExitTemperature += hotCoolant.getFluidType().temperature.toDouble()
+            coolantExitTemperature += hotCoolant.fluidType.temperature.toDouble()
             coolantHeatOfVaporization += prop.heatOfVaporization
         }
 
@@ -354,15 +358,6 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
     }
 
     // ===================== safety =====================
-
-    fun checkForMeltdown(): Boolean {
-        return this.temperature > this.maxTemperature
-    }
-
-    fun checkForExplosion(): Boolean {
-        return this.pressure > this.maxPressure
-    }
-
     fun updateControlRodInsertion(controlRodInsertion: Double) {
         this.controlRodInsertion = max(0.001, controlRodInsertion)
         this.controlRodFactor = ControlRod.controlRodFactor(effectiveControlRods, this.controlRodInsertion)
