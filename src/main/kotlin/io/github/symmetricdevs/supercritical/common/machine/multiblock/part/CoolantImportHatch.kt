@@ -116,11 +116,21 @@ class CoolantImportHatch(holder: IMachineBlockEntity, tier: Int) :
 
     override fun saveCustomPersistedData(tag: CompoundTag, forDrop: Boolean) {
         super.saveCustomPersistedData(tag, forDrop)
+        // fluidTank is a plain field (LDLib @Persisted auto-persistence doesn't reach Kotlin machine
+        // traits here), so the fluid (type + amount) is never serialized by default. Persist it
+        // manually so coolant in the slot survives a world save/reload.
+        tag.put("Fluid", fluidTank.storages[0].serializeNBT())
         tag.putBoolean("Locked", fluidTank.lockedState)
     }
 
     override fun loadCustomPersistedData(tag: CompoundTag) {
         super.loadCustomPersistedData(tag)
+        // Restore the fluid BEFORE flipping `lockedState`: the LockableFluidTank.lockedState setter
+        // re-derives `lockedFluidStack` from getFluidInTank(0), so it must see the persisted fluid
+        // or the lock sample ends up EMPTY and the lock filter is blanked.
+        if (tag.contains("Fluid")) {
+            fluidTank.storages[0].deserializeNBT(tag.getCompound("Fluid"))
+        }
         fluidTank.lockedState = tag.getBoolean("Locked")
     }
 }

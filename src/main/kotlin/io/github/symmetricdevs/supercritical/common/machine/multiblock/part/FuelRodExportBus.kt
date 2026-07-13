@@ -12,6 +12,7 @@ import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget
 import net.minecraft.core.BlockPos
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.entity.player.Player
 import io.github.symmetricdevs.supercritical.api.machine.multiblock.IFissionReactorHatch
 
@@ -53,5 +54,20 @@ class FuelRodExportBus(holder: IMachineBlockEntity, tier: Int) :
                     .setBackground(GuiTextures.SLOT)
             )
             .widget(UITemplate.bindPlayerInventory(entityPlayer.inventory, GuiTextures.SLOT, 7, 84, true))
+    }
+
+    override fun saveCustomPersistedData(tag: CompoundTag, forDrop: Boolean) {
+        super.saveCustomPersistedData(tag, forDrop)
+        // inventory is a plain field (LDLib @Persisted auto-persistence doesn't reach Kotlin machine
+        // traits here), so depleted fuel rods sitting in the output slot are never serialized by
+        // default. Persist the storage manually so they survive a world save/reload.
+        tag.put("Inventory", inventory.storage.serializeNBT())
+    }
+
+    override fun loadCustomPersistedData(tag: CompoundTag) {
+        super.loadCustomPersistedData(tag)
+        if (tag.contains("Inventory")) {
+            inventory.storage.deserializeNBT(tag.getCompound("Inventory"))
+        }
     }
 }
