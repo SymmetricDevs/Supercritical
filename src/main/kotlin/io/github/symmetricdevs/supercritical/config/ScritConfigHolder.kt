@@ -186,5 +186,16 @@ class ScritConfig {
             INSTANCE = Configuration.registerConfig(ScritConfig::class.java, ConfigFormats.YAML)
                 .getConfigInstance()
         }
+
+        /**
+         * Test-only entry point: installs a [ScritConfig] with default values without invoking the
+         * Forge-dependent [init] registration. The physics kernels read
+         * `INSTANCE.nuclear.fissionReactorResolution` / `fissionReactorPowerIterations`, which the
+         * default-configured instance supplies. `internal` keeps it out of the public API.
+         */
+        @JvmStatic
+        internal fun setInstanceForTesting(config: ScritConfig) {
+            INSTANCE = config
+        }
     }
 }
