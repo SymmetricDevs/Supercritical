@@ -1,35 +1,110 @@
 package io.github.symmetricdevs.supercritical.api.nuclear.fission
 
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.components.ControlRod
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.components.CoolantChannel
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.components.FuelRod
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.components.ReactorComponent
-import io.github.symmetricdevs.supercritical.api.nuclear.reactor.*
+import io.github.symmetricdevs.supercritical.api.nuclear.ecs.Entity
+import io.github.symmetricdevs.supercritical.api.nuclear.ecs.World
+import io.github.symmetricdevs.supercritical.api.nuclear.ecs.components.*
+import io.github.symmetricdevs.supercritical.api.nuclear.ecs.resources.ReactorCoreResource
+import io.github.symmetricdevs.supercritical.api.nuclear.ecs.resources.RootEntityResource
+import io.github.symmetricdevs.supercritical.api.nuclear.ecs.registration.ComponentTypeRegistry
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.ControlMechanism
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.ReactorCore
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.ReactorLimits
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.ReactorPhysics
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.ReactorState
 import io.github.symmetricdevs.supercritical.api.nuclear.reactor.control.LegacyControlRodBank
 import io.github.symmetricdevs.supercritical.api.nuclear.reactor.families.LegacyPWRFamily
-import io.github.symmetricdevs.supercritical.api.nuclear.reactor.geometry.SquareLattice
-import io.github.symmetricdevs.supercritical.api.nuclear.reactor.pwr.LegacyEigenvalueNeutronics
-import io.github.symmetricdevs.supercritical.api.nuclear.reactor.pwr.LegacyPWRThermalHydraulics
-import io.github.symmetricdevs.supercritical.api.nuclear.reactor.pwr.SolidRodFuelCycle
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.systems.ControlRodSystem
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.systems.FuelCycleSystem
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.systems.GeometryRebuildSystem
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.systems.NeutronicsPrecomputeSystem
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.systems.NeutronicsSystem
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.systems.NeutronPoisoningSystem
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.systems.ThermalHydraulicsSystem
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.systems.ThermalPrecomputeSystem
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.systems.cache
+import io.github.symmetricdevs.supercritical.api.nuclear.reactor.systems.controlRodFactor as computeControlRodFactor
 import net.minecraft.nbt.CompoundTag
-import java.util.*
-import kotlin.math.exp
 import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.sqrt
 
+/**
+ * Legacy PWR reactor core, retrofitted to run its physics on an ECS [World].
+ *
+ * Public API is preserved for backwards compatibility (regression tests, controller,
+ * peripherals). Internally, physics state lives in components attached to a root entity
+ * and per-cell entities, and every physics step is a
+ * [io.github.symmetricdevs.supercritical.api.nuclear.ecs.System]. The precompute systems
+ * (geometry / eigenvalue / thermal) are driven from [precompute]; the per-tick systems run
+ * through [World.update] inside [tick]. The manual cooldown steps ([updatePower],
+ * [updateTemperature], ...) each invoke the matching system directly.
+ */
 class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Double) : ReactorCore {
+
+    // ----- family / structure -----
+    override val family = LegacyPWRFamily
+
+    // ----- ECS world -----
+    override val world: World = World(family.buildSchedule())
+    private val rootEntity: Entity = world.createEntity()
+
+    private val stateComponent: ReactorStateComponent
+    private val limitsComponent: ReactorLimitsComponent
+    private val controlRodStateComponent: ControlRodStateComponent
+    private val neutronicsGlobalsComponent: NeutronicsGlobalsComponent
+    private val thermalGlobalsComponent: ThermalGlobalsComponent
+    private val latticeGeometryComponent: LatticeGeometryComponent
+
+    init {
+        // Ensure this family's component types are resolvable by reified queries. Idempotent:
+        // ScritAddon also registers during mod init, and ComponentTypeRegistry.register no-ops
+        // when the same ComponentType instance is re-registered, so the test path (which skips
+        // mod init) is covered here without disturbing production ordering.
+        family.registerComponents(ComponentTypeRegistry)
+        world.addComponent(rootEntity, ReactorComponentTypes.REACTOR_STATE, ReactorStateComponent())
+        world.addComponent(rootEntity, ReactorComponentTypes.REACTOR_LIMITS, ReactorLimitsComponent())
+        world.addComponent(
+            rootEntity,
+            ReactorComponentTypes.CONTROL_ROD_STATE,
+            ControlRodStateComponent(insertion = max(0.001, controlRodInsertion))
+        )
+        world.addComponent(rootEntity, ReactorComponentTypes.NEUTRONICS_GLOBALS, NeutronicsGlobalsComponent())
+        world.addComponent(rootEntity, ReactorComponentTypes.THERMAL_GLOBALS, ThermalGlobalsComponent())
+        world.addComponent(
+            rootEntity,
+            ReactorComponentTypes.LATTICE_GEOMETRY,
+            LatticeGeometryComponent(size, reactorDepth, IntArray(size * size) { -1 })
+        )
+        world.addComponent(rootEntity, ReactorComponentTypes.REACTOR_FAMILY, ReactorFamilyComponent(LegacyPWRFamily))
+
+        world.resources.set(RootEntityResource::class, RootEntityResource(rootEntity))
+        world.resources.set(ReactorCoreResource::class, ReactorCoreResource(this))
+
+        stateComponent = world.getComponent(rootEntity, ReactorComponentTypes.REACTOR_STATE)!!
+        limitsComponent = world.getComponent(rootEntity, ReactorComponentTypes.REACTOR_LIMITS)!!
+        controlRodStateComponent = world.getComponent(rootEntity, ReactorComponentTypes.CONTROL_ROD_STATE)!!
+        neutronicsGlobalsComponent = world.getComponent(rootEntity, ReactorComponentTypes.NEUTRONICS_GLOBALS)!!
+        thermalGlobalsComponent = world.getComponent(rootEntity, ReactorComponentTypes.THERMAL_GLOBALS)!!
+        latticeGeometryComponent = world.getComponent(rootEntity, ReactorComponentTypes.LATTICE_GEOMETRY)!!
+    }
+
+    // ----- physics systems -----
+    // Precompute systems run only from precompute(); they reset coolantMass / maxTemperature and
+    // would clobber per-tick thermal state if they sat in the tick schedule.
+    private val geometryRebuild = GeometryRebuildSystem()
+    private val neutronicsPrecompute = NeutronicsPrecomputeSystem()
+    private val thermalPrecompute = ThermalPrecomputeSystem()
+    // Per-tick systems held for the controller's manual cooldown steps; the schedule owns its own
+    // instances for the locked-tick path.
+    private val neutronicsSystem = NeutronicsSystem()
+    private val fuelCycleSystem = FuelCycleSystem()
+    private val thermalHydraulics = ThermalHydraulicsSystem()
+    private val neutronPoisoningSystem = NeutronPoisoningSystem()
+    private val controlRodSystem = ControlRodSystem()
+
     // ----- structure -----
-    internal val reactorLayout: Array<Array<ReactorComponent?>> = Array(size) { arrayOfNulls(size) }
-    private val reactorRadius: Double = size.toDouble() / 2 + 1.5
-    internal val surfaceArea: Double
-    internal val exteriorPressure: Double = STANDARD_PRESSURE
-    internal val envTemperature: Double = ROOM_TEMPERATURE
+    private val cellEntities: Array<Array<Entity?>> = Array(size) { arrayOfNulls(size) }
+    internal val reactorRadius: Double = size.toDouble() / 2 + 1.5
 
     // ----- ReactorCore API -----
-    override val family = LegacyPWRFamily
-    private val squareLattice = SquareLattice(size, reactorDepth, reactorLayout)
-    override val geometry: ReactorGeometry get() = squareLattice
     override val state: ReactorState
         get() = ReactorState(
             neutronFlux = neutronFlux,
@@ -51,252 +126,213 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         )
     override val control: ControlMechanism = LegacyControlRodBank(this)
 
-    // ----- component collections -----
-    val fuelRods: MutableList<FuelRod> = arrayListOf()
-    val controlRods: MutableList<ControlRod> = arrayListOf()
-    val coolantChannels: MutableList<CoolantChannel> = arrayListOf()
-    internal val effectiveControlRods: MutableList<ControlRod> = arrayListOf()
-
-    // ----- physics kernels (internal collaborators; this class is still the ReactorCore) -----
-    // Typed against the kernel abstractions where only interface methods are used; the thermal
-    // kernel is referenced by its concrete type so updateTemperature/updatePressure can reach its
-    // step methods. The legacy formulas live in the kernels; FissionReactor remains the legacy PWR
-    // core ("re-implement, not wrap").
-    private val neutronics: NeutronicsKernel = LegacyEigenvalueNeutronics(this)
-    private val thermal: LegacyPWRThermalHydraulics = LegacyPWRThermalHydraulics(this)
-    private val fuelCycle: FuelCycle = SolidRodFuelCycle(this)
-
-    // ----- mutable physics state -----
-    internal var k = 0.0
-    override var kEff: Double = 0.0
-    internal var controlRodFactor = 0.0
-    internal var neutronToPowerConversion = 0.0
-    internal var decayNeutrons = 0.0
-    internal var neutronPoisonAmount = 0.0
-    internal var decayProductsAmount = 0.0
-    internal var weightedGenerationTime = 2.0
-    var neutronFlux: Double = 0.0
-    var power: Double = 0.0
-    var temperature: Double = ROOM_TEMPERATURE
-    internal var prevTemperature = 0.0
-    var pressure: Double = STANDARD_PRESSURE
-    override var fuelDepletion: Double = -1.0
-    override var accumulatedHydrogen: Double = 0.0
+    // ----- mutable physics state (delegated to ECS components) -----
+    internal var k by neutronicsGlobalsComponent::k
+    override var kEff by neutronicsGlobalsComponent::kEff
+    internal var controlRodFactor by neutronicsGlobalsComponent::controlRodFactor
+    internal var neutronToPowerConversion by neutronicsGlobalsComponent::neutronToPowerConversion
+    internal var decayNeutrons by neutronicsGlobalsComponent::decayNeutrons
+    internal var neutronPoisonAmount by stateComponent::neutronPoisonAmount
+    internal var decayProductsAmount by stateComponent::decayProductsAmount
+    internal var weightedGenerationTime by neutronicsGlobalsComponent::weightedGenerationTime
+    var neutronFlux by stateComponent::neutronFlux
+    var power by stateComponent::power
+    override var temperature by stateComponent::temperature
+    override var prevTemperature by stateComponent::prevTemperature
+    override var pressure by stateComponent::pressure
+    override var fuelDepletion by stateComponent::fuelDepletion
+    override var accumulatedHydrogen by stateComponent::accumulatedHydrogen
 
     // ----- coolant-derived -----
-    internal var coolantBaseTemperature = 0.0
-    internal var coolantBoilingPointStandardPressure = 0.0
-    internal var coolantExitTemperature = 0.0
-    private var coolantHeatOfVaporization = 0.0
-    internal var coolantMass = 0.0
-    internal var structuralMass: Double
-    var fuelMass: Double = 0.0
+    override var coolantBaseTemperature by thermalGlobalsComponent::coolantBaseTemperature
+    internal var coolantBoilingPointStandardPressure by thermalGlobalsComponent::coolantBoilingPointStandardPressure
+    override var coolantExitTemperature by thermalGlobalsComponent::coolantExitTemperature
+    internal var coolantMass by thermalGlobalsComponent::coolantMass
+    internal var structuralMass by thermalGlobalsComponent::structuralMass
+    var fuelMass by thermalGlobalsComponent::fuelMass
 
     // ----- limits / config -----
-    override var maxTemperature: Double = 2000.0
-    override var maxPressure: Double = 15000000.0
-    override var maxPower: Double = 3.0
-    var controlRodInsertion: Double
-    var controlRodRegulationOn: Boolean = true
-    var isOn: Boolean = false
+    override var maxTemperature by limitsComponent::maxTemperature
+    override var maxPressure by limitsComponent::maxPressure
+    override var maxPower by limitsComponent::maxPower
+    override var controlRodInsertion: Double
+        get() = controlRodStateComponent.insertion
+        set(value) { controlRodStateComponent.insertion = value }
+    override var controlRodRegulationOn: Boolean
+        get() = controlRodStateComponent.regulationOn
+        set(value) { controlRodStateComponent.regulationOn = value }
+    override var isOn by stateComponent::isOn
 
-    init {
-        this.controlRodInsertion = max(0.001, controlRodInsertion)
-        surfaceArea = (reactorRadius * reactorRadius) * Math.PI * 2 + reactorDepth * reactorRadius * Math.PI * 2
-        structuralMass = reactorDepth * reactorRadius * reactorRadius * Math.PI * 300
+    // ===================== layout =====================
+
+    /**
+     * Creates or refreshes the cell entity at (x, y), attaching the shared position / thermal /
+     * neutronics components. The type-specific component is added by the calling [setControlRod] /
+     * [setModerator] / [setFuelRod] / [setCoolantChannel] method.
+     */
+    private fun populateCell(
+        x: Int, y: Int,
+        maxTemperature: Double, thermalConductivity: Double, mass: Double,
+        moderationFactor: Double, absorptionFast: Double, absorptionSlow: Double
+    ): Entity {
+        val existing = cellEntities[x][y]
+        val entity = if (existing != null && world.isAlive(existing)) existing else world.createEntity()
+        cellEntities[x][y] = entity
+        latticeGeometryComponent.setEntityIndexAt(x, y, entity.index)
+        world.addComponent(entity, ReactorComponentTypes.POSITION, PositionComponent(x, y))
+        world.addComponent(
+            entity,
+            ReactorComponentTypes.THERMAL_PROPERTIES,
+            ThermalPropertiesComponent(maxTemperature, thermalConductivity, mass)
+        )
+        world.addComponent(
+            entity,
+            ReactorComponentTypes.NEUTRONICS_PROPERTIES,
+            NeutronicsPropertiesComponent(
+                moderationFactor = moderationFactor,
+                absorptionFast = absorptionFast,
+                absorptionSlow = absorptionSlow
+            )
+        )
+        return entity
     }
 
-    // ===================== layout + prepareThermalProperties =====================
-
-    fun setComponent(x: Int, y: Int, component: ReactorComponent?) {
-        reactorLayout[x][y] = component
+    override fun setControlRod(
+        x: Int, y: Int, hasModeratorTip: Boolean,
+        maxTemperature: Double, thermalConductivity: Double, mass: Double
+    ): Entity {
+        // Control rods neither moderate nor absorb while withdrawn (insertion is applied separately
+        // via the control-rod factor); the eigenvalue solver reads insertion, not these factors.
+        val entity = populateCell(x, y, maxTemperature, thermalConductivity, mass, 0.0, 0.0, 0.0)
+        world.addComponent(
+            entity,
+            ReactorComponentTypes.CONTROL_ROD,
+            ControlRodComponent(hasModeratorTip, 0.0, 0)
+        )
+        return entity
     }
 
-    fun getComponent(x: Int, y: Int): ReactorComponent? {
-        return reactorLayout[x][y]
+    override fun setModerator(
+        x: Int, y: Int, moderator: IModeratorStats,
+        thermalConductivity: Double, mass: Double
+    ): Entity {
+        val entity = populateCell(
+            x, y,
+            moderator.maxTemperature.toDouble(), thermalConductivity, mass,
+            moderator.moderationFactor, moderator.absorptionFactor, moderator.absorptionFactor
+        )
+        world.addComponent(entity, ReactorComponentTypes.MODERATOR, ModeratorComponent(moderator))
+        return entity
     }
 
-    fun prepareThermalProperties() {
-        fuelRods.clear()
-        controlRods.clear()
-        coolantChannels.clear()
-        effectiveControlRods.clear()
-        structuralMass = reactorDepth * reactorRadius * reactorRadius * Math.PI * 300
-        fuelMass = 0.0
-        coolantMass = 0.0
-        maxTemperature = 2000.0
-
-        var fuelIndex = 0
-        var controlIndex = 0
-        var coolantIndex = 0
-        for (x in reactorLayout.indices) {
-            for (y in reactorLayout[x].indices) {
-                val component = reactorLayout[x][y]
-                if (component == null || !component.isValid) continue
-                component.setPos(x, y)
-                maxTemperature = min(maxTemperature, component.maxTemperature)
-                structuralMass += component.mass
-                when (component) {
-                    is FuelRod -> {
-                        component.index = fuelIndex++
-                        fuelRods.add(component)
-                    }
-
-                    is ControlRod -> {
-                        component.index = controlIndex++
-                        controlRods.add(component)
-                    }
-
-                    is CoolantChannel -> {
-                        component.index = coolantIndex++
-                        component.weight = 0.0
-                        coolantChannels.add(component)
-                    }
-                }
-            }
-        }
+    override fun setFuelRod(
+        x: Int, y: Int, fuel: IFissionFuelStats,
+        maxTemperature: Double, thermalConductivity: Double, mass: Double
+    ): Entity {
+        val entity = populateCell(x, y, maxTemperature, thermalConductivity, mass, 0.0, 0.0, 0.0)
+        // weight 1.0 / thermalProportion 0.0 are the defaults the eigenvalue + thermal precompute
+        // systems overwrite (rod weight from the power iteration, thermalProportion from flux share).
+        world.addComponent(entity, ReactorComponentTypes.FUEL_ROD, FuelRodComponent(fuel, 1.0, 0.0))
+        return entity
     }
 
-    fun prepareInitialConditions() {
-        coolantBaseTemperature = 0.0
-        coolantBoilingPointStandardPressure = 0.0
-        this.coolantExitTemperature = 0.0
-        coolantHeatOfVaporization = 0.0
-        weightedGenerationTime = 0.0
-
-        for (rod in fuelRods) {
-            weightedGenerationTime += rod.neutronGenerationTime
-        }
-        if (fuelRods.isEmpty()) {
-            weightedGenerationTime = 2.0
-        } else {
-            weightedGenerationTime /= fuelRods.size.toDouble()
-        }
-
-        for (channel in coolantChannels) {
-            val prop = channel.coolant
-            val original = CoolantRegistry.originalFluid(prop)
-            val hotCoolant = requireNotNull(prop.hotCoolant) { "Coolant must define a hot coolant fluid" }
-
-            if (original != null) {
-                coolantBaseTemperature += original.fluidType.temperature.toDouble()
-            }
-            coolantBoilingPointStandardPressure += prop.boilingPoint
-            coolantExitTemperature += hotCoolant.fluidType.temperature.toDouble()
-            coolantHeatOfVaporization += prop.heatOfVaporization
-        }
-
-        if (!coolantChannels.isEmpty()) {
-            coolantBaseTemperature /= coolantChannels.size.toDouble()
-            coolantBoilingPointStandardPressure /= coolantChannels.size.toDouble()
-            coolantExitTemperature /= coolantChannels.size.toDouble()
-            coolantHeatOfVaporization /= coolantChannels.size.toDouble()
-
-            if (coolantBaseTemperature == 0.0) {
-                coolantBaseTemperature = envTemperature
-            }
-            if (coolantBoilingPointStandardPressure == 0.0) {
-                coolantBoilingPointStandardPressure = AIR_BOILING_POINT
-            }
-        }
-        this.isOn = true
+    override fun setCoolantChannel(
+        x: Int, y: Int, coolant: ICoolantStats,
+        maxTemperature: Double, thermalConductivity: Double, mass: Double
+    ): Entity {
+        val entity = populateCell(
+            x, y, maxTemperature, thermalConductivity, mass,
+            coolant.moderatorFactor, coolant.fastAbsorptionFactor, coolant.slowAbsorptionFactor
+        )
+        world.addComponent(
+            entity,
+            ReactorComponentTypes.COOLANT_CHANNEL,
+            CoolantChannelComponent(coolant, 0.0, 0.0)
+        )
+        return entity
     }
 
-    fun resetFuelDepletion() {
+    override fun resetFuelDepletion() {
         this.fuelDepletion = 0.0
     }
 
-    // ===================== geometry helpers =====================
-    // The eigenvalue machinery (computeK, fillGeometricMatrices, runPowerIteration,
-    // applyLeakageFactor, assignRodWeightsAndThermalProportions) and the reusable matrices live in
-    // LegacyEigenvalueNeutronics. The two helpers below stay here because they mutate this class's
-    // own component collections (effectiveControlRods / coolant-channel weights) and are invoked by
-    // the kernels during precompute.
-
-    internal fun computeCoolantWeights() {
-        for (rod in fuelRods) {
-            for (i in 0..3) {
-                val x = rod.x + dx[i]
-                val y = rod.y + dy[i]
-                if (x < 0 || x >= reactorLayout.size || y < 0 || y >= reactorLayout[x].size) continue
-                val comp = reactorLayout[x][y]
-                if (comp is CoolantChannel) {
-                    comp.addWeight(rod.weight)
-                }
-            }
-        }
+    override fun resetThermalState() {
+        this.isOn = false
+        this.temperature = ReactorPhysics.ROOM_TEMPERATURE
+        this.pressure = ReactorPhysics.STANDARD_PRESSURE
+        this.power = 0.0
     }
 
-    internal fun computeControlRodWeights(totalWorth: Double) {
-        var totalWeight = 0.0
-        for (rod in controlRods) {
-            rod.computeWeightFromFuelRodMap()
-            if (rod.weight > 0) {
-                effectiveControlRods.add(rod)
-                totalWeight += rod.weight
-            }
-        }
-        ControlRod.normalizeWeights(effectiveControlRods, totalWeight, totalWorth)
-    }
-
-    // ===================== tick updates =====================
-
-    fun updatePower() {
-        // Legacy updatePower body lives in LegacyEigenvalueNeutronics.solve (point kinetics) plus
-        // SolidRodFuelCycle.step (fuelDepletion). solve handles both the isOn and !isOn branches;
-        // depletion only accrues while running, matching legacy.
-        neutronics.solve(state, 1.0)
-        if (isOn) {
-            fuelCycle.step(state, neutronFlux, reactorDepth.toDouble())
-        }
-    }
-
-    fun updateTemperature() {
-        thermal.updateTemperatureStep()
-    }
-
-    fun updatePressure() {
-        thermal.updatePressureStep()
-    }
-
-    fun updateNeutronPoisoning() {
-        this.decayProductsAmount *= decayProductRate
-        this.neutronPoisonAmount += this.decayProductsAmount * (1 - decayProductRate) * poisonFraction
-        this.neutronPoisonAmount *= decayProductRate * exp(-crossSectionRatio * power / surfaceArea)
-    }
-
-    val totalDecayNeutrons: Double
-        get() = this.neutronPoisonAmount * 0.05 + this.decayProductsAmount * 0.1 + this.decayNeutrons
-
-    // ===================== ReactorCore API =====================
+    // ===================== physics steps =====================
 
     override fun precompute() {
-        prepareThermalProperties()
-        effectiveControlRods.clear()
-        if (fuelRods.isEmpty()) {
-            k = 0.0
-            kEff = 0.0
-            maxPower = 0.0
-            controlRodFactor = 0.0
-            prepareInitialConditions()
+        geometryRebuild.update(world, 0.0)
+        val cache = world.cache()
+        if (cache.fuelRods.isEmpty()) {
+            neutronicsGlobalsComponent.k = 0.0
+            neutronicsGlobalsComponent.kEff = 0.0
+            limitsComponent.maxPower = 0.0
+            neutronicsGlobalsComponent.controlRodFactor = 0.0
+            thermalPrecompute.prepareInitialConditionsOnly(world)
             return
         }
-        // Legacy computeGeometry decomposed into its neutronics slice (eigenvalue + control-rod
-        // worth + neutronToPowerConversion + decayNeutrons + controlRodFactor) and its thermal
-        // slice (computeCoolantWeights + maxPower + prepareInitialConditions). Running the
-        // neutronics slice first is value-safe: see task-5-report.md parity table.
-        neutronics.precompute(geometry)
-        thermal.precompute(geometry)
+        neutronicsPrecompute.update(world, 0.0)
+        thermalPrecompute.update(world, 0.0)
     }
 
     override fun tick() {
-        if (!this.isOn || fuelRods.isEmpty()) return
-        updatePower()
-        updateTemperature()
-        updatePressure()
-        updateNeutronPoisoning()
-        regulateControlRods()
+        if (!this.isOn || world.cache().fuelRods.isEmpty()) return
+        world.update(1.0)
     }
+
+    override fun updatePower() {
+        neutronicsSystem.update(world, 1.0)
+        fuelCycleSystem.update(world, 1.0)
+    }
+
+    override fun updateTemperature() {
+        thermalHydraulics.updateTemperatureStep(world)
+    }
+
+    override fun updatePressure() {
+        thermalHydraulics.updatePressureStep(world)
+    }
+
+    override fun updateNeutronPoisoning() {
+        neutronPoisoningSystem.update(world, 1.0)
+    }
+
+    override fun regulateControlRods() {
+        controlRodSystem.regulate(world)
+    }
+
+    override fun updateControlRodInsertion(insertion: Double) {
+        this.controlRodInsertion = max(0.001, insertion)
+        this.controlRodFactor = computeControlRodFactor(world, world.cache(), this.controlRodInsertion)
+    }
+
+    // ===================== safety =====================
+
+    override fun turnOff() {
+        this.isOn = false
+        this.maxPower = 0.0
+        this.k = 0.0
+        this.kEff = 0.0
+        thermalGlobalsComponent.coolantMass = 0.0
+        thermalGlobalsComponent.fuelMass = 0.0
+        world.cache().clear()
+        for (x in cellEntities.indices) {
+            for (y in cellEntities[x].indices) {
+                val entity = cellEntities[x][y]
+                if (entity != null && world.isAlive(entity)) {
+                    world.destroyEntity(entity)
+                }
+                cellEntities[x][y] = null
+            }
+        }
+    }
+
+    // ===================== serialization =====================
 
     override fun save(tag: CompoundTag): CompoundTag {
         val inner = serializeNBT()
@@ -315,79 +351,6 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         deserializeNBT(tag)
     }
 
-    fun regulateControlRods() {
-        if (!this.isOn || !this.controlRodRegulationOn) return
-
-        var adjustFactor = false
-        if (pressure > maxPressure * 0.8 || temperature > (coolantExitTemperature + maxTemperature) / 2 || temperature > maxTemperature - 150 || temperature - prevTemperature > 30) {
-            if (kEff > 0.99) {
-                this.controlRodInsertion += 0.004
-                adjustFactor = true
-            }
-        } else if (temperature > coolantExitTemperature * 0.3 + coolantBaseTemperature * 0.7) {
-            if (kEff > 1.01) {
-                this.controlRodInsertion += 0.008
-                adjustFactor = true
-            } else if (kEff < 1.005) {
-                this.controlRodInsertion -= 0.001
-                adjustFactor = true
-            }
-        } else if (temperature > coolantExitTemperature * 0.1 + coolantBaseTemperature * 0.9) {
-            if (kEff > 1.025) {
-                this.controlRodInsertion += 0.012
-                adjustFactor = true
-            } else if (kEff < 1.015) {
-                this.controlRodInsertion -= 0.004
-                adjustFactor = true
-            }
-        } else {
-            if (kEff > 1.1) {
-                this.controlRodInsertion += 0.02
-                adjustFactor = true
-            } else if (kEff < 1.05) {
-                this.controlRodInsertion -= 0.006
-                adjustFactor = true
-            }
-        }
-
-        if (adjustFactor) {
-            this.controlRodInsertion = max(0.0, min(1.0, this.controlRodInsertion))
-            this.controlRodFactor =
-                ControlRod.controlRodFactor(effectiveControlRods, this.controlRodInsertion)
-        }
-    }
-
-    // ===================== safety =====================
-    fun updateControlRodInsertion(controlRodInsertion: Double) {
-        this.controlRodInsertion = max(0.001, controlRodInsertion)
-        this.controlRodFactor = ControlRod.controlRodFactor(effectiveControlRods, this.controlRodInsertion)
-    }
-
-    override fun turnOff() {
-        this.isOn = false
-        this.maxPower = 0.0
-        this.k = 0.0
-        this.kEff = 0.0
-        this.coolantMass = 0.0
-        this.fuelMass = 0.0
-        for (components in reactorLayout) {
-            Arrays.fill(components, null)
-        }
-        fuelRods.clear()
-        controlRods.clear()
-        coolantChannels.clear()
-        effectiveControlRods.clear()
-    }
-
-    // ===================== serialization =====================
-
-    /**
-     * Faithful port of legacy FissionReactor#serializeNBT. Persists the dynamic reactor state
-     * (including the five fields the modern port previously dropped: NeutronFlux, PrevTemperature,
-     * NeutronPoisonAmount, DecayProductsAmount, ControlRodRegulationOn) so a reload resumes the
-     * neutron/thermal transient instead of resetting it. Structural limits (maxTemperature etc.)
-     * are deliberately NOT persisted, matching legacy: they are recomputed in prepareThermalProperties.
-     */
     fun serializeNBT(): CompoundTag {
         val tag = CompoundTag()
         tag.putDouble("Temperature", temperature)
@@ -405,10 +368,6 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         return tag
     }
 
-    /**
-     * Faithful port of legacy FissionReactor#deserializeNBT. Restores the fields written by
-     * [serializeNBT]. Should be called after precompute so structural properties are fresh.
-     */
     fun deserializeNBT(tag: CompoundTag) {
         temperature = tag.getDouble("Temperature")
         prevTemperature = tag.getDouble("PrevTemperature")
@@ -422,66 +381,5 @@ class FissionReactor(size: Int, val reactorDepth: Int, controlRodInsertion: Doub
         controlRodInsertion = tag.getDouble("ControlRodInsertion")
         isOn = tag.getBoolean("IsOn")
         controlRodRegulationOn = tag.getBoolean("ControlRodRegulationOn")
-    }
-
-    companion object {
-        const val R: Double = 8.31446261815324
-        const val STANDARD_PRESSURE: Double = 101325.0
-        const val ROOM_TEMPERATURE: Double = 273.0
-        const val AIR_BOILING_POINT: Double = 78.8
-
-        private val dx = intArrayOf(0, 1, 0, -1)
-        private val dy = intArrayOf(1, 0, -1, 0)
-
-        var thermalConductivity: Double = 45.0 // W/(m K), for steel
-        var wallThickness: Double = 0.1 // m
-        var coolantWallThickness: Double = 0.02 // m (legacy value; 0.06 was the original, then /3 for balance)
-        var specificHeatCapacity: Double = 420.0 // J/(kg K), for steel
-        var convectiveHeatTransferCoefficient: Double = 10.0 // W/(m^2 K), for slow-moving air
-        var powerDefectCoefficient: Double = 0.016 // reactivity units
-        var decayProductRate: Double =
-            0.997 // based on the half-life of xenon-135, using real-life days as Minecraft days
-        var poisonFraction: Double = 0.063 // xenon-135 yield from fission
-        var crossSectionRatio: Double = 4.0 // ratio between the cross section for typical fuels and xenon-135
-        var zircaloyHydrogenReactionTemperature: Double = 1500.0 // K
-
-        internal fun responseFunction(target: Double, current: Double, criticalRate: Double): Double {
-            var current = current
-            if (current < 0) {
-                if (criticalRate < 1) return 0.0
-                current = 0.1
-            }
-            val expDecay = exp(-criticalRate)
-            return current * expDecay + target * (1 - expDecay)
-        }
-
-        fun getMagnitude(vector: DoubleArray): Double {
-            var magnitude = 0.0
-            for (component in vector) magnitude += component * component
-            return sqrt(magnitude)
-        }
-
-        fun normalize(vector: DoubleArray) {
-            val magnitude: Double = getMagnitude(vector)
-            if (magnitude == 0.0) return
-            for (i in vector.indices) vector[i] /= magnitude
-        }
-
-        fun linearNormalize(vector: DoubleArray) {
-            var sum = 0.0
-            for (component in vector) sum += component
-            if (sum == 0.0) return
-            for (i in vector.indices) vector[i] /= sum
-        }
-
-        fun multiply(matrix: Array<DoubleArray>, vector: DoubleArray) {
-            val result = DoubleArray(vector.size)
-            for (i in matrix.indices) {
-                for (j in matrix[i].indices) {
-                    result[i] += matrix[i][j] * vector[j]
-                }
-            }
-            System.arraycopy(result, 0, vector, 0, result.size)
-        }
     }
 }

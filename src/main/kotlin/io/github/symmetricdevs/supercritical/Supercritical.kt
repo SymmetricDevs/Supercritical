@@ -65,5 +65,8 @@ class Supercritical {
 
     companion object {
         val LOGGER: Logger = LogManager.getLogger(BuildConfig.MOD_ID)
+
+        /** Convenience factory for Supercritical resource locations. */
+        fun id(path: String): ResourceLocation = ResourceLocation(BuildConfig.MOD_ID, path)
     }
 }

@@ -19,12 +19,10 @@ import net.minecraft.world.level.material.Fluid
 import io.github.symmetricdevs.supercritical.api.capability.ICoolantHandler
 import io.github.symmetricdevs.supercritical.api.machine.multiblock.IFissionReactorHatch
 import io.github.symmetricdevs.supercritical.api.machine.trait.LockableFluidTank
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.ICoolantStats
 
 class CoolantExportHatch(holder: IMachineBlockEntity, tier: Int) :
     TieredIOPartMachine(holder, tier, IO.OUT), ICoolantHandler, IControllable, IFissionReactorHatch, IUIMachine {
     override val fluidTank: LockableFluidTank
-    override var coolant: ICoolantStats? = null
 
     init {
         // capabilityIO = IO.BOTH so the reactor sim (LegacyPWRThermalHydraulics.makeCoolantFlow) can push hot
@@ -49,8 +47,7 @@ class CoolantExportHatch(holder: IMachineBlockEntity, tier: Int) :
             fluidTank.lockedState = value
         }
 
-    override val lockedObject: Fluid?
-        get() = fluidTank.lockedObject
+    override val lockedObject: Fluid? by fluidTank::lockedObject
 
     override val outputHandler: ICoolantHandler
         get() = this

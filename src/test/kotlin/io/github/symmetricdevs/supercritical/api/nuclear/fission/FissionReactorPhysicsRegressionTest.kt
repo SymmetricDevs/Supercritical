@@ -1,8 +1,5 @@
 package io.github.symmetricdevs.supercritical.api.nuclear.fission
 
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.components.ControlRod
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.components.FuelRod
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.components.Moderator
 import io.github.symmetricdevs.supercritical.config.ScritConfig
 import net.minecraft.world.item.ItemStack
 import org.junit.jupiter.api.BeforeAll
@@ -145,12 +142,12 @@ class FissionReactorPhysicsRegressionTest {
     private fun buildReferenceReactor(): FissionReactor {
         val reactor = FissionReactor(size = 5, reactorDepth = 5, controlRodInsertion = 0.5)
         val fuel = TestFuelStats()
-        reactor.setComponent(1, 1, FuelRod(2000.0, 45.0, fuel, 100.0))
-        reactor.setComponent(1, 3, FuelRod(2000.0, 45.0, fuel, 100.0))
-        reactor.setComponent(3, 1, FuelRod(2000.0, 45.0, fuel, 100.0))
-        reactor.setComponent(3, 3, FuelRod(2000.0, 45.0, fuel, 100.0))
-        reactor.setComponent(2, 2, Moderator(45.0, 100.0, TestModeratorStats()))
-        reactor.setComponent(1, 2, ControlRod(2000.0, false, 45.0, 100.0))
+        reactor.setFuelRod(1, 1, fuel, 2000.0, 45.0, 100.0)
+        reactor.setFuelRod(1, 3, fuel, 2000.0, 45.0, 100.0)
+        reactor.setFuelRod(3, 1, fuel, 2000.0, 45.0, 100.0)
+        reactor.setFuelRod(3, 3, fuel, 2000.0, 45.0, 100.0)
+        reactor.setModerator(2, 2, TestModeratorStats(), 45.0, 100.0)
+        reactor.setControlRod(1, 2, hasModeratorTip = false, 2000.0, 45.0, 100.0)
         return reactor
     }
 

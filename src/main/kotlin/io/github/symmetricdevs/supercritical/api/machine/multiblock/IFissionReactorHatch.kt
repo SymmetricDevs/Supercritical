@@ -10,21 +10,9 @@ interface IFissionReactorHatch {
      */
     fun checkValidity(depth: Int): Boolean
 
-    fun canContinue(depletion: Double): Boolean = true
-
     val hatchPos: BlockPos?
 
-    /**
-     * Called by the controller when it forms so the hatch can store a weak reference.
-     */
-    fun setController(controller: FissionReactor?) {}
-
     fun getController(): FissionReactor? = null
-
-    /**
-     * @return the stored controller reference, or null if none is stored.
-     */
-    fun hasController(): Boolean = getController() != null
 
     fun isLocked(): Boolean = false
 }

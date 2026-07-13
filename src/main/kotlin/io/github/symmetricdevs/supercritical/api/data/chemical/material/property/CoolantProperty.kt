@@ -19,7 +19,7 @@ class CoolantProperty(
     override var heatOfVaporization: Double,
     override var specificHeatCapacity: Double
 ) : IMaterialProperty, ICoolantStats {
-    private var accumulatesHydrogen = false
+    override var accumulatesHydrogen = false
     override var slowAbsorptionFactor = 0.0
     override var fastAbsorptionFactor = 0.0
     override val mass: Double
@@ -62,10 +62,6 @@ class CoolantProperty(
     fun setSpecificHeatCapacity(specificHeatCapacity: Double): CoolantProperty {
         this.specificHeatCapacity = specificHeatCapacity
         return this
-    }
-
-    override fun accumulatesHydrogen(): Boolean {
-        return accumulatesHydrogen
     }
 
     fun setAccumulatesHydrogen(accumulatesHydrogen: Boolean): CoolantProperty {

@@ -1,11 +1,11 @@
 package io.github.symmetricdevs.supercritical.integration.jei.basic
 
+import io.github.symmetricdevs.supercritical.api.nuclear.fission.CoolantRegistry
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.chat.Component
 import net.minecraft.world.level.material.Fluid
 import net.minecraftforge.fluids.FluidStack
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.CoolantRegistry
 
 class CoolantInfo(coolant: Fluid, hotCoolant: Fluid) {
     val coolant: FluidStack
@@ -39,7 +39,7 @@ class CoolantInfo(coolant: Fluid, hotCoolant: Fluid) {
                 "supercritical.coolant.moderation_factor",
                 stats.moderatorFactor.toInt()
             )
-            this.hydrogen = if (stats.accumulatesHydrogen())
+            this.hydrogen = if (stats.accumulatesHydrogen)
                 Component.translatable("supercritical.coolant.accumulates_hydrogen")
             else
                 null

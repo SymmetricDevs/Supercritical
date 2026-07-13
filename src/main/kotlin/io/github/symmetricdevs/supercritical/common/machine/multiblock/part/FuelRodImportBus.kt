@@ -24,18 +24,19 @@ import net.minecraftforge.items.ItemStackHandler
 import io.github.symmetricdevs.supercritical.api.capability.IFuelRodHandler
 import io.github.symmetricdevs.supercritical.api.machine.multiblock.IFissionReactorHatch
 import io.github.symmetricdevs.supercritical.api.machine.trait.LockableItemStackHandler
+import io.github.symmetricdevs.supercritical.api.nuclear.ecs.Entity
+import io.github.symmetricdevs.supercritical.api.nuclear.ecs.components.FuelRodComponent
+import io.github.symmetricdevs.supercritical.api.nuclear.ecs.components.ReactorComponentTypes
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.FissionFuelRegistry
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.IFissionFuelStats
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.components.FuelRod
 import io.github.symmetricdevs.supercritical.common.machine.multiblock.fission.FissionReactor
 import io.github.symmetricdevs.supercritical.common.data.ScritBlocks
 
 class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMachine(holder, tier, IO.IN),
     IFuelRodHandler, IControllable, IFissionReactorHatch, IUIMachine, IMachineLife {
     override var fuel: IFissionFuelStats? = null
-    private var pairedHatch: FuelRodExportBus? = null
     override var partialFuel: IFissionFuelStats? = null
-    private var internalFuelRod: FuelRod? = null
+    private var fuelRodEntity: Entity? = null
     override var depletionPoint = 0.0
 
     private val lockableInventory: LockableItemStackHandler = LockableItemStackHandler(this, IO.IN)
@@ -48,14 +49,13 @@ class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMac
         override fun getStackInSlot(slot: Int): ItemStack = this@FuelRodImportBus.lockedObject
     }
 
-    val inventory: NotifiableItemStackHandler
-        get() = lockableInventory
+    val inventory: NotifiableItemStackHandler by ::lockableInventory
 
     override val inputStackHandler: LockableItemStackHandler
         get() = lockableInventory
 
     override val depletedFuel: ItemStack
-        get() = internalFuelRod?.depletedFuel ?: ItemStack.EMPTY
+        get() = fuelRodComponent()?.let { it.fuel.getDepletedFuel(it.thermalProportion) } ?: ItemStack.EMPTY
 
     override val hatchPos: BlockPos?
         get() = pos
@@ -66,13 +66,9 @@ class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMac
             if (depletionPoint == 0.0) lockableInventory.locked = value
         }
 
-    override val lockedObject: ItemStack
-        get() = lockableInventory.lockedObject
+    override val lockedObject: ItemStack by lockableInventory::lockedObject
 
-    override fun checkValidity(depth: Int): Boolean {
-        this.pairedHatch = getExportHatch(depth)
-        return pairedHatch != null
-    }
+    override fun checkValidity(depth: Int): Boolean = getExportHatch(depth) != null
 
     fun getExportHatch(depth: Int): FuelRodExportBus? {
         val level = level ?: return null
@@ -93,19 +89,20 @@ class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMac
         if (prop === this.partialFuel) return false
         this.partialFuel = prop
         if (prop == null) {
-            this.internalFuelRod = null
-        } else {
-            this.internalFuelRod?.setFuel(prop)
+            // Detach the cell entity so weight / depletedFuel reads go inert until the controller
+            // re-binds a fresh entity on the next structure form (see addFuelRodComponent).
+            this.fuelRodEntity = null
         }
         return true
     }
 
-    override fun setInternalFuelRod(rod: FuelRod?) {
-        this.internalFuelRod = rod
+    override fun bindFuelRodEntity(entity: Entity?) {
+        this.fuelRodEntity = entity
     }
 
     override fun isDepleted(totalDepletion: Double): Boolean {
-        return this.depletionPoint <= totalDepletion * this.internalFuelRod!!.weight
+        val weight = fuelRodComponent()?.weight ?: return false
+        return this.depletionPoint <= totalDepletion * weight
     }
 
     override fun markUndepleted() {
@@ -118,8 +115,8 @@ class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMac
     }
 
     override fun resetDepletion(fuelDepletion: Double) {
-        val rod = this.internalFuelRod ?: return
-        this.depletionPoint -= fuelDepletion * rod.weight
+        val weight = fuelRodComponent()?.weight ?: return
+        this.depletionPoint -= fuelDepletion * weight
     }
 
     override fun getController(): FissionReactor? {
@@ -128,14 +125,27 @@ class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMac
         return controllers.firstOrNull() as? FissionReactor
     }
 
+    /**
+     * Live ECS fuel-rod component for the bound cell entity, or null when no rod is bound / the
+     * controller isn't formed. The eigenvalue solver writes [FuelRodComponent.weight] and the
+     * thermal precompute writes [FuelRodComponent.thermalProportion], so reads here stay live with
+     * no copy step (component storage is by-reference — see [io.github.symmetricdevs.supercritical.api.nuclear.ecs.ComponentStorage]).
+     */
+    private fun fuelRodComponent(): FuelRodComponent? {
+        val entity = fuelRodEntity ?: return null
+        val world = getController()?.reactor?.world ?: return null
+        return world.getComponent(entity, ReactorComponentTypes.FUEL_ROD)
+    }
+
     fun getCurrentDepletionRatio(): Double {
         val partialFuel = this.partialFuel ?: return 0.0
         val controller = getController()
         val reactor = controller?.reactor
-        if (controller == null || !controller.isLocked() || reactor == null) {
+        val weight = fuelRodComponent()?.weight
+        if (controller == null || !controller.isLocked() || reactor == null || weight == null) {
             return 1.0 - depletionPoint / partialFuel.duration.toDouble()
         }
-        return 1.0 - (depletionPoint - reactor.fuelDepletion * internalFuelRod!!.weight) /
+        return 1.0 - (depletionPoint - reactor.fuelDepletion * weight) /
                 partialFuel.duration.toDouble()
     }
 

@@ -19,7 +19,7 @@ interface ICoolantStats {
 
     val heatOfVaporization: Double
 
-    fun accumulatesHydrogen(): Boolean
+    val accumulatesHydrogen: Boolean
 
     val mass: Double
 }
