@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.gui.GuiTextures
 import com.gregtechceu.gtceu.api.gui.UITemplate
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
+import com.gregtechceu.gtceu.api.machine.feature.IMachineLife
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler
@@ -30,7 +31,7 @@ import io.github.symmetricdevs.supercritical.common.machine.multiblock.fission.F
 import io.github.symmetricdevs.supercritical.common.data.ScritBlocks
 
 class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMachine(holder, tier, IO.IN),
-    IFuelRodHandler, IControllable, IFissionReactorHatch, IUIMachine {
+    IFuelRodHandler, IControllable, IFissionReactorHatch, IUIMachine, IMachineLife {
     override var fuel: IFissionFuelStats? = null
     private var pairedHatch: FuelRodExportBus? = null
     override var partialFuel: IFissionFuelStats? = null
@@ -202,6 +203,13 @@ class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMac
                 lockableInventory.importFromNearby(frontFacing)
             }
         }
+    }
+
+    override fun onMachineRemoved() {
+        // Pop the real fuel-rod inventory loose as item entities on break. lockedObject is only a
+        // count-1 filter SAMPLE (see LockableItemStackHandler), not a real rod, so it is intentionally
+        // NOT cleared here — clearInventory is item-only and operates on the backing storage handler.
+        clearInventory(lockableInventory.storage)
     }
 
     override fun saveCustomPersistedData(tag: CompoundTag, forDrop: Boolean) {

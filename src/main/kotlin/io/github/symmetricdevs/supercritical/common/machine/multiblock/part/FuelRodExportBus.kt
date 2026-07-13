@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.gui.GuiTextures
 import com.gregtechceu.gtceu.api.gui.UITemplate
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
+import com.gregtechceu.gtceu.api.machine.feature.IMachineLife
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler
@@ -17,7 +18,7 @@ import net.minecraft.world.entity.player.Player
 import io.github.symmetricdevs.supercritical.api.machine.multiblock.IFissionReactorHatch
 
 class FuelRodExportBus(holder: IMachineBlockEntity, tier: Int) :
-    TieredIOPartMachine(holder, tier, IO.OUT), IControllable, IFissionReactorHatch, IUIMachine {
+    TieredIOPartMachine(holder, tier, IO.OUT), IControllable, IFissionReactorHatch, IUIMachine, IMachineLife {
 
     // capabilityIO = IO.BOTH so the controller can push depleted fuel rods into this output bus
     // via the public insertItem (NotifiableItemStackHandler.insertItem is guarded by canCapInput(),
@@ -41,6 +42,11 @@ class FuelRodExportBus(holder: IMachineBlockEntity, tier: Int) :
                 inventory.exportToNearby(frontFacing)
             }
         }
+    }
+
+    override fun onMachineRemoved() {
+        // Pop depleted fuel rods sitting in the output slot loose as item entities on break.
+        clearInventory(inventory.storage)
     }
 
     override fun createUI(entityPlayer: Player): ModularUI {
