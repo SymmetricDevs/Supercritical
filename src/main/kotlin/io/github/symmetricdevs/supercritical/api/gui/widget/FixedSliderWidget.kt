@@ -16,7 +16,7 @@ import java.util.function.Consumer
  * to [responder]. The no-arg constructor is required so LDLib can mirror the widget on the client
  * (the responder is server-only; the client copy leaves it null and only ever *sends* actions).
  */
-class ScritSliderWidget : SliderWidget {
+class FixedSliderWidget : SliderWidget {
 
     @Volatile
     private var responder: Consumer<Float>? = null

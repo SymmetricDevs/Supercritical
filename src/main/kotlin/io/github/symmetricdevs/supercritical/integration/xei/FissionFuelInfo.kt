@@ -1,11 +1,11 @@
-package io.github.symmetricdevs.supercritical.integration.jei.basic
+package io.github.symmetricdevs.supercritical.integration.xei
 
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.FissionFuelRegistry
 import net.minecraft.network.chat.Component
 import net.minecraft.world.item.ItemStack
 
 /**
- * JEI recipe wrapper for a fission fuel rod entry.
+ * Viewer-neutral data wrapper for a fission fuel rod entry, shared by JEI/REI/EMI.
  */
 class FissionFuelInfo(rod: ItemStack) {
     val rod: ItemStack

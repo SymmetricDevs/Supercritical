@@ -39,6 +39,8 @@ repositories {
 
 dependencies {
     modCompileOnlyApi(deps.bundles.jei)
+    modCompileOnlyApi(deps.bundles.rei)
+    modCompileOnlyApi(deps.emi)
     modCompileOnlyApi(deps.ldlib)
     modCompileOnlyApi(deps.registrate)
     modCompileOnlyApi(deps.configuration)
@@ -50,10 +52,13 @@ dependencies {
 
     modRuntimeOnly(deps.configuration) // Forces a newer version of ldlib that contains ConfigFormats#YAML
     modRuntimeOnly(deps.ldlib) // Forces a newer version of ldlib that contains SliderWidget
-    modRuntimeOnly(deps.bundles.jei)
+    modRuntimeOnly(deps.jei.forge.impl)
+//    modRuntimeOnly(deps.bundles.rei.runtime)
+//    modRuntimeOnly(deps.emi)
     modRuntimeOnly(deps.bundles.jade)
+    modRuntimeOnly(deps.spark)
     modRuntimeOnly(deps.gtceu)
-    modRuntimeOnly(deps.ccTweaked.forge)
+    modRuntimeOnly(deps.ccTweaked.forge.impl)
     modRuntimeOnly(variantOf(deps.scalableCatsForce) { classifier("with-library") }) { isTransitive = false }
     modRuntimeOnly(deps.openComputersCE)
 }

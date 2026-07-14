@@ -26,7 +26,7 @@ import io.github.symmetricdevs.supercritical.api.capability.ICoolantHandler
 import io.github.symmetricdevs.supercritical.api.capability.IFuelRodHandler
 import io.github.symmetricdevs.supercritical.api.cover.ICustomEnergyCover
 import io.github.symmetricdevs.supercritical.api.gui.ScritGuiTextures
-import io.github.symmetricdevs.supercritical.api.gui.widget.ScritSliderWidget
+import io.github.symmetricdevs.supercritical.api.gui.widget.FixedSliderWidget
 import io.github.symmetricdevs.supercritical.api.machine.multiblock.IFissionReactorHatch
 import io.github.symmetricdevs.supercritical.api.machine.multiblock.ScritMultiblockAbility
 import io.github.symmetricdevs.supercritical.api.nuclear.ecs.resources.CoolantInventoryBridge
@@ -919,7 +919,7 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
         }
         // Control-rod insertion slider — back on the main page, below the gauges.
         group.addWidget(
-            ScritSliderWidget(2, 107, 186, 18).apply {
+            FixedSliderWidget(2, 107, 186, 18).apply {
                 setMinAmount(0f)
                 setMaxAmount(1f)
                 handleTexture = ScritGuiTextures.DARK_SLIDER_ICON

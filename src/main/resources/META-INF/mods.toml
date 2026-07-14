@@ -39,5 +39,26 @@ versionRange = "[4.10,)"
 ordering = "AFTER"
 side = "BOTH"
 
+[[dependencies.supercritical]]
+modId = "jei"
+mandatory = false
+versionRange = "[15.20.0,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.supercritical]]
+modId = "roughlyenoughitems"
+mandatory = false
+versionRange = "[12.1.785,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.supercritical]]
+modId = "emi"
+mandatory = false
+versionRange = "[1.1.24,)"
+ordering = "AFTER"
+side = "BOTH"
+
 [[mixins]]
 config = "supercritical.mixins.json"

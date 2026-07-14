@@ -1,4 +1,4 @@
-package io.github.symmetricdevs.supercritical.integration.jei.basic
+package io.github.symmetricdevs.supercritical.integration.xei
 
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.ModeratorRegistry
 import net.minecraft.network.chat.Component
@@ -7,7 +7,7 @@ import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
 
 /**
- * JEI recipe wrapper for a moderator block entry.
+ * Viewer-neutral data wrapper for a moderator block entry, shared by JEI/REI/EMI.
  */
 class ModeratorInfo(block: Block) {
     val blockState: BlockState = block.defaultBlockState()

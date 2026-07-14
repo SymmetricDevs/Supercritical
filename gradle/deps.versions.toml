@@ -5,8 +5,13 @@ configuration = "3.1.0-forge"
 gtceu = "7.5.3"
 
 jei = "15.20.0.133"
+architectury = "9.2.14"
+clothConfigApi = "11.1.136"
+rei = "12.1.785"
+emi = "1.1.24+1.20.1"
 jade = "11.13.2+forge"
 jade-addons = "5.5.1+forge"
+spark = "1.10.53-forge"
 
 ccTweaked = "1.120.0"
 
@@ -24,20 +29,29 @@ gtceu = { module = "com.gregtechceu.gtceu:gtceu-1.20.1", version.ref = "gtceu" }
 jei-common-api = { module = "mezz.jei:jei-1.20.1-common-api", version.ref = "jei" }
 jei-forge-api = { module = "mezz.jei:jei-1.20.1-forge-api", version.ref = "jei" }
 jei-forge-impl = { module = "mezz.jei:jei-1.20.1-forge", version.ref = "jei" }
+architectury = { module = "dev.architectury:architectury-forge", version.ref = "architectury" }
+clothConfigApi = { module = "me.shedaniel.cloth:cloth-config-forge", version.ref = "clothConfigApi" }
+rei-forge-plugin = { module = "me.shedaniel:RoughlyEnoughItems-default-plugin-forge", version.ref = "rei" }
+rei-forge-api = { module = "me.shedaniel:RoughlyEnoughItems-api-forge", version.ref = "rei" }
+rei-forge-impl = { module = "me.shedaniel:RoughlyEnoughItems-forge", version.ref = "rei" }
+emi = { module = "dev.emi:emi-forge", version.ref = "emi" }
 jade = { module = "maven.modrinth:jade", version.ref = "jade" }
 jade-addons = { module = "maven.modrinth:jade-addons-forge", version.ref = "jade-addons" }
+spark = { module = "maven.modrinth:spark", version.ref = "spark" }
 
 ccTweaked-core-api = { module = "cc.tweaked:cc-tweaked-1.20.1-core-api", version.ref = "ccTweaked" }
 ccTweaked-common-api = { module = "cc.tweaked:cc-tweaked-1.20.1-common-api", version.ref = "ccTweaked" }
 ccTweaked-forge-api = { module = "cc.tweaked:cc-tweaked-1.20.1-forge-api", version.ref = "ccTweaked" }
-ccTweaked-forge = { module = "cc.tweaked:cc-tweaked-1.20.1-forge", version.ref = "ccTweaked" }
+ccTweaked-forge-impl = { module = "cc.tweaked:cc-tweaked-1.20.1-forge", version.ref = "ccTweaked" }
 
 cats = { module = "org.typelevel:cats-core_3", version.ref = "cats" }
 scala3 = { module = "org.scala-lang:scala3-library_3", version.ref = "scala3" }
 scalableCatsForce = { module = "com.kotori316:scalablecatsforce", version.ref = "scalableCatsForce" }
-openComputersCE = {module="li.cil.oc:opencomputers", version.ref="openComputersCE"}
+openComputersCE = { module = "li.cil.oc:opencomputers", version.ref = "openComputersCE" }
 
 [bundles]
 jei = ["jei-common-api", "jei-forge-api", "jei-forge-impl"]
+rei = ["rei-forge-plugin", "rei-forge-impl", "rei-forge-api"]
+rei-runtime = ["rei-forge-impl", "architectury", "clothConfigApi"]
 jade = ["jade", "jade-addons"]
 ccTweaked-api = ["ccTweaked-core-api", "ccTweaked-common-api", "ccTweaked-forge-api"]

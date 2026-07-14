@@ -1,13 +1,9 @@
 package io.github.symmetricdevs.supercritical.integration.jei.basic
 
-import com.gregtechceu.gtceu.api.gui.GuiTextures
-import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget
-import com.lowdragmc.lowdraglib.gui.widget.ProgressWidget
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup
-import com.lowdragmc.lowdraglib.jei.IGui2IDrawable
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.CoolantRegistry
 import io.github.symmetricdevs.supercritical.common.data.ScritMachines
+import io.github.symmetricdevs.supercritical.integration.xei.CoolantInfo
+import io.github.symmetricdevs.supercritical.integration.xei.widgets.CoolantInfoWidget
 import io.github.symmetricdevs.supercritical.util.scId
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder
 import mezz.jei.api.gui.drawable.IDrawable
@@ -19,74 +15,39 @@ import mezz.jei.api.recipe.RecipeType
 import mezz.jei.api.recipe.category.IRecipeCategory
 import mezz.jei.api.registration.IRecipeCatalystRegistration
 import mezz.jei.api.registration.IRecipeRegistration
-import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.chat.Component
 
-private fun Component.withDefaultColor(): Component =
-    if (style.color == null) copy().withStyle(ChatFormatting.BLACK) else this
-
 class CoolantCategory(helpers: IJeiHelpers) : IRecipeCategory<CoolantInfo> {
-    private val icon: IDrawable
-    private val slot: IDrawable
-    private val progressArrow: ProgressTexture
+    private val icon: IDrawable =
+        helpers.guiHelper.createDrawableItemStack(ScritMachines.FISSION_REACTOR.asStack())
 
-    init {
-        val guiHelper = helpers.guiHelper
-        this.icon = guiHelper.createDrawableItemStack(ScritMachines.FISSION_REACTOR.asStack())
-        this.slot = IGui2IDrawable.toDrawable(GuiTextures.SLOT, 18, 18)
-        this.progressArrow = ProgressTexture(
-            GuiTextures.PROGRESS_BAR_ARROW.getSubTexture(0.0, 0.0, 1.0, 0.5),
-            GuiTextures.PROGRESS_BAR_ARROW.getSubTexture(0.0, 0.5, 1.0, 0.5)
-        )
-        this.progressArrow.setFillDirection(ProgressTexture.FillDirection.LEFT_TO_RIGHT)
-    }
-
-    override fun setRecipe(
-        builder: IRecipeLayoutBuilder, recipe: CoolantInfo,
-        focuses: IFocusGroup
-    ) {
-        builder.addSlot(RecipeIngredientRole.INPUT, 55, 9)
-            .addFluidStack(recipe.coolant.fluid, recipe.coolant.amount.toLong())
-        builder.addSlot(RecipeIngredientRole.OUTPUT, 105, 9)
-            .addFluidStack(recipe.hotCoolant.fluid, recipe.hotCoolant.amount.toLong())
+    override fun setRecipe(builder: IRecipeLayoutBuilder, recipe: CoolantInfo, focuses: IFocusGroup) {
+        builder.addSlot(
+            RecipeIngredientRole.INPUT,
+            CoolantInfoWidget.INGREDIENT_INPUT_X, CoolantInfoWidget.INGREDIENT_INPUT_Y
+        ).addFluidStack(recipe.coolant.fluid, recipe.coolant.amount.toLong())
+        builder.addSlot(
+            RecipeIngredientRole.OUTPUT,
+            CoolantInfoWidget.INGREDIENT_OUTPUT_X, CoolantInfoWidget.INGREDIENT_OUTPUT_Y
+        ).addFluidStack(recipe.hotCoolant.fluid, recipe.hotCoolant.amount.toLong())
     }
 
     override fun draw(
         recipe: CoolantInfo, recipeSlotsView: IRecipeSlotsView,
         guiGraphics: GuiGraphics, mouseX: Double, mouseY: Double
     ) {
-        slot.draw(guiGraphics, 54, 8)
-        slot.draw(guiGraphics, 104, 8)
-        progressArrow.setProgress(ProgressWidget.JEIProgress.asDouble)
-        progressArrow.draw(guiGraphics, mouseX.toInt(), mouseY.toInt(), 77.0f, 6.0f, 20, 20)
-
-        val group = WidgetGroup(0, 0, width, height)
-        recipe.textLines.forEachIndexed { index, line ->
-            group.addWidget(LabelWidget(0, 40 + index * 10, line.withDefaultColor()).setDropShadow(false))
-        }
-        group.drawInBackground(guiGraphics, mouseX.toInt(), mouseY.toInt(), 0f)
+        // buildSlots = false: JEI registers its own native slots on top, so the shared widget
+        // only contributes the slot backgrounds + arrow + stat text (no double-drawn content).
+        CoolantInfoWidget(recipe, buildSlots = false)
+            .drawInBackground(guiGraphics, mouseX.toInt(), mouseY.toInt(), 0f)
     }
 
-    override fun getRecipeType(): RecipeType<CoolantInfo> {
-        return RECIPE_TYPE
-    }
-
-    override fun getTitle(): Component {
-        return Component.translatable("fission.coolant.name")
-    }
-
-    override fun getWidth(): Int {
-        return 176
-    }
-
-    override fun getHeight(): Int {
-        return 90
-    }
-
-    override fun getIcon(): IDrawable {
-        return icon
-    }
+    override fun getRecipeType(): RecipeType<CoolantInfo> = RECIPE_TYPE
+    override fun getTitle(): Component = Component.translatable("fission.coolant.name")
+    override fun getWidth(): Int = CoolantInfoWidget.WIDTH
+    override fun getHeight(): Int = CoolantInfoWidget.HEIGHT
+    override fun getIcon(): IDrawable = icon
 
     companion object {
         val RECIPE_TYPE: RecipeType<CoolantInfo> =
