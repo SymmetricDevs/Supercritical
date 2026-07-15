@@ -38,6 +38,9 @@ repositories {
 }
 
 dependencies {
+    compileOnlyApi(deps.jspecify)
+    compileOnlyApi(deps.annotations)
+
     modCompileOnlyApi(deps.bundles.jei)
     modCompileOnlyApi(deps.bundles.rei)
     modCompileOnlyApi(deps.emi)
@@ -46,9 +49,7 @@ dependencies {
     modCompileOnlyApi(deps.configuration)
     modCompileOnlyApi(variantOf(deps.gtceu) { classifier("slim") }) { isTransitive = false }
     modCompileOnlyApi(deps.openComputersCE)
-    compileOnly(deps.bundles.ccTweaked.api)
-    compileOnly(deps.cats)
-    compileOnly(deps.scala3)
+    modCompileOnlyApi(deps.bundles.ccTweaked.api)
 
     modRuntimeOnly(deps.configuration) // Forces a newer version of ldlib that contains ConfigFormats#YAML
     modRuntimeOnly(deps.ldlib) // Forces a newer version of ldlib that contains SliderWidget

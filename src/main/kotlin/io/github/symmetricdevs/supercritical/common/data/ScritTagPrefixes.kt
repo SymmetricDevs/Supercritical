@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix
 import io.github.symmetricdevs.supercritical.api.data.chemical.material.info.ScritMaterialIconType
 import io.github.symmetricdevs.supercritical.api.data.chemical.material.property.FissionFuelProperty
-import io.github.symmetricdevs.supercritical.api.data.chemical.material.property.ScritPropertyKey
 import io.github.symmetricdevs.supercritical.api.data.chemical.tag.TagPrefixExtension.Companion.radiationDamageFunction
 import net.minecraft.network.chat.Component
 import java.util.function.BiConsumer
@@ -81,7 +80,7 @@ object ScritTagPrefixes {
     }
 
     private fun hasFissionFuel(material: Material): Boolean {
-        return material.hasProperty<FissionFuelProperty?>(ScritPropertyKey.FISSION_FUEL)
+        return material.hasProperty<FissionFuelProperty?>(ScritPropertyKeys.FISSION_FUEL)
     }
 
     private fun radioactiveTooltip(): BiConsumer<Material, MutableList<Component>> {

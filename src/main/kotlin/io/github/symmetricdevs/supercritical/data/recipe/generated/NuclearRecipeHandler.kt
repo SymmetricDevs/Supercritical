@@ -6,7 +6,7 @@ import com.gregtechceu.gtceu.api.data.tag.TagPrefix
 import com.gregtechceu.gtceu.common.data.GTItems
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes
 import io.github.symmetricdevs.supercritical.api.data.chemical.material.property.FissionFuelProperty
-import io.github.symmetricdevs.supercritical.api.data.chemical.material.property.ScritPropertyKey
+import io.github.symmetricdevs.supercritical.common.data.ScritPropertyKeys
 import io.github.symmetricdevs.supercritical.common.data.ScritItems
 import io.github.symmetricdevs.supercritical.common.data.ScritRecipeTypes
 import io.github.symmetricdevs.supercritical.common.data.ScritTagPrefixes
@@ -20,14 +20,14 @@ object NuclearRecipeHandler {
     // loop lives in ScritRecipes. FissionFuelProperty is attached during GTCEu's MaterialEvent, which
     // fires before datagen, so it is already set when this runs.
     fun run(provider: Consumer<FinishedRecipe>, material: Material) {
-        if (!material.hasProperty(ScritPropertyKey.FISSION_FUEL)) return
-        processFuelRod(provider, material, material.getProperty<FissionFuelProperty>(ScritPropertyKey.FISSION_FUEL))
+        if (!material.hasProperty(ScritPropertyKeys.FISSION_FUEL)) return
+        processFuelRod(provider, material, material.getProperty<FissionFuelProperty>(ScritPropertyKeys.FISSION_FUEL))
     }
 
     private fun processFuelRod(provider: Consumer<FinishedRecipe>, material: Material, property: FissionFuelProperty) {
         val name = material.name
 
-        ScritRecipeTypes.SPENT_FUEL_POOL_RECIPES
+        ScritRecipeTypes.SPENT_FUEL_POOL
             .recipeBuilder(scId("${name}_spent_fuel_pool_cooling"))
             .inputItems(ScritTagPrefixes.fuelRodHotDepleted, material)
             .outputItems(ScritTagPrefixes.fuelRodDepleted, material)

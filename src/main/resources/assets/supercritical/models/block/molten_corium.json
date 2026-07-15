@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "minecraft:block/lava_still",
+    "particle": "minecraft:block/lava_still"
+  }
+}

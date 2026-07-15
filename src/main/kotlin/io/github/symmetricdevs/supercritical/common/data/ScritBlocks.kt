@@ -14,12 +14,17 @@ import io.github.symmetricdevs.supercritical.common.registry.ScritRegistration
 import io.github.symmetricdevs.supercritical.util.scId
 import net.minecraft.core.Direction
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.tags.TagKey
 import net.minecraft.world.item.DyeColor
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.material.MapColor
+import net.minecraft.core.registries.Registries
+
+/** Registrate blockstate datagen callback for a plain [Block] (see [BlockBuilder.blockstate]). */
+private typealias BlockstateGen = NonNullBiConsumer<DataGenContext<Block, Block>, RegistrateBlockstateProvider>
 
 /**
  * Supercritical's plain blocks (7 casings + 16 dyed panelling variants), registered via GTCEu's
@@ -70,44 +75,35 @@ object ScritBlocks {
     }
 
     val PANELLING: ImmutableMap<DyeColor, BlockEntry<Block>> = registerPanelling()
-    val WHITE_PANELLING: BlockEntry<Block> = PANELLING.getValue(DyeColor.WHITE)
-    val ORANGE_PANELLING: BlockEntry<Block> = PANELLING.getValue(DyeColor.ORANGE)
-    val MAGENTA_PANELLING: BlockEntry<Block> = PANELLING.getValue(DyeColor.MAGENTA)
-    val LIGHT_BLUE_PANELLING: BlockEntry<Block> = PANELLING.getValue(DyeColor.LIGHT_BLUE)
-    val YELLOW_PANELLING: BlockEntry<Block> = PANELLING.getValue(DyeColor.YELLOW)
-    val LIME_PANELLING: BlockEntry<Block> = PANELLING.getValue(DyeColor.LIME)
-    val PINK_PANELLING: BlockEntry<Block> = PANELLING.getValue(DyeColor.PINK)
+
+    /** Matches every dyed panelling variant — used by multiblock patterns that accept any colour. */
+    val PANELLING_TAG: TagKey<Block> = TagKey.create(Registries.BLOCK, scId("panelling"))
+
+    /** Base panelling colour (the one recipes are built around); other colours are made by dyeing it. */
     val GRAY_PANELLING: BlockEntry<Block> = PANELLING.getValue(DyeColor.GRAY)
-    val LIGHT_GRAY_PANELLING: BlockEntry<Block> = PANELLING.getValue(DyeColor.LIGHT_GRAY)
-    val CYAN_PANELLING: BlockEntry<Block> = PANELLING.getValue(DyeColor.CYAN)
-    val PURPLE_PANELLING: BlockEntry<Block> = PANELLING.getValue(DyeColor.PURPLE)
-    val BLUE_PANELLING: BlockEntry<Block> = PANELLING.getValue(DyeColor.BLUE)
-    val BROWN_PANELLING: BlockEntry<Block> = PANELLING.getValue(DyeColor.BROWN)
-    val GREEN_PANELLING: BlockEntry<Block> = PANELLING.getValue(DyeColor.GREEN)
-    val RED_PANELLING: BlockEntry<Block> = PANELLING.getValue(DyeColor.RED)
-    val BLACK_PANELLING: BlockEntry<Block> = PANELLING.getValue(DyeColor.BLACK)
 
     /** Forces object initialization so every block entry registers via GTRegistrate. */
     fun init() {}
 
     private fun registerFissionCasing(name: String): BlockEntry<Block> = registerCasing(name, 10.0f, 10.0f)
+
     private fun registerNuclearCasing(
         name: String,
-        blockstate: NonNullBiConsumer<DataGenContext<Block, Block>, RegistrateBlockstateProvider>? = null
-    ): BlockEntry<Block> = registerCasing(
-        name, 5.0f, 10.0f, blockFactory = { ActiveBlock(it) }, blockstate = blockstate
-    )
+        blockstate: BlockstateGen? = null
+    ): BlockEntry<Block> = registerGasCentrifugeCasing(name, noOcclusion = false, blockstate = blockstate)
+
     private fun registerGasCentrifugeCasing(
         name: String,
-        blockFactory: (BlockBehaviour.Properties) -> Block = { Block(it) },
-        blockstate: NonNullBiConsumer<DataGenContext<Block, Block>, RegistrateBlockstateProvider>? = null
+        noOcclusion: Boolean = true,
+        blockFactory: (BlockBehaviour.Properties) -> Block = { ActiveBlock(it) },
+        blockstate: BlockstateGen? = null
     ): BlockEntry<Block> =
-        registerCasing(name, 5.0f, 10.0f, noOcclusion = true, blockFactory = blockFactory, blockstate = blockstate)
+        registerCasing(name, 5.0f, 10.0f, noOcclusion, blockFactory, blockstate)
 
     private fun registerCasing(
         name: String, strengthA: Float, strengthB: Float, noOcclusion: Boolean = false,
         blockFactory: (BlockBehaviour.Properties) -> Block = { Block(it) },
-        blockstate: NonNullBiConsumer<DataGenContext<Block, Block>, RegistrateBlockstateProvider>? = null
+        blockstate: BlockstateGen? = null
     ): BlockEntry<Block> {
         val builder = REGISTRATE.block(name, blockFactory)
             .initialProperties { Blocks.IRON_BLOCK }
@@ -150,24 +146,19 @@ object ScritBlocks {
             .partialState().with(GTBlockStateProperties.ACTIVE, true).modelForState().modelFile(active).addModel()
     }
 
-    private fun registerPanelling(): ImmutableMap<DyeColor, BlockEntry<Block>> {
-        val builder = ImmutableMap.builder<DyeColor, BlockEntry<Block>>()
-        for (color in DyeColor.entries) {
-            builder.put(
-                color,
-                REGISTRATE.block(color.getName() + "_panelling") { Block(it) }
-                    .initialProperties { Blocks.IRON_BLOCK }
-                    .properties {
-                        it.strength(2.0f, 5.0f)
-                            .sound(SoundType.METAL)
-                            .requiresCorrectToolForDrops()
-                            .mapColor(color)
-                    }
-                    .tag(CustomTags.MINEABLE_WITH_WRENCH)
-                    .simpleItem()
-                    .register()
-            )
-        }
-        return builder.build()
-    }
+    private fun registerPanelling(): ImmutableMap<DyeColor, BlockEntry<Block>> =
+        ImmutableMap.copyOf(DyeColor.entries.associateWith(::registerPanellingBlock))
+
+    private fun registerPanellingBlock(color: DyeColor): BlockEntry<Block> =
+        REGISTRATE.block(color.getName() + "_panelling") { Block(it) }
+            .initialProperties { Blocks.IRON_BLOCK }
+            .properties {
+                it.strength(2.0f, 5.0f)
+                    .sound(SoundType.METAL)
+                    .requiresCorrectToolForDrops()
+                    .mapColor(color)
+            }
+            .tag(CustomTags.MINEABLE_WITH_WRENCH, PANELLING_TAG)
+            .simpleItem()
+            .register()
 }

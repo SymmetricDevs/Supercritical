@@ -1,5 +1,6 @@
 package io.github.symmetricdevs.supercritical.common.machine.multiblock.fission
 
+import com.gregtechceu.gtceu.api.data.RotationState
 import com.gregtechceu.gtceu.api.gui.GuiTextures
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget
@@ -43,13 +44,16 @@ import io.github.symmetricdevs.supercritical.common.data.ScritBlocks
 import io.github.symmetricdevs.supercritical.common.data.ScritMaterials
 import io.github.symmetricdevs.supercritical.common.machine.multiblock.part.ControlRodPort
 import io.github.symmetricdevs.supercritical.common.machine.multiblock.part.ModeratorPort
+import io.github.symmetricdevs.supercritical.common.registry.ScritRegistration
 import io.github.symmetricdevs.supercritical.config.ScritConfig
 import io.github.symmetricdevs.supercritical.util.replace
+import io.github.symmetricdevs.supercritical.util.scId
 import net.minecraft.core.BlockPos
 import net.minecraft.core.BlockPos.MutableBlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.Component.translatable
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.Explosion
 import net.minecraft.world.level.Level
@@ -1013,6 +1017,19 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
     }
 
     companion object {
+        fun register(): MultiblockMachineDefinition = ScritRegistration.REGISTRATE
+            .multiblock("fission_reactor") { FissionReactor(it) }
+            .rotationState(RotationState.NON_Y_AXIS)
+            .allowExtendedFacing(ScritConfig.INSTANCE.misc.allowExtendedFacingForFissionReactor)
+            .pattern { buildPattern(it, 5, 1, 1) }
+            .workableCasingModel(scId("block/reactor_vessel"), scId("block/multiblock/fission_reactor"))
+            .tooltipBuilder { _, tooltip ->
+                tooltip.add(translatable("supercritical.machine.fission_reactor.tooltip.1"))
+                tooltip.add(translatable("supercritical.machine.fission_reactor.tooltip.2"))
+                tooltip.add(translatable("supercritical.machine.fission_reactor.tooltip.3"))
+            }
+            .register()
+
         fun buildPattern(
             definition: MultiblockMachineDefinition,
             diameter: Int,

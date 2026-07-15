@@ -3,7 +3,7 @@ package io.github.symmetricdevs.supercritical.data.recipe.generated
 import com.gregtechceu.gtceu.api.data.chemical.material.Material
 import com.gregtechceu.gtceu.common.data.GTMaterials
 import io.github.symmetricdevs.supercritical.api.data.chemical.material.property.CoolantProperty
-import io.github.symmetricdevs.supercritical.api.data.chemical.material.property.ScritPropertyKey
+import io.github.symmetricdevs.supercritical.common.data.ScritPropertyKeys
 import io.github.symmetricdevs.supercritical.common.data.ScritRecipeTypes
 import io.github.symmetricdevs.supercritical.config.ScritConfig
 import io.github.symmetricdevs.supercritical.util.outputFluids
@@ -14,8 +14,8 @@ import kotlin.math.ceil
 
 object FluidRecipeHandler {
     fun run(provider: Consumer<FinishedRecipe>, material: Material) {
-        if (!material.hasProperty(ScritPropertyKey.COOLANT)) return
-        processCoolant(provider, material, material.getProperty<CoolantProperty>(ScritPropertyKey.COOLANT))
+        if (!material.hasProperty(ScritPropertyKeys.COOLANT)) return
+        processCoolant(provider, material, material.getProperty<CoolantProperty>(ScritPropertyKeys.COOLANT))
     }
 
     fun processCoolant(provider: Consumer<FinishedRecipe>, material: Material, coolant: CoolantProperty) {
@@ -23,7 +23,7 @@ object FluidRecipeHandler {
 
         var waterAmount = 6
         var coolantAmount = calculateCoolantAmount(material, coolant, waterAmount)
-        ScritRecipeTypes.HEAT_EXCHANGER_RECIPES.recipeBuilder(scId("small_${name}_water"))
+        ScritRecipeTypes.HEAT_EXCHANGER.recipeBuilder(scId("small_${name}_water"))
             .duration(1)
             .circuitMeta(1)
             .inputFluids(coolant.hotHPCoolant, coolantAmount)
@@ -31,7 +31,7 @@ object FluidRecipeHandler {
             .outputFluids(material, coolantAmount)
             .outputFluids(GTMaterials.Steam, Math.toIntExact(waterAmount * 160L))
             .save(provider)
-        ScritRecipeTypes.HEAT_EXCHANGER_RECIPES.recipeBuilder(scId("small_${name}_distilled_water"))
+        ScritRecipeTypes.HEAT_EXCHANGER.recipeBuilder(scId("small_${name}_distilled_water"))
             .duration(1)
             .circuitMeta(1)
             .inputFluids(coolant.hotHPCoolant, coolantAmount)
@@ -42,7 +42,7 @@ object FluidRecipeHandler {
 
         waterAmount = 600
         coolantAmount = calculateCoolantAmount(material, coolant, waterAmount)
-        ScritRecipeTypes.HEAT_EXCHANGER_RECIPES.recipeBuilder(scId("large_${name}_water"))
+        ScritRecipeTypes.HEAT_EXCHANGER.recipeBuilder(scId("large_${name}_water"))
             .duration(1)
             .circuitMeta(2)
             .inputFluids(coolant.hotHPCoolant, coolantAmount)
@@ -50,7 +50,7 @@ object FluidRecipeHandler {
             .outputFluids(material, coolantAmount)
             .outputFluids(GTMaterials.Steam, Math.toIntExact(waterAmount * 160L))
             .save(provider)
-        ScritRecipeTypes.HEAT_EXCHANGER_RECIPES.recipeBuilder(scId("large_${name}_distilled_water"))
+        ScritRecipeTypes.HEAT_EXCHANGER.recipeBuilder(scId("large_${name}_distilled_water"))
             .duration(1)
             .circuitMeta(2)
             .inputFluids(coolant.hotHPCoolant, coolantAmount)
@@ -59,7 +59,7 @@ object FluidRecipeHandler {
             .outputFluids(GTMaterials.Steam, Math.toIntExact(waterAmount * 160L))
             .save(provider)
 
-        ScritRecipeTypes.HEAT_EXCHANGER_RECIPES.recipeBuilder(scId("${name}_radiator"))
+        ScritRecipeTypes.HEAT_EXCHANGER.recipeBuilder(scId("${name}_radiator"))
             .duration(10)
             .circuitMeta(3)
             .inputFluids(coolant.hotHPCoolant, 8000)

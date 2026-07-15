@@ -17,19 +17,19 @@ import com.gregtechceu.gtceu.api.data.tag.TagPrefix
 import com.gregtechceu.gtceu.api.fluids.FluidBuilder
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys
 import com.gregtechceu.gtceu.common.data.GTMaterials
-import net.minecraftforge.eventbus.api.SubscribeEvent
 import io.github.symmetricdevs.supercritical.api.data.chemical.material.property.CoolantProperty
 import io.github.symmetricdevs.supercritical.api.data.chemical.material.property.FissionFuelProperty
 import io.github.symmetricdevs.supercritical.api.data.chemical.material.property.ModeratorProperty
-import io.github.symmetricdevs.supercritical.api.data.chemical.material.property.ScritPropertyKey
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.CoolantRegistry
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.FissionFuelRegistry
 import io.github.symmetricdevs.supercritical.api.nuclear.fission.ModeratorRegistry
+import io.github.symmetricdevs.supercritical.common.block.MoltenCorium
 import io.github.symmetricdevs.supercritical.config.ScritConfig
 import io.github.symmetricdevs.supercritical.util.scId
-import kotlin.collections.get
+import net.minecraftforge.eventbus.api.SubscribeEvent
 
 object ScritMaterials {
+
     private val FUEL_ITEM_ENTRIES: MutableList<FuelItemEntry> = arrayListOf()
 
     lateinit var Uranium239: Material
@@ -95,20 +95,21 @@ object ScritMaterials {
     }
 
     private fun registerCoreMaterials() {
+        val moltenCoriumBuilder = FluidBuilder()
+            .temperature(2500)
+            .density(8.0)
+            .viscosity(10000)
+            .block()
+
         Corium = builder("corium")
-            .liquid(
-                FluidBuilder()
-                    .temperature(2500)
-                    .density(8.0)
-                    .viscosity(10000)
-                    .block()
-            )
+            .fluid(FluidStorageKeys.MOLTEN, moltenCoriumBuilder)
             .color(0x7A6B50)
             .iconSet(MaterialIconSet.DULL)
-            // DISABLE_MATERIAL_RECIPES is the modern (non-deprecated) replacement for NO_UNIFICATION
-            // (both disable auto recipe generation for the material; Corium is byproduct-only).
             .flags(MaterialFlags.DISABLE_MATERIAL_RECIPES, MaterialFlags.STICKY, MaterialFlags.PHOSPHORESCENT)
             .buildAndRegister()
+
+        Corium.getProperty(PropertyKey.FLUID)
+            .store(FluidStorageKeys.MOLTEN, MoltenCorium.register(), moltenCoriumBuilder)
     }
 
     private fun registerElementMaterials() {
@@ -121,14 +122,17 @@ object ScritMaterials {
             .color(0x284D7B).iconSet(MaterialIconSet.METALLIC)
             .element(ScritElements.Neptunium235)
             .buildAndRegister()
+
         Neptunium236 = builder("neptunium_236")
             .color(0x284D7B).iconSet(MaterialIconSet.METALLIC)
             .element(ScritElements.Neptunium236)
             .buildAndRegister()
+
         Neptunium237 = builder("neptunium_237")
             .color(0x284D7B).iconSet(MaterialIconSet.METALLIC)
             .element(ScritElements.Neptunium237)
             .buildAndRegister()
+
         Neptunium239 = builder("neptunium_239")
             .color(0x284D7B).iconSet(MaterialIconSet.METALLIC)
             .element(ScritElements.Neptunium239)
@@ -139,16 +143,19 @@ object ScritMaterials {
             .color(0xF03232).iconSet(MaterialIconSet.METALLIC)
             .element(ScritElements.Plutonium238)
             .buildAndRegister()
+
         Plutonium240 = builder("plutonium_240")
             .liquid(FluidBuilder().temperature(913))
             .color(0xF03232).iconSet(MaterialIconSet.METALLIC)
             .element(ScritElements.Plutonium240)
             .buildAndRegister()
+
         Plutonium242 = builder("plutonium_242")
             .liquid(FluidBuilder().temperature(913))
             .color(0xF03232).iconSet(MaterialIconSet.METALLIC)
             .element(ScritElements.Plutonium242)
             .buildAndRegister()
+
         Plutonium244 = builder("plutonium_244")
             .liquid(FluidBuilder().temperature(913))
             .color(0xF03232).iconSet(MaterialIconSet.METALLIC)
@@ -190,7 +197,7 @@ object ScritMaterials {
         Zircaloy = builder("zircaloy")
             .ingot()
             .color(0x566570).iconSet(MaterialIconSet.METALLIC)
-            .flags(MaterialFlags.GENERATE_RING, MaterialFlags.GENERATE_PLATE)
+            .flags(MaterialFlags.GENERATE_RING, MaterialFlags.GENERATE_PLATE, MaterialFlags.DECOMPOSITION_BY_CENTRIFUGING)
             .components(GTMaterials.Zirconium, 16, GTMaterials.Tin, 2, GTMaterials.Chromium, 1)
             .blast(1700, BlastProperty.GasTier.LOW)
             .buildAndRegister()
@@ -249,16 +256,8 @@ object ScritMaterials {
             // legacy never had.
             .flags(MaterialFlags.GENERATE_PLATE, MaterialFlags.GENERATE_SPRING, MaterialFlags.DISABLE_DECOMPOSITION)
             .components(
-                GTMaterials.Nickel,
-                5,
-                GTMaterials.Chromium,
-                2,
-                GTMaterials.Iron,
-                2,
-                GTMaterials.Niobium,
-                1,
-                GTMaterials.Molybdenum,
-                1
+                GTMaterials.Nickel, 5, GTMaterials.Chromium, 2, GTMaterials.Iron, 2,
+                GTMaterials.Niobium, 1, GTMaterials.Molybdenum, 1
             )
             .blast { b: BlastProperty.Builder ->
                 b.temp(1610, BlastProperty.GasTier.MID).blastStats(2048, 200)
@@ -305,7 +304,7 @@ object ScritMaterials {
             HeavyWater, HighPressureHeavyWater, FluidStorageKeys.LIQUID,
             4.0, 1000.0, 374.4, 2064000.0, 4228.0
         ).setAccumulatesHydrogen(true)
-        HeavyWater.setProperty<CoolantProperty?>(ScritPropertyKey.COOLANT, heavyWaterCoolant)
+        HeavyWater.setProperty(ScritPropertyKeys.COOLANT, heavyWaterCoolant)
     }
 
     private fun registerSecondDegreeMaterials() {
@@ -359,10 +358,10 @@ object ScritMaterials {
     }
 
     private fun applyMaterialModifications(includeDistilledWaterCoolant: Boolean) {
-        GTMaterials.Zirconium.setProperty<DustProperty?>(PropertyKey.DUST, DustProperty())
-        GTMaterials.Hafnium.setProperty<DustProperty?>(PropertyKey.DUST, DustProperty())
+        GTMaterials.Zirconium.setProperty(PropertyKey.DUST, DustProperty())
+        GTMaterials.Hafnium.setProperty(PropertyKey.DUST, DustProperty())
         GTMaterials.Hafnium.addFlags(MaterialFlags.GENERATE_LONG_ROD)
-        GTMaterials.Hafnium.setProperty<BlastProperty?>(PropertyKey.BLAST, BlastProperty(2227))
+        GTMaterials.Hafnium.setProperty(PropertyKey.BLAST, BlastProperty(2227))
         GTMaterials.Plutonium239.getProperty(PropertyKey.ORE).setOreByProducts()
         // Restore legacy SC Uranium/Plutonium overrides (ElementMaterials.java).
         // In modern GTCEu the "uranium" material is GTMaterials.Uranium238 and the "plutonium" material is
@@ -380,7 +379,7 @@ object ScritMaterials {
         GTMaterials.Uranium238.materialIconSet = MaterialIconSet.METALLIC
         GTMaterials.Plutonium239.materialARGB = 0xF03232
         GTMaterials.Plutonium239.materialIconSet = MaterialIconSet.METALLIC
-        GTMaterials.Salt.setProperty<FluidProperty?>(
+        GTMaterials.Salt.setProperty(
             PropertyKey.FLUID,
             FluidProperty(FluidStorageKeys.LIQUID, FluidBuilder().translation("gregtech.fluid.molten"))
         )
@@ -396,7 +395,8 @@ object ScritMaterials {
                 .releasedHeatEnergy(0.01)
                 .decayRate(0.001)
                 .build()
-        GTMaterials.Uraninite.setProperty<FissionFuelProperty?>(ScritPropertyKey.FISSION_FUEL, uraniniteFuel)
+
+        GTMaterials.Uraninite.setProperty(ScritPropertyKeys.FISSION_FUEL, uraniniteFuel)
         FUEL_ITEM_ENTRIES.add(FuelItemEntry("uraninite", uraniniteFuel))
 
         if (includeDistilledWaterCoolant) {
@@ -407,11 +407,11 @@ object ScritMaterials {
                 .setAccumulatesHydrogen(true)
                 .setSlowAbsorptionFactor(0.1875)
                 .setFastAbsorptionFactor(0.0625)
-            GTMaterials.DistilledWater.setProperty<CoolantProperty?>(ScritPropertyKey.COOLANT, distilledWaterCoolant)
+            GTMaterials.DistilledWater.setProperty(ScritPropertyKeys.COOLANT, distilledWaterCoolant)
         }
 
-        GTMaterials.Graphite.setProperty<ModeratorProperty?>(
-            ScritPropertyKey.MODERATOR, ModeratorProperty.builder()
+        GTMaterials.Graphite.setProperty(
+            ScritPropertyKeys.MODERATOR, ModeratorProperty.builder()
                 .maxTemperature(3650)
                 .absorptionFactor(0.0625)
                 .moderationFactor(3.0)
@@ -419,8 +419,8 @@ object ScritMaterials {
         )
         GTMaterials.Graphite.addFlags(MaterialFlags.FORCE_GENERATE_BLOCK)
 
-        GTMaterials.Beryllium.setProperty<ModeratorProperty?>(
-            ScritPropertyKey.MODERATOR, ModeratorProperty.builder()
+        GTMaterials.Beryllium.setProperty(
+            ScritPropertyKeys.MODERATOR, ModeratorProperty.builder()
                 .maxTemperature(1500)
                 .absorptionFactor(0.015625)
                 .moderationFactor(5.0)
@@ -448,7 +448,7 @@ object ScritMaterials {
             .decayRate(decayRate)
             .build()
         FUEL_ITEM_ENTRIES.add(FuelItemEntry(fuelItemKey, property))
-        material.setProperty<FissionFuelProperty?>(ScritPropertyKey.FISSION_FUEL, property)
+        material.setProperty(ScritPropertyKeys.FISSION_FUEL, property)
     }
 
     fun registerFuelItems() {
@@ -473,8 +473,8 @@ object ScritMaterials {
 
     fun registerCoolants() {
         for (material in GTCEuAPI.materialManager.registeredMaterials) {
-            if (material.hasProperty<CoolantProperty?>(ScritPropertyKey.COOLANT)) {
-                val property = material.getProperty<CoolantProperty>(ScritPropertyKey.COOLANT)
+            if (material.hasProperty(ScritPropertyKeys.COOLANT)) {
+                val property = material.getProperty(ScritPropertyKeys.COOLANT)
                 val fluid =
                     material.getFluid(requireNotNull(property.coolantKey) { "Coolant fluid key for ${material.name} is not initialized" })
                 if (fluid != null) {
@@ -486,14 +486,14 @@ object ScritMaterials {
 
     fun registerModerators() {
         for (material in GTCEuAPI.materialManager.registeredMaterials) {
-            if (material.hasProperty<ModeratorProperty?>(ScritPropertyKey.MODERATOR)) {
+            if (material.hasProperty(ScritPropertyKeys.MODERATOR)) {
                 registerModerator(material)
             }
         }
     }
 
     private fun registerModerator(material: Material) {
-        val property = requireNotNull(material.getProperty<ModeratorProperty?>(ScritPropertyKey.MODERATOR)) {
+        val property = requireNotNull(material.getProperty(ScritPropertyKeys.MODERATOR)) {
             "${material.name} is missing its moderator property"
         }
         val block = requireNotNull(ChemicalHelper.getBlock(TagPrefix.block, material)) {

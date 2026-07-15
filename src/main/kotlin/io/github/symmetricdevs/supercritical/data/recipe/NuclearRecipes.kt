@@ -118,14 +118,14 @@ object NuclearRecipes {
     }
 
     private fun gasCentrifugeRecipes(provider: Consumer<FinishedRecipe>) {
-        ScritRecipeTypes.GAS_CENTRIFUGE_RECIPES.recipeBuilder(scId("uranium_hexafluoride_enrichment"))
+        ScritRecipeTypes.GAS_CENTRIFUGE.recipeBuilder(scId("uranium_hexafluoride_enrichment"))
             .inputFluids(GTMaterials.UraniumHexafluoride, 1000)
             .outputFluids(GTMaterials.EnrichedUraniumHexafluoride, 100)
             .outputFluids(GTMaterials.DepletedUraniumHexafluoride, 900)
             .duration(800).EUt(GTValues.VA[GTValues.HV].toLong())
             .save(provider)
 
-        ScritRecipeTypes.GAS_CENTRIFUGE_RECIPES.recipeBuilder(scId("enriched_uranium_hexafluoride_enrichment"))
+        ScritRecipeTypes.GAS_CENTRIFUGE.recipeBuilder(scId("enriched_uranium_hexafluoride_enrichment"))
             .inputFluids(GTMaterials.EnrichedUraniumHexafluoride, 1000)
             .outputFluids(ScritMaterials.HighEnrichedUraniumHexafluoride, 100)
             .outputFluids(GTMaterials.DepletedUraniumHexafluoride, 900)
