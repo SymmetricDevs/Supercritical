@@ -1,6 +1,7 @@
 package io.github.symmetricdevs.supercritical.api.nuclear.reactor.systems
 
 import io.github.symmetricdevs.supercritical.api.nuclear.ecs.Component
+import io.github.symmetricdevs.supercritical.api.nuclear.ecs.Entity
 import io.github.symmetricdevs.supercritical.api.nuclear.ecs.System
 import io.github.symmetricdevs.supercritical.api.nuclear.ecs.World
 import io.github.symmetricdevs.supercritical.api.nuclear.ecs.components.ControlRodComponent
@@ -8,11 +9,14 @@ import io.github.symmetricdevs.supercritical.api.nuclear.ecs.components.Neutroni
 import io.github.symmetricdevs.supercritical.api.nuclear.ecs.components.PositionComponent
 import io.github.symmetricdevs.supercritical.api.nuclear.ecs.components.ReactorComponentTypes
 import io.github.symmetricdevs.supercritical.api.nuclear.ecs.query
+import io.github.symmetricdevs.supercritical.api.nuclear.ecs.resources.ReactorGeometryCache
 import io.github.symmetricdevs.supercritical.api.nuclear.reactor.ReactorPhysics
 import io.github.symmetricdevs.supercritical.config.ScritConfig
 import java.util.Arrays
+import kotlin.math.ceil
 import kotlin.math.exp
 import kotlin.math.pow
+import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 /**
@@ -112,7 +116,7 @@ class NeutronicsPrecomputeSystem : System {
         }
     }
 
-    private fun snapshotFuelRods(world: World, fuelRods: List<io.github.symmetricdevs.supercritical.api.nuclear.ecs.Entity>) {
+    private fun snapshotFuelRods(world: World, fuelRods: List<Entity>) {
         if (rodX.size != fuelRodCount) {
             rodX = IntArray(fuelRodCount)
             rodY = IntArray(fuelRodCount)
@@ -164,7 +168,7 @@ class NeutronicsPrecomputeSystem : System {
         // pass (by assignRodWeightsAndThermalProportions); the second pass neither writes
         // nor reads them.
         val resolution = ScritConfig.INSTANCE.nuclear.fissionReactorResolution
-        val steps = Math.ceil(resolution).toInt()
+        val steps = ceil(resolution).toInt()
         for (i in 0 until fuelRodCount) {
             for (j in 0 until i) {
                 var moderationSum = 0.0
@@ -177,8 +181,8 @@ class NeutronicsPrecomputeSystem : System {
                 var prevX = x1
                 var prevY = y1
                 for (t in 0 until steps) {
-                    val x = Math.round((x2 - x1) * (t.toDouble() / resolution) + x1).toInt()
-                    val y = Math.round((y2 - y1) * (t.toDouble() / resolution) + y1).toInt()
+                    val x = ((x2 - x1) * (t.toDouble() / resolution) + x1).roundToInt()
+                    val y = ((y2 - y1) * (t.toDouble() / resolution) + y1).roundToInt()
                     if (x < 0 || x > size - 1 || y < 0 || y > size - 1) continue
                     val idx = x * size + y
                     if (!occupied[idx]) continue
@@ -225,7 +229,7 @@ class NeutronicsPrecomputeSystem : System {
     private fun runPowerIteration(): DoubleArray {
         val vector = DoubleArray(fuelRodCount)
         Arrays.fill(vector, 1.0)
-        for (i in 0 until ScritConfig.INSTANCE.nuclear.fissionReactorPowerIterations) {
+        repeat(ScritConfig.INSTANCE.nuclear.fissionReactorPowerIterations) {
             ReactorPhysics.normalize(vector)
             ReactorPhysics.multiply(neutronMatrix, vector)
         }
@@ -234,7 +238,7 @@ class NeutronicsPrecomputeSystem : System {
 
     private fun assignRodWeightsAndThermalProportions(
         world: World,
-        cache: io.github.symmetricdevs.supercritical.api.nuclear.ecs.resources.ReactorGeometryCache,
+        cache: ReactorGeometryCache,
         vector: DoubleArray
     ) {
         val fuelRods = cache.fuelRods

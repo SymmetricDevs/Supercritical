@@ -46,8 +46,10 @@ import io.github.symmetricdevs.supercritical.common.machine.multiblock.part.Cont
 import io.github.symmetricdevs.supercritical.common.machine.multiblock.part.ModeratorPort
 import io.github.symmetricdevs.supercritical.common.registry.ScritRegistration
 import io.github.symmetricdevs.supercritical.config.ScritConfig
+import io.github.symmetricdevs.supercritical.util.blocks
 import io.github.symmetricdevs.supercritical.util.replace
 import io.github.symmetricdevs.supercritical.util.scId
+import io.github.symmetricdevs.supercritical.util.self
 import net.minecraft.core.BlockPos
 import net.minecraft.core.BlockPos.MutableBlockPos
 import net.minecraft.core.Direction
@@ -249,15 +251,14 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
         diameter = this.diameter,
         heightBottom = this.heightBottom,
         heightTop = this.heightTop,
-        controllerBlock = definition.block,
-        aPredicate = Predicates.blocks(
-            ScritBlocks.FUEL_CHANNEL.get(), ScritBlocks.CONTROL_ROD_CHANNEL.get(),
-            ScritBlocks.COOLANT_CHANNEL.get()
+        definition = this.definition,
+        aPredicate = blocks(
+            ScritBlocks.FUEL_CHANNEL, ScritBlocks.CONTROL_ROD_CHANNEL, ScritBlocks.COOLANT_CHANNEL
         )
             .or(Predicates.air())
             .or(moderatorPredicate())
             .or(Predicates.abilities(ScritMultiblockAbility.MODERATOR_PORT)),
-        iPredicate = Predicates.blocks(ScritBlocks.REACTOR_VESSEL.get()).or(this.importPredicate)
+        iPredicate = blocks(ScritBlocks.REACTOR_VESSEL).or(this.importPredicate)
     )
 
     private val importPredicate: TraceabilityPredicate
@@ -1039,13 +1040,12 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
             diameter = diameter,
             heightBottom = heightBottom,
             heightTop = heightTop,
-            controllerBlock = definition.block,
-            aPredicate = Predicates.blocks(
-                ScritBlocks.FUEL_CHANNEL.get(), ScritBlocks.CONTROL_ROD_CHANNEL.get(),
-                ScritBlocks.COOLANT_CHANNEL.get()
+            definition = definition,
+            aPredicate = blocks(
+                ScritBlocks.FUEL_CHANNEL, ScritBlocks.CONTROL_ROD_CHANNEL, ScritBlocks.COOLANT_CHANNEL
             )
                 .or(Predicates.air()),
-            iPredicate = Predicates.blocks(ScritBlocks.REACTOR_VESSEL.get()).or(
+            iPredicate = blocks(ScritBlocks.REACTOR_VESSEL).or(
                 Predicates.abilities(
                     ScritMultiblockAbility.IMPORT_COOLANT, ScritMultiblockAbility.IMPORT_FUEL_ROD,
                     ScritMultiblockAbility.CONTROL_ROD_PORT, ScritMultiblockAbility.MODERATOR_PORT
@@ -1057,81 +1057,73 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
             diameter: Int,
             heightBottom: Int,
             heightTop: Int,
-            controllerBlock: net.minecraft.world.level.block.Block,
+            definition: MultiblockMachineDefinition,
             aPredicate: TraceabilityPredicate,
             iPredicate: TraceabilityPredicate
         ): BlockPattern? {
-            val radius = if (diameter % 2 == 0) floor((diameter / 2f).toDouble()).toInt() else
-                Math.round((diameter - 1) / 2f)
+            // diameter is always odd (getPattern clamps it with `or 1`; buildPattern passes 5), so the
+            // footprint is centered on the integer cell `center` and `rim * rim` is loop-invariant.
+            val center = diameter / 2
+            val rim = center + 0.5
+            val rimSq = rim * rim
 
-            val interiorBuilder = StringBuilder()
-            val interiorSlice = Array(diameter) { "" }
-
-            for (i in 0..<diameter) {
-                for (j in 0..<diameter) {
-                    if ((i - floor(diameter / 2.0)).pow(2.0) + (j - floor(diameter / 2.0)).pow(2.0) < (radius + 0.5f).toDouble()
-                            .pow(2.0)
-                    ) {
-                        interiorBuilder.append('A')
-                    } else {
-                        interiorBuilder.append(' ')
-                    }
+            val interior = Array(diameter) { i ->
+                CharArray(diameter) { j ->
+                    if ((i - center) * (i - center) + (j - center) * (j - center) < rimSq) 'A' else ' '
                 }
-                interiorSlice[i] = interiorBuilder.toString()
-                interiorBuilder.setLength(0)
             }
 
-            interiorSlice[0] = interiorSlice[0].replace('A', 'B')
-            interiorSlice[diameter - 1] = interiorSlice[0]
+            // Top/bottom rows of the circle are the rim ('B'); the last row mirrors the first.
+            interior[0].remap('A', 'B')
+            interior[diameter - 1] = interior[0].copyOf()
             for (i in 1..<diameter - 1) {
                 for (j in 0..<diameter) {
-                    if (interiorSlice[i][j] != 'A') {
-                        continue
-                    }
-                    val outerI = i + sign((i - (diameter / 2)).toFloat()).toInt()
-                    if ((outerI - floor(diameter / 2.0)).pow(2.0) + (j - floor(diameter / 2.0)).pow(2.0) > (radius + 0.5f).toDouble()
-                            .pow(2.0)
+                    if (interior[i][j] != 'A') continue
+                    val outerI = i + sign((i - center).toFloat()).toInt()
+                    val outerJ = j + sign((j - center).toFloat()).toInt()
+                    if ((outerI - center) * (outerI - center) + (j - center) * (j - center) > rimSq ||
+                        (i - center) * (i - center) + (outerJ - center) * (outerJ - center) > rimSq
                     ) {
-                        interiorSlice[i] = interiorSlice[i].replace(j, 'B')
-                    }
-                    val outerJ = j + sign((j - (diameter / 2)).toFloat()).toInt()
-                    if ((i - floor(diameter / 2.0)).pow(2.0) + (outerJ - floor(diameter / 2.0)).pow(2.0) > (radius + 0.5f).toDouble()
-                            .pow(2.0)
-                    ) {
-                        interiorSlice[i] = interiorSlice[i].replace(j, 'B')
+                        interior[i][j] = 'B'
                     }
                 }
             }
 
-            val controllerSlice = interiorSlice.clone()
-            val topSlice = interiorSlice.clone()
-            val bottomSlice = interiorSlice.clone()
-            controllerSlice[0] = controllerSlice[0].substring(0, floor(diameter / 2.0).toInt()) + 'S' +
-                    controllerSlice[0].substring(floor(diameter / 2.0).toInt() + 1)
+            fun Array<CharArray>.toStrings(): Array<String> = Array(size) { String(this[it]) }
+
+            val controllerSlice = interior.map { it.copyOf() }.toTypedArray()
+            controllerSlice[0][center] = 'S'
+            val topSlice = interior.map { it.copyOf() }.toTypedArray()
+            val bottomSlice = interior.map { it.copyOf() }.toTypedArray()
             for (i in 0..<diameter) {
-                topSlice[i] = topSlice[i].replace('A', 'I')
-                bottomSlice[i] = bottomSlice[i].replace('A', 'O')
+                topSlice[i].remap('A', 'I')
+                bottomSlice[i].remap('A', 'O')
             }
 
             return FactoryBlockPattern.start(RelativeDirection.RIGHT, RelativeDirection.BACK, RelativeDirection.UP)
-                .aisle(*bottomSlice)
-                .aisle(*interiorSlice).setRepeatable(heightBottom - 1)
-                .aisle(*controllerSlice)
-                .aisle(*interiorSlice).setRepeatable(heightTop - 1)
-                .aisle(*topSlice)
-                .where('S', Predicates.controller(Predicates.blocks(controllerBlock)))
+                .aisle(*bottomSlice.toStrings())
+                .aisle(*interior.toStrings()).setRepeatable(heightBottom - 1)
+                .aisle(*controllerSlice.toStrings())
+                .aisle(*interior.toStrings()).setRepeatable(heightTop - 1)
+                .aisle(*topSlice.toStrings())
+                .where('S', definition.self)
                 .where('A', aPredicate)
                 .where('I', iPredicate)
                 .where(
-                    'O', Predicates.blocks(ScritBlocks.REACTOR_VESSEL.get())
+                    'O', blocks(ScritBlocks.REACTOR_VESSEL)
                         .or(Predicates.abilities(ScritMultiblockAbility.EXPORT_COOLANT, ScritMultiblockAbility.EXPORT_FUEL_ROD))
                 )
                 .where(
-                    'B', Predicates.blocks(ScritBlocks.REACTOR_VESSEL.get())
+                    'B', blocks(ScritBlocks.REACTOR_VESSEL)
                         .or(Predicates.abilities(PartAbility.MAINTENANCE).setMinGlobalLimited(1).setMaxGlobalLimited(1))
                 )
                 .where(' ', Predicates.any())
                 .build()
+        }
+
+        /** In-place replace every `from` char with `to` (mirrors [String.replace] but mutates the row). */
+        private fun CharArray.remap(from: Char, to: Char) {
+            for (k in indices) if (this[k] == from) this[k] = to
         }
     }
 }

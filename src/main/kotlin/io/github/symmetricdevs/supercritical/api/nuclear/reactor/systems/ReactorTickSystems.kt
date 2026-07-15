@@ -136,7 +136,7 @@ class ThermalHydraulicsSystem : System {
             val prop = channel.coolant
             val coolantTemp = coolantInletTemp(prop)
             val hotCoolant = requireNotNull(prop.hotCoolant) { "Coolant must define a hot coolant fluid for coolant flow" }
-            val cooledTemperature = hotCoolant.getFluidType().temperature
+            val cooledTemperature = hotCoolant.fluidType.temperature
             if (cooledTemperature > state.temperature) continue
 
             val heatRemovedPerLiter = heatRemovedPerLiter(prop, coolantTemp, cooledTemperature)

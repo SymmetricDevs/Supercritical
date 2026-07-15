@@ -72,7 +72,7 @@ class World(val schedule: Schedule) {
     @Suppress("UNCHECKED_CAST")
     fun <T : Component> getComponent(entity: Entity, type: ComponentType<T>): T? {
         if (!isAlive(entity)) return null
-        return storage(type)[entity.index] as? T
+        return storage(type)[entity.index]
     }
 
     /** Returns true if [entity] has a component of the given type. */

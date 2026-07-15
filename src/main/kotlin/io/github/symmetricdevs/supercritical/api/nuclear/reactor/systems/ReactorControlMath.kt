@@ -1,7 +1,9 @@
 package io.github.symmetricdevs.supercritical.api.nuclear.reactor.systems
 
 import io.github.symmetricdevs.supercritical.api.nuclear.ecs.World
+import io.github.symmetricdevs.supercritical.api.nuclear.ecs.components.ControlRodComponent
 import io.github.symmetricdevs.supercritical.api.nuclear.ecs.components.ReactorComponentTypes
+import io.github.symmetricdevs.supercritical.api.nuclear.ecs.query
 import io.github.symmetricdevs.supercritical.api.nuclear.ecs.resources.ReactorGeometryCache
 
 /**

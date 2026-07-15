@@ -61,7 +61,7 @@ class ThermalPrecomputeSystem : System {
             for (i in 0..3) {
                 val nx = pos.x + dx[i]
                 val ny = pos.y + dy[i]
-                if (nx < 0 || nx >= size || ny < 0 || ny >= size) continue
+                if (nx !in 0..<size || ny < 0 || ny >= size) continue
                 coolantAt[nx * size + ny]?.let { it.weight += weight }
             }
         }
