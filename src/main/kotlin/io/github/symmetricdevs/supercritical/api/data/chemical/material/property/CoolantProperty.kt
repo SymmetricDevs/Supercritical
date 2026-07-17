@@ -5,73 +5,33 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.IMaterialProp
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.MaterialProperties
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKey
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.ICoolantStats
+import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys
+import io.github.symmetricdevs.supercritical.api.fission.stats.CoolantStats
 import net.minecraft.world.level.material.Fluid
 
-class CoolantProperty(
-    material: Material,
-    var hotHPCoolant: Material,
-    val coolantKey: FluidStorageKey?,
-    override var moderatorFactor: Double,
-    override var coolingFactor: Double,
-    override var boilingPoint: Double,
-    override var heatOfVaporization: Double,
-    override var specificHeatCapacity: Double
-) : IMaterialProperty, ICoolantStats {
-    override var accumulatesHydrogen = false
-    override var slowAbsorptionFactor = 0.0
-    override var fastAbsorptionFactor = 0.0
-    override val mass: Double = material.mass.toDouble()
-    override val hotCoolant: Fluid?
-        get() = hotHPCoolant.fluid
+data class CoolantProperty(
+    val coolant: Material,
+    val hotCoolant: Material,
+    val hotCoolantKey: FluidStorageKey = FluidStorageKeys.LIQUID,
+    val coolantKey: FluidStorageKey = FluidStorageKeys.GAS,
+    override val moderatorFactor: Double,
+    override val coolingFactor: Double,
+    override val coolTemperature: Double,
+    override val boilingPoint: Double,
+    override val heatOfVaporization: Double,
+    override val specificHeatCapacity: Double,
+    override val accumulatesHydrogen: Boolean = false,
+    override val slowAbsorptionFactor: Double = 0.0,
+    override val fastAbsorptionFactor: Double = 0.0,
+    override val mass: Double = coolant.mass.toDouble(),
+) : IMaterialProperty, CoolantStats {
+
+    override val coolantFluid: Fluid by lazy { coolant.getFluid(coolantKey) }
+    override val hotCoolantFluid: Fluid by lazy { hotCoolant.getFluid(hotCoolantKey) }
 
     override fun verifyProperty(properties: MaterialProperties) {
         properties.ensureSet(PropertyKey.FLUID, true)
-    }
-
-    fun setHotHPCoolant(hotHPCoolant: Material): CoolantProperty {
-        this.hotHPCoolant = hotHPCoolant
-        return this
-    }
-
-    fun setModeratorFactor(moderatorFactor: Double): CoolantProperty {
-        this.moderatorFactor = moderatorFactor
-        return this
-    }
-
-    fun setCoolingFactor(coolingFactor: Double): CoolantProperty {
-        this.coolingFactor = coolingFactor
-        return this
-    }
-
-    fun setBoilingPoint(boilingPoint: Double): CoolantProperty {
-        this.boilingPoint = boilingPoint
-        return this
-    }
-
-    fun setHeatOfVaporization(heatOfVaporization: Double): CoolantProperty {
-        this.heatOfVaporization = heatOfVaporization
-        return this
-    }
-
-    fun setSpecificHeatCapacity(specificHeatCapacity: Double): CoolantProperty {
-        this.specificHeatCapacity = specificHeatCapacity
-        return this
-    }
-
-    fun setAccumulatesHydrogen(accumulatesHydrogen: Boolean): CoolantProperty {
-        this.accumulatesHydrogen = accumulatesHydrogen
-        return this
-    }
-
-    fun setSlowAbsorptionFactor(slowAbsorptionFactor: Double): CoolantProperty {
-        this.slowAbsorptionFactor = slowAbsorptionFactor
-        return this
-    }
-
-    fun setFastAbsorptionFactor(fastAbsorptionFactor: Double): CoolantProperty {
-        this.fastAbsorptionFactor = fastAbsorptionFactor
-        return this
+        hotCoolant.properties.ensureSet(PropertyKey.FLUID, true)
     }
 
 }

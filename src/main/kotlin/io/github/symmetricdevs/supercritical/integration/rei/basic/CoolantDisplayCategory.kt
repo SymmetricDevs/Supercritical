@@ -1,11 +1,12 @@
 package io.github.symmetricdevs.supercritical.integration.rei.basic
 
+import com.gregtechceu.gtceu.api.GTCEuAPI
 import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup
 import com.lowdragmc.lowdraglib.rei.IGui2Renderer
 import com.lowdragmc.lowdraglib.rei.ModularDisplay
 import com.lowdragmc.lowdraglib.rei.ModularUIDisplayCategory
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.CoolantRegistry
+import io.github.symmetricdevs.supercritical.common.data.ScritPropertyKeys
 import io.github.symmetricdevs.supercritical.common.data.ScritMachines
 import io.github.symmetricdevs.supercritical.integration.xei.CoolantInfo
 import io.github.symmetricdevs.supercritical.integration.xei.widgets.CoolantInfoWidget
@@ -31,12 +32,12 @@ object CoolantDisplayCategory : ModularUIDisplayCategory<CoolantDisplay>() {
     override fun getDisplayHeight(): Int = CoolantInfoWidget.HEIGHT + 8
 
     fun registerDisplays(registry: DisplayRegistry) {
-        for (coolant in CoolantRegistry.allCoolants) {
-            val stats = CoolantRegistry.getCoolant(coolant) ?: continue
-            val hotCoolant = stats.hotCoolant
-            if (coolant != null && hotCoolant != null) {
-                registry.add(CoolantDisplay(CoolantInfo(coolant, hotCoolant)))
-            }
+        for (material in GTCEuAPI.materialManager.registeredMaterials) {
+            if (!material.hasProperty(ScritPropertyKeys.COOLANT)) continue
+            val property = material.getProperty(ScritPropertyKeys.COOLANT)
+            val coolant = property.coolantFluid
+            val hotCoolant = property.hotCoolantFluid
+            registry.add(CoolantDisplay(CoolantInfo(coolant, hotCoolant)))
         }
     }
 }

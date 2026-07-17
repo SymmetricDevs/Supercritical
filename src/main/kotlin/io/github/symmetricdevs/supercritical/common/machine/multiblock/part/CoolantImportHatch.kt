@@ -11,8 +11,8 @@ import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget
-import io.github.symmetricdevs.supercritical.api.capability.ICoolantHandler
-import io.github.symmetricdevs.supercritical.api.machine.multiblock.IFissionReactorHatch
+import io.github.symmetricdevs.supercritical.api.capability.CoolantHandler
+import io.github.symmetricdevs.supercritical.api.machine.multiblock.FissionReactorHatch
 import io.github.symmetricdevs.supercritical.api.machine.trait.LockableFluidTank
 import io.github.symmetricdevs.supercritical.common.data.ScritBlocks
 import net.minecraft.core.BlockPos
@@ -23,7 +23,7 @@ import net.minecraft.world.entity.player.Player
 import net.minecraftforge.fluids.FluidStack
 
 class CoolantImportHatch(holder: IMachineBlockEntity, tier: Int) :
-    TieredIOPartMachine(holder, tier, IO.IN), ICoolantHandler, IControllable, IFissionReactorHatch, IUIMachine {
+    TieredIOPartMachine(holder, tier, IO.IN), CoolantHandler, IControllable, FissionReactorHatch, IUIMachine {
     // capabilityIO = IO.BOTH so the reactor sim can drain cold coolant from this import tank
     // (NotifiableFluidTank.drain is guarded by canCapOutput(), which is false for IO.IN — that
     // guard made makeCoolantFlow's drain return EMPTY, skipping the channel and killing the
@@ -46,7 +46,7 @@ class CoolantImportHatch(holder: IMachineBlockEntity, tier: Int) :
     override val stack: FluidStack
         get() = fluidTank.stack
 
-    override val outputHandler: ICoolantHandler?
+    override val outputHandler: CoolantHandler?
         get() = pairedHatch
 
 

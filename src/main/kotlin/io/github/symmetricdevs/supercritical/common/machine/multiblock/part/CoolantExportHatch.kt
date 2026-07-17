@@ -11,8 +11,8 @@ import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget
-import io.github.symmetricdevs.supercritical.api.capability.ICoolantHandler
-import io.github.symmetricdevs.supercritical.api.machine.multiblock.IFissionReactorHatch
+import io.github.symmetricdevs.supercritical.api.capability.CoolantHandler
+import io.github.symmetricdevs.supercritical.api.machine.multiblock.FissionReactorHatch
 import io.github.symmetricdevs.supercritical.api.machine.trait.LockableFluidTank
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -22,7 +22,7 @@ import net.minecraft.world.entity.player.Player
 import net.minecraftforge.fluids.FluidStack
 
 class CoolantExportHatch(holder: IMachineBlockEntity, tier: Int) :
-    TieredIOPartMachine(holder, tier, IO.OUT), ICoolantHandler, IControllable, IFissionReactorHatch, IUIMachine {
+    TieredIOPartMachine(holder, tier, IO.OUT), CoolantHandler, IControllable, FissionReactorHatch, IUIMachine {
 
     // capabilityIO = IO.BOTH so the reactor sim (LegacyPWRThermalHydraulics.makeCoolantFlow) can push hot
     // coolant into this output tank via the public fill(). NotifiableFluidTank.fill is guarded
@@ -48,7 +48,7 @@ class CoolantExportHatch(holder: IMachineBlockEntity, tier: Int) :
     override val stack: FluidStack
         get() = fluidTank.stack
 
-    override val outputHandler: ICoolantHandler
+    override val outputHandler: CoolantHandler
         get() = this
 
 

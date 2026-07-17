@@ -40,7 +40,7 @@ import kotlin.jvm.java
  */
 class DriverFissionReactor : DriverSidedTileEntity() {
 
-    // The actual BlockEntity at a controller position is an IMachineBlockEntity; the FissionReactor
+    // The actual BlockEntity at a controller position is an IMachineBlockEntity; the PWRCore
     // is its MetaMachine. worksWith is overridden (mirroring the 1.12.2 driver) to check the
     // meta-machine type, since the default worksWith only checks the BlockEntity class.
     override fun getTileEntityClass(): Class<*> = IMachineBlockEntity::class.java

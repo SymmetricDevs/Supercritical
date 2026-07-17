@@ -1,6 +1,6 @@
 package io.github.symmetricdevs.supercritical.integration.xei
 
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.ModeratorRegistry
+import io.github.symmetricdevs.supercritical.api.fission.stats.ModeratorStats
 import net.minecraft.network.chat.Component
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.Block
@@ -16,7 +16,7 @@ class ModeratorInfo(block: Block) {
     val textLines: List<Component>
 
     init {
-        val prop = ModeratorRegistry.getModerator(block)
+        val prop = ModeratorStats.of(block)
         textLines = if (prop != null) listOf(
             Component.translatable("metaitem.nuclear.tooltip.temperature", prop.maxTemperature),
             Component.translatable(

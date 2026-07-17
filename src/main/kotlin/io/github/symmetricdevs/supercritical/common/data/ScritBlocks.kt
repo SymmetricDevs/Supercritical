@@ -76,10 +76,10 @@ object ScritBlocks {
 
     val PANELLING: ImmutableMap<DyeColor, BlockEntry<Block>> = registerPanelling()
 
-    /** Matches every dyed panelling variant — used by multiblock patterns that accept any colour. */
+    /** Matches every dyed paneling variant — used by multiblock patterns that accept any colour. */
     val PANELLING_TAG: TagKey<Block> = TagKey.create(Registries.BLOCK, scId("panelling"))
 
-    /** Base panelling colour (the one recipes are built around); other colours are made by dyeing it. */
+    /** Base paneling color (the one recipes are built around); other colours are made by dyeing it. */
     val GRAY_PANELLING: BlockEntry<Block> = PANELLING.getValue(DyeColor.GRAY)
 
     /** Forces object initialization so every block entry registers via GTRegistrate. */

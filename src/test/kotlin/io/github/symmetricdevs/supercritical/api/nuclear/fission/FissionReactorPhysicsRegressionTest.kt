@@ -1,5 +1,8 @@
 package io.github.symmetricdevs.supercritical.api.nuclear.fission
 
+import io.github.symmetricdevs.supercritical.api.fission.reactor.pwr.PWRCore
+import io.github.symmetricdevs.supercritical.api.fission.stats.FissionFuelStats
+import io.github.symmetricdevs.supercritical.api.fission.stats.ModeratorStats
 import io.github.symmetricdevs.supercritical.config.ScritConfig
 import net.minecraft.world.item.ItemStack
 import org.junit.jupiter.api.BeforeAll
@@ -139,8 +142,8 @@ class FissionReactorPhysicsRegressionTest {
      * Build the fixed reference lattice: a 5x5 PWR of depth 5 with four fuel rods, one central
      * moderator, and one control rod on the path between two rods. No coolant channels.
      */
-    private fun buildReferenceReactor(): FissionReactor {
-        val reactor = FissionReactor(size = 5, reactorDepth = 5, controlRodInsertion = 0.5)
+    private fun buildReferenceReactor(): PWRCore {
+        val reactor = PWRCore(size = 5, reactorDepth = 5, controlRodInsertion = 0.5)
         val fuel = TestFuelStats()
         reactor.setFuelRod(1, 1, fuel, 2000.0, 45.0, 100.0)
         reactor.setFuelRod(1, 3, fuel, 2000.0, 45.0, 100.0)
@@ -161,8 +164,8 @@ class FissionReactorPhysicsRegressionTest {
     }
 }
 
-private class TestFuelStats : IFissionFuelStats {
-    override val maxTemperature = 2000
+private class TestFuelStats : FissionFuelStats {
+    override val maxTemperature = 2000.0
     override val duration = 10000
     override val slowNeutronCaptureCrossSection = 1.0
     override val fastNeutronCaptureCrossSection = 0.5
@@ -179,8 +182,8 @@ private class TestFuelStats : IFissionFuelStats {
         throw UnsupportedOperationException("not exercised by physics")
 }
 
-private class TestModeratorStats : IModeratorStats {
-    override val maxTemperature = 2000
+private class TestModeratorStats : ModeratorStats {
+    override val maxTemperature = 2000.0
     override val moderationFactor = 1.0
     override val absorptionFactor = 0.5
 }

@@ -56,11 +56,6 @@ class Supercritical {
         // material properties have been attached during GTCEu's MaterialEvent / PostMaterialEvent.
         // Recipes themselves are now generated through datagen (ScritRecipes via IGTAddon.addRecipes),
         // so there is no longer any runtime recipe loading here.
-        event.enqueueWork { ScritMaterials.registerFuelItems() }
-        event.enqueueWork {
-            ScritMaterials.registerModerators()
-            ScritMaterials.registerCoolants()
-        }
     }
 
     companion object {

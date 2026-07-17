@@ -5,7 +5,7 @@ import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup
 import com.lowdragmc.lowdraglib.rei.IGui2Renderer
 import com.lowdragmc.lowdraglib.rei.ModularDisplay
 import com.lowdragmc.lowdraglib.rei.ModularUIDisplayCategory
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.FissionFuelRegistry
+import io.github.symmetricdevs.supercritical.common.data.ScritItems
 import io.github.symmetricdevs.supercritical.common.data.ScritMachines
 import io.github.symmetricdevs.supercritical.integration.xei.FissionFuelInfo
 import io.github.symmetricdevs.supercritical.integration.xei.widgets.FissionFuelInfoWidget
@@ -27,8 +27,8 @@ object FissionFuelDisplayCategory : ModularUIDisplayCategory<FissionFuelDisplay>
     override fun getDisplayHeight(): Int = FissionFuelInfoWidget.HEIGHT + 8
 
     fun registerDisplays(registry: DisplayRegistry) {
-        for (rod in FissionFuelRegistry.allFissionableRods) {
-            registry.add(FissionFuelDisplay(FissionFuelInfo(rod)))
+        for (fuelItems in ScritItems.NUCLEAR_FUEL_ITEMS.values) {
+            registry.add(FissionFuelDisplay(FissionFuelInfo(fuelItems.fuelRod.get().defaultInstance)))
         }
     }
 }

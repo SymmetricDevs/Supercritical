@@ -1,6 +1,7 @@
 package io.github.symmetricdevs.supercritical.integration.jei.basic
 
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.CoolantRegistry
+import com.gregtechceu.gtceu.api.GTCEuAPI
+import io.github.symmetricdevs.supercritical.common.data.ScritPropertyKeys
 import io.github.symmetricdevs.supercritical.common.data.ScritMachines
 import io.github.symmetricdevs.supercritical.integration.xei.CoolantInfo
 import io.github.symmetricdevs.supercritical.integration.xei.widgets.CoolantInfoWidget
@@ -55,10 +56,12 @@ class CoolantCategory(helpers: IJeiHelpers) : IRecipeCategory<CoolantInfo> {
 
         fun registerRecipes(registry: IRecipeRegistration) {
             val infos = buildList {
-                for (coolant in CoolantRegistry.allCoolants) {
-                    val stats = CoolantRegistry.getCoolant(coolant) ?: continue
-                    val hotCoolant = stats.hotCoolant
-                    if (coolant != null && hotCoolant != null) add(CoolantInfo(coolant, hotCoolant))
+                for (material in GTCEuAPI.materialManager.registeredMaterials) {
+                    if (!material.hasProperty(ScritPropertyKeys.COOLANT)) continue
+                    val property = material.getProperty(ScritPropertyKeys.COOLANT)
+                    val coolant = property.coolantFluid
+                    val hotCoolant = property.hotCoolantFluid
+                    add(CoolantInfo(coolant, hotCoolant))
                 }
             }
             registry.addRecipes(RECIPE_TYPE, infos)

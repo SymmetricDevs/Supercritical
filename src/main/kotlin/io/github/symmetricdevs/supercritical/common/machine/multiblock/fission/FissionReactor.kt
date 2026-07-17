@@ -23,23 +23,23 @@ import com.lowdragmc.lowdraglib.gui.widget.*
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted
 import com.lowdragmc.lowdraglib.utils.BlockInfo
-import io.github.symmetricdevs.supercritical.api.capability.ICoolantHandler
-import io.github.symmetricdevs.supercritical.api.capability.IFuelRodHandler
-import io.github.symmetricdevs.supercritical.api.cover.ICustomEnergyCover
+import io.github.symmetricdevs.supercritical.api.capability.CoolantHandler
+import io.github.symmetricdevs.supercritical.api.capability.FuelRodHandler
+import io.github.symmetricdevs.supercritical.api.cover.CustomEnergyCover
 import io.github.symmetricdevs.supercritical.api.gui.ScritGuiTextures
 import io.github.symmetricdevs.supercritical.api.gui.widget.FixedSliderWidget
-import io.github.symmetricdevs.supercritical.api.machine.multiblock.IFissionReactorHatch
+import io.github.symmetricdevs.supercritical.api.machine.multiblock.FissionReactorHatch
 import io.github.symmetricdevs.supercritical.api.machine.multiblock.ScritMultiblockAbility
-import io.github.symmetricdevs.supercritical.api.nuclear.ecs.resources.CoolantInventoryBridge
-import io.github.symmetricdevs.supercritical.api.nuclear.ecs.resources.FuelInventoryBridge
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.CoolantRegistry
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.FissionFuelRegistry
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.ModeratorRegistry
-import io.github.symmetricdevs.supercritical.api.nuclear.reactor.ReactorCore
-import io.github.symmetricdevs.supercritical.api.nuclear.reactor.ReactorFamilyRegistry
-import io.github.symmetricdevs.supercritical.api.nuclear.reactor.events.FuelFailureEvent
-import io.github.symmetricdevs.supercritical.api.nuclear.reactor.events.FuelFailureReason
-import io.github.symmetricdevs.supercritical.api.nuclear.reactor.families.LegacyPWRFamily
+import io.github.symmetricdevs.supercritical.api.fission.ecs.resources.CoolantInventoryBridge
+import io.github.symmetricdevs.supercritical.api.fission.ecs.resources.FuelInventoryBridge
+import io.github.symmetricdevs.supercritical.api.fission.stats.CoolantStats
+import io.github.symmetricdevs.supercritical.api.fission.stats.FissionFuelStats
+import io.github.symmetricdevs.supercritical.api.fission.stats.ModeratorStats
+import io.github.symmetricdevs.supercritical.api.fission.reactor.ReactorCore
+import io.github.symmetricdevs.supercritical.api.fission.reactor.ReactorFamilyRegistry
+import io.github.symmetricdevs.supercritical.api.fission.reactor.events.FuelFailureEvent
+import io.github.symmetricdevs.supercritical.api.fission.reactor.events.FuelFailureReason
+import io.github.symmetricdevs.supercritical.api.fission.reactor.families.LegacyPWRFamily
 import io.github.symmetricdevs.supercritical.common.data.ScritBlocks
 import io.github.symmetricdevs.supercritical.common.data.ScritMaterials
 import io.github.symmetricdevs.supercritical.common.machine.multiblock.part.ControlRodPort
@@ -65,7 +65,7 @@ import java.util.function.Consumer
 import kotlin.math.*
 
 class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(holder), IFancyUIMachine,
-    ICustomEnergyCover {
+    CustomEnergyCover {
     override fun isRemote(): Boolean = super<MultiblockControllerMachine>.isRemote()
 
     var reactor: ReactorCore? = null
@@ -209,7 +209,7 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
                 break
             }
             val machine = getMachine(level, pos)
-            if (machine is IFissionReactorHatch) {
+            if (machine is FissionReactorHatch) {
                 break
             }
             if (PartAbility.MAINTENANCE.isApplicable(state.block)) {
@@ -231,7 +231,7 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
             edge = true
         } else {
             val machine = getMachine(level, pos)
-            edge = machine is IFissionReactorHatch
+            edge = machine is FissionReactorHatch
         }
         pos.move(direction.opposite, steps)
         return edge
@@ -240,9 +240,7 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
     private fun moderatorPredicate(): TraceabilityPredicate {
         return Predicates.custom(
             { state: MultiblockState ->
-                ModeratorRegistry.getModerator(
-                    state.blockState.block
-                ) != null
+                ModeratorStats.of(state.blockState.block) != null
             },
             { arrayOfNulls<BlockInfo>(0) })
     }
@@ -272,7 +270,7 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
             ScritMultiblockAbility.MODERATOR_PORT
         )
         val machine = getMachine(state.getWorld(), state.pos)
-        if (machine !is IFissionReactorHatch) return failHatch(state)
+        if (machine !is FissionReactorHatch) return failHatch(state)
         val block = state.blockState.block
         var allowed = false
         for (ability in allowedAbilities) {
@@ -321,11 +319,11 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
         }
     }
 
-    private val coolantHandlers: List<ICoolantHandler>
-        get() = parts.filterIsInstance<ICoolantHandler>()
+    private val coolantHandlers: List<CoolantHandler>
+        get() = parts.filterIsInstance<CoolantHandler>()
 
-    private val fuelRodHandlers: List<IFuelRodHandler>
-        get() = parts.filterIsInstance<IFuelRodHandler>()
+    private val fuelRodHandlers: List<FuelRodHandler>
+        get() = parts.filterIsInstance<FuelRodHandler>()
 
     private fun lockAndPrepareReactor(): Boolean {
         if (!verifyCorrectness()) {
@@ -343,7 +341,7 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
     private fun verifyCorrectness(): Boolean {
         var foundFuel = false
         for (part in parts) {
-            if (part is ICoolantHandler) {
+            if (part is CoolantHandler) {
                 // Legacy 1.12.2 validated coolant by iterating the TOP (import) layer by position,
                 // so export hatches were never checked here. The modern port iterates `parts`
                 // (import + export), so explicitly skip export hatches: their outputHandler is
@@ -366,7 +364,7 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
                     !tankFluid.isEmpty -> tankFluid.fluid
                     else -> null
                 }
-                val coolantStat = hatchFluid?.let { CoolantRegistry.getCoolant(it) }
+                val coolantStat = hatchFluid?.let { CoolantStats.of(it) }
                 if (part.outputHandler == null && !part.checkValidity(this.height - 1)) {
                     return failVerification(LockingState.INVALID_COMPONENT, false)
                 }
@@ -374,11 +372,11 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
                     continue
                 }
                 return failVerification(LockingState.MISSING_COOLANT, true)
-            } else if (part is IFuelRodHandler) {
+            } else if (part is FuelRodHandler) {
                 val inputHandler = part.inputStackHandler ?: return failVerification(LockingState.MISSING_FUEL, true)
                 val lockedFuel = inputHandler.getStackInSlot(0)
                 if (!lockedFuel.isEmpty) {
-                    val stats = FissionFuelRegistry.getFissionFuel(lockedFuel)
+                    val stats = FissionFuelStats.of(lockedFuel)
                     if (stats != null) {
                         foundFuel = true
                         continue
@@ -440,8 +438,8 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
                     .move(this.reactorUp, heightTop)
                     .immutable()
                 when (val machine = getMachine(level, currentPos)) {
-                    is ICoolantHandler -> addCoolantComponent(machine, x, y, r)
-                    is IFuelRodHandler -> addFuelRodComponent(machine, x, y, r)
+                    is CoolantHandler -> addCoolantComponent(machine, x, y, r)
+                    is FuelRodHandler -> addFuelRodComponent(machine, x, y, r)
                     is ControlRodPort -> addControlRodComponent(machine, x, y, r)
                     is ModeratorPort -> addModeratorComponent(machine, x, y, r)
                 }
@@ -449,21 +447,21 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
         }
     }
 
-    private fun addCoolantComponent(machine: ICoolantHandler, x: Int, y: Int, r: ReactorCore) {
+    private fun addCoolantComponent(machine: CoolantHandler, x: Int, y: Int, r: ReactorCore) {
         val lockedFluid = machine.stack
-        val stats = CoolantRegistry.getCoolant(lockedFluid.fluid) ?: return
+        val stats = CoolantStats.of(lockedFluid.fluid) ?: return
         val outputHandler = machine.outputHandler
         r.setCoolantChannel(x, y, stats, 100050.0, 0.0, 1000.0)
         r.world.resources.get<CoolantInventoryBridge>()!!.register(x, y, machine, outputHandler)
     }
 
-    private fun addFuelRodComponent(machine: IFuelRodHandler, x: Int, y: Int, r: ReactorCore) {
+    private fun addFuelRodComponent(machine: FuelRodHandler, x: Int, y: Int, r: ReactorCore) {
         val partialFuel = machine.partialFuel
         val inputHandler = machine.inputStackHandler
         val lockedFuel = inputHandler?.getStackInSlot(0)
         val inputFuel = lockedFuel
             ?.takeUnless { it.isEmpty }
-            ?.let { FissionFuelRegistry.getFissionFuel(it) }
+            ?.let { FissionFuelStats.of(it) }
         val fuel = partialFuel ?: inputFuel ?: return
         if (partialFuel == null) {
             machine.setPartialFuel(fuel)
@@ -511,7 +509,7 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
         val r = reactor ?: return
         if (!isFormed()) return
         // Legacy runs updateReactorState once per second (getOffsetTimer() % 20 == 0). The
-        // FissionReactor formulas are calibrated for 1-second steps, so ticking every server
+        // PWRCore formulas are calibrated for 1-second steps, so ticking every server
         // tick would compound neutron flux/depletion/temperature ~20x.
         if (offsetTimer % 20 != 0L) return
 
@@ -640,7 +638,7 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
                         chance = 1
                     } else {
                         val machine = getMachine(level, pos)
-                        if (machine is IFuelRodHandler) chance = 1
+                        if (machine is FuelRodHandler) chance = 1
                     }
                     if (random.nextInt(chance) == 0) {
                         meltsDown.add(pos.immutable())
@@ -738,7 +736,7 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
             // R2: delegate to the ReactorCore save path, which persists the previously-dropped
             // NeutronFlux/PrevTemperature/NeutronPoisonAmount/DecayProductsAmount/
             // ControlRodRegulationOn plus Family/Version.
-            tag.put("FissionReactor", r.save(CompoundTag()))
+            tag.put("PWRCore", r.save(CompoundTag()))
         }
     }
 
@@ -761,8 +759,8 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
         meltdown = tag.getBoolean("Meltdown")
         pressureExplosion = tag.getBoolean("PressureExplosion")
         rebuildReactor()
-        if (tag.contains("FissionReactor")) {
-            reactor?.load(tag.getCompound("FissionReactor"))
+        if (tag.contains("PWRCore")) {
+            reactor?.load(tag.getCompound("PWRCore"))
         }
     }
 
@@ -982,7 +980,7 @@ class FissionReactor(holder: IMachineBlockEntity) : MultiblockControllerMachine(
         // power/lock toggle. Do NOT call super — this replaces GTCEu's default IControllable
         // workingEnabled power button + cover configurators. The BUTTON_POWER toggle below IS the
         // reactor on/off (locked = running, base = stopped), bound to `locked` rather than
-        // isWorkingEnabled because FissionReactor gates operation on its own lock state.
+        // isWorkingEnabled because PWRCore gates operation on its own lock state.
         configuratorPanel.attachConfigurators(
             IFancyConfiguratorButton.Toggle(
                 // BUTTON_CONTROL_ROD_HELPER is an 18×36 two-state strip: top half = regulation off,

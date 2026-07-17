@@ -3,12 +3,12 @@ package io.github.symmetricdevs.supercritical
 import com.gregtechceu.gtceu.api.addon.GTAddon
 import com.gregtechceu.gtceu.api.addon.IGTAddon
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate
-import io.github.symmetricdevs.supercritical.api.nuclear.ecs.registration.ComponentTypeRegistry
-import io.github.symmetricdevs.supercritical.api.nuclear.ecs.registration.SystemRegistry
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.FissionReactor
-import io.github.symmetricdevs.supercritical.api.nuclear.reactor.ReactorAddonEntrypoint
-import io.github.symmetricdevs.supercritical.api.nuclear.reactor.ReactorFamilyRegistry
-import io.github.symmetricdevs.supercritical.api.nuclear.reactor.families.LegacyPWRFamily
+import io.github.symmetricdevs.supercritical.api.fission.ecs.registration.ComponentTypeRegistry
+import io.github.symmetricdevs.supercritical.api.fission.ecs.registration.SystemRegistry
+import io.github.symmetricdevs.supercritical.api.fission.reactor.pwr.PWRCore
+import io.github.symmetricdevs.supercritical.api.fission.reactor.ReactorAddonEntrypoint
+import io.github.symmetricdevs.supercritical.api.fission.reactor.ReactorFamilyRegistry
+import io.github.symmetricdevs.supercritical.api.fission.reactor.families.LegacyPWRFamily
 import io.github.symmetricdevs.supercritical.common.data.ScritTagPrefixes
 import io.github.symmetricdevs.supercritical.common.data.ScritElements
 import io.github.symmetricdevs.supercritical.common.data.ScritOreVeins
@@ -45,7 +45,7 @@ class ScritAddon : IGTAddon {
 
         // Register the built-in PWR family last so its factory is available.
         ReactorFamilyRegistry.register(LegacyPWRFamily.id) { size, depth, insertion, tag ->
-            val core = FissionReactor(size, depth, insertion)
+            val core = PWRCore(size, depth, insertion)
             if (tag != null) core.load(tag)
             core
         }

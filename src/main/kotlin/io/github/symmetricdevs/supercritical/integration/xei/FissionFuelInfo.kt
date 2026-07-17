@@ -1,6 +1,6 @@
 package io.github.symmetricdevs.supercritical.integration.xei
 
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.FissionFuelRegistry
+import io.github.symmetricdevs.supercritical.api.fission.stats.FissionFuelStats
 import net.minecraft.network.chat.Component
 import net.minecraft.world.item.ItemStack
 
@@ -15,7 +15,7 @@ class FissionFuelInfo(rod: ItemStack) {
     init {
         this.rod = rod.copy()
 
-        val prop = FissionFuelRegistry.getFissionFuel(rod)
+        val prop = FissionFuelStats.of(rod)
         if (prop != null) {
             this.depletedRods = prop.depletedFuels
             this.textLines = listOf(

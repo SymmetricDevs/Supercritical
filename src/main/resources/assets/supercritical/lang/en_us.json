@@ -47,7 +47,7 @@
   "gregtech.multiblock.spent_fuel_pool.description": "The Spent Fuel Pool takes hot depleted fuel rods fresh from a fission reactor and cools them down to be processed later. It only works when the structure is fulled with water, you can do this by fill the input hatch with water, or place water blocks manually. Each block of length makes it perform 32 more recipes in parallel.",
   "metaitem.nuclear.tooltip.radioactive": "§cEmits dangerous radiation",
   "metaitem.nuclear.tooltip.duration": "Total heat energy: %d MJ",
-  "metaitem.nuclear.tooltip.temperature": "Melting point: %d K",
+  "metaitem.nuclear.tooltip.temperature": "Melting point: %.0f K",
   "metaitem.nuclear.tooltip.cross_section_fast": "Fast neutron prob: %d barn",
   "metaitem.nuclear.tooltip.cross_section_slow": "Slow neutron prob: %d barn",
   "metaitem.nuclear.tooltip.neutron_time.0": "Avg. neutron: %ds (§1Safe§r)",

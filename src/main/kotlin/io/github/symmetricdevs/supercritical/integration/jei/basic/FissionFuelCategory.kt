@@ -1,6 +1,6 @@
 package io.github.symmetricdevs.supercritical.integration.jei.basic
 
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.FissionFuelRegistry
+import io.github.symmetricdevs.supercritical.common.data.ScritItems
 import io.github.symmetricdevs.supercritical.common.data.ScritMachines
 import io.github.symmetricdevs.supercritical.integration.xei.FissionFuelInfo
 import io.github.symmetricdevs.supercritical.integration.xei.widgets.FissionFuelInfoWidget
@@ -55,8 +55,8 @@ class FissionFuelCategory(helpers: IJeiHelpers) : IRecipeCategory<FissionFuelInf
 
         fun registerRecipes(registry: IRecipeRegistration) {
             val infos = buildList<FissionFuelInfo> {
-                for (fuel in FissionFuelRegistry.allFissionableRods) {
-                    add(FissionFuelInfo(fuel))
+                for (fuelItems in ScritItems.NUCLEAR_FUEL_ITEMS.values) {
+                    add(FissionFuelInfo(fuelItems.fuelRod.get().defaultInstance))
                 }
             }
             registry.addRecipes(RECIPE_TYPE, infos)

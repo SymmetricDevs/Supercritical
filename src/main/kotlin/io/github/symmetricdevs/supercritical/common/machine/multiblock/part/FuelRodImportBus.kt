@@ -15,14 +15,13 @@ import com.lowdragmc.lowdraglib.gui.util.ClickData
 import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget
 import com.lowdragmc.lowdraglib.gui.widget.ComponentPanelWidget
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget
-import io.github.symmetricdevs.supercritical.api.capability.IFuelRodHandler
-import io.github.symmetricdevs.supercritical.api.machine.multiblock.IFissionReactorHatch
+import io.github.symmetricdevs.supercritical.api.capability.FuelRodHandler
+import io.github.symmetricdevs.supercritical.api.machine.multiblock.FissionReactorHatch
 import io.github.symmetricdevs.supercritical.api.machine.trait.LockableItemStackHandler
-import io.github.symmetricdevs.supercritical.api.nuclear.ecs.Entity
-import io.github.symmetricdevs.supercritical.api.nuclear.ecs.components.FuelRodComponent
-import io.github.symmetricdevs.supercritical.api.nuclear.ecs.components.ReactorComponentTypes
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.FissionFuelRegistry
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.IFissionFuelStats
+import io.github.symmetricdevs.supercritical.api.fission.ecs.Entity
+import io.github.symmetricdevs.supercritical.api.fission.ecs.components.FuelRodComponent
+import io.github.symmetricdevs.supercritical.api.fission.ecs.components.ReactorComponentTypes
+import io.github.symmetricdevs.supercritical.api.fission.stats.FissionFuelStats
 import io.github.symmetricdevs.supercritical.common.data.ScritBlocks
 import io.github.symmetricdevs.supercritical.common.machine.multiblock.fission.FissionReactor
 import net.minecraft.core.BlockPos
@@ -33,9 +32,9 @@ import net.minecraft.world.item.ItemStack
 import net.minecraftforge.items.ItemStackHandler
 
 class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMachine(holder, tier, IO.IN),
-    IFuelRodHandler, IControllable, IFissionReactorHatch, IUIMachine, IMachineLife {
-    override var fuel: IFissionFuelStats? = null
-    override var partialFuel: IFissionFuelStats? = null
+    FuelRodHandler, IControllable, FissionReactorHatch, IUIMachine, IMachineLife {
+    override var fuel: FissionFuelStats? = null
+    override var partialFuel: FissionFuelStats? = null
     private var fuelRodEntity: Entity? = null
     override var depletionPoint = 0.0
 
@@ -86,7 +85,7 @@ class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMac
     }
 
 
-    override fun setPartialFuel(prop: IFissionFuelStats?): Boolean {
+    override fun setPartialFuel(prop: FissionFuelStats?): Boolean {
         if (prop === this.partialFuel) return false
         this.partialFuel = prop
         if (prop == null) {
@@ -130,7 +129,7 @@ class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMac
      * Live ECS fuel-rod component for the bound cell entity, or null when no rod is bound / the
      * controller isn't formed. The eigenvalue solver writes [FuelRodComponent.weight] and the
      * thermal precompute writes [FuelRodComponent.thermalProportion], so reads here stay live with
-     * no copy step (component storage is by-reference — see [io.github.symmetricdevs.supercritical.api.nuclear.ecs.ComponentStorage]).
+     * no copy step (component storage is by-reference — see [io.github.symmetricdevs.supercritical.api.fission.ecs.ComponentStorage]).
      */
     private fun fuelRodComponent(): FuelRodComponent? {
         val entity = fuelRodEntity ?: return null
@@ -255,7 +254,7 @@ class FuelRodImportBus(holder: IMachineBlockEntity, tier: Int) : TieredIOPartMac
             lockableInventory.stack = ItemStack.of(tag.getCompound("LockedObject"))
         }
         if (tag.contains("PartialFuel")) {
-            this.partialFuel = FissionFuelRegistry.getFissionFuel(tag.getString("PartialFuel"))
+            this.partialFuel = FissionFuelStats.of(tag.getString("PartialFuel"))
         }
         this.depletionPoint = tag.getDouble("DepletionPoint")
     }

@@ -3,17 +3,16 @@ package io.github.symmetricdevs.supercritical.common.machine.multiblock.part
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine
 import net.minecraft.core.BlockPos
-import io.github.symmetricdevs.supercritical.api.machine.multiblock.IFissionReactorHatch
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.IModeratorStats
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.ModeratorRegistry
+import io.github.symmetricdevs.supercritical.api.machine.multiblock.FissionReactorHatch
+import io.github.symmetricdevs.supercritical.api.fission.stats.ModeratorStats
 import io.github.symmetricdevs.supercritical.common.data.ScritBlocks
 
 class ModeratorPort(holder: IMachineBlockEntity, tier: Int) : TieredPartMachine(holder, tier),
-    IFissionReactorHatch {
+    FissionReactorHatch {
     override val hatchPos: BlockPos?
         get() = pos
 
-    var moderator: IModeratorStats? = null
+    var moderator: ModeratorStats? = null
         private set
 
     override fun checkValidity(depth: Int): Boolean {
@@ -21,7 +20,7 @@ class ModeratorPort(holder: IMachineBlockEntity, tier: Int) : TieredPartMachine(
         val pos = (pos ?: return false).mutable()
         val back = frontFacing.opposite
         val defaultState = level.getBlockState(pos.move(back))
-        val stats = ModeratorRegistry.getModerator(defaultState.block)
+        val stats = ModeratorStats.of(defaultState.block)
         this.moderator = stats
         if (stats == null) return false
         // Legacy semantics: exactly one moderator block sits directly behind the port; the rest of

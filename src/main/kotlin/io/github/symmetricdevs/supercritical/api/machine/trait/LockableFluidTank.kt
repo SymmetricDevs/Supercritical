@@ -6,19 +6,19 @@ import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder
-import io.github.symmetricdevs.supercritical.api.capability.ILockableHandler
+import io.github.symmetricdevs.supercritical.api.capability.LockableHandler
 import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.capability.IFluidHandler
 
 /**
- * Single-tank [NotifiableFluidTank] that surfaces a content-type lock as [ILockableHandler].
+ * Single-tank [NotifiableFluidTank] that surfaces a content-type lock as [LockableHandler].
  *
  * Hybrid of SC's lock *intent* and GTCEu's embedded lock, because the two can't collapse into one:
  * [io.github.symmetricdevs.supercritical.common.machine.multiblock.part.CoolantExportHatch] is
  * locked while its tank is still empty (hot coolant is only produced once the reactor runs), and
  * GTCEu's `isLocked` — derived from a non-empty `lockedFluid` — cannot represent that state.
  *
- * [lockIntent] is the persisted intent (the source of truth for [ILockableHandler] and the UI
+ * [lockIntent] is the persisted intent (the source of truth for [LockableHandler] and the UI
  * label). It is deliberately named `lockIntent` rather than `locked` so the property can be
  * field-backed without its setter's JVM signature (`setLocked(Z)V`) colliding with the inherited
  * [NotifiableFluidTank.setLocked] — a property literally named `locked` triggers an accidental
@@ -29,7 +29,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler
  * re-derives the sample on reload.
  */
 class LockableFluidTank(machine: MetaMachine, capacity: Int, io: IO?, capabilityIO: IO? = io) :
-    NotifiableFluidTank(machine, 1, capacity, io, capabilityIO), ILockableHandler<FluidStack> {
+    NotifiableFluidTank(machine, 1, capacity, io, capabilityIO), LockableHandler<FluidStack> {
 
     @Persisted
     @DescSynced

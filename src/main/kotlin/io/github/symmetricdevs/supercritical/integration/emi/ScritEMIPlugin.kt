@@ -1,12 +1,15 @@
 package io.github.symmetricdevs.supercritical.integration.emi
 
+import com.gregtechceu.gtceu.api.GTCEuAPI
+import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper
+import com.gregtechceu.gtceu.api.data.tag.TagPrefix
 import dev.emi.emi.api.EmiEntrypoint
 import dev.emi.emi.api.EmiPlugin
 import dev.emi.emi.api.EmiRegistry
 import dev.emi.emi.api.stack.EmiStack
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.CoolantRegistry
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.FissionFuelRegistry
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.ModeratorRegistry
+import io.github.symmetricdevs.supercritical.api.data.chemical.material.property.CoolantProperty
+import io.github.symmetricdevs.supercritical.common.data.ScritItems
+import io.github.symmetricdevs.supercritical.common.data.ScritPropertyKeys
 import io.github.symmetricdevs.supercritical.common.data.ScritMachines
 import io.github.symmetricdevs.supercritical.integration.emi.basic.*
 import io.github.symmetricdevs.supercritical.integration.xei.CoolantInfo
@@ -28,25 +31,20 @@ class ScritEMIPlugin : EmiPlugin {
         registry.addCategory(FissionFuelEmiCategory)
         registry.addCategory(ModeratorEmiCategory)
 
-        val reactor = EmiStack.of(ScritMachines.FISSION_REACTOR.asStack())
-        val moderatorPort = EmiStack.of(ScritMachines.MODERATOR_PORT.asStack())
-        registry.addWorkstation(CoolantEmiCategory, reactor)
-        registry.addWorkstation(FissionFuelEmiCategory, reactor)
-        registry.addWorkstation(ModeratorEmiCategory, reactor)
-        registry.addWorkstation(ModeratorEmiCategory, moderatorPort)
-
-        for (coolant in CoolantRegistry.allCoolants) {
-            val stats = CoolantRegistry.getCoolant(coolant) ?: continue
-            val hotCoolant = stats.hotCoolant
-            if (coolant != null && hotCoolant != null) {
-                registry.addRecipe(CoolantEmiRecipe(CoolantInfo(coolant, hotCoolant)))
-            }
+        for (material in GTCEuAPI.materialManager.registeredMaterials) {
+            if (!material.hasProperty(ScritPropertyKeys.COOLANT)) continue
+            val property = material.getProperty(ScritPropertyKeys.COOLANT)
+            val coolant = property.coolantFluid
+            val hotCoolant = property.hotCoolantFluid
+            registry.addRecipe(CoolantEmiRecipe(CoolantInfo(coolant, hotCoolant)))
         }
-        for (rod in FissionFuelRegistry.allFissionableRods) {
-            registry.addRecipe(FissionFuelEmiRecipe(FissionFuelInfo(rod)))
+        for (fuelItems in ScritItems.NUCLEAR_FUEL_ITEMS.values) {
+            registry.addRecipe(FissionFuelEmiRecipe(FissionFuelInfo(fuelItems.fuelRod.get().defaultInstance)))
         }
-        for (block in ModeratorRegistry.allModerators) {
-            if (block != null) registry.addRecipe(ModeratorEmiRecipe(ModeratorInfo(block)))
+        for (material in GTCEuAPI.materialManager.registeredMaterials) {
+            if (!material.hasProperty(ScritPropertyKeys.MODERATOR)) continue
+            val block = ChemicalHelper.getBlock(TagPrefix.block, material) ?: continue
+            registry.addRecipe(ModeratorEmiRecipe(ModeratorInfo(block)))
         }
     }
 }

@@ -47,7 +47,7 @@
   "gregtech.multiblock.spent_fuel_pool.description": "乏燃料池可以将裂变反应堆输出的热乏燃料棒冷却以供后续处理。它必须要在灌满水后才能正常运行，这可以通过输入水或手动放置水方块来完成。结构每增长一格，并行数增加32。",
   "metaitem.nuclear.tooltip.radioactive": "§c释放危险性辐射",
   "metaitem.nuclear.tooltip.duration": "总热量：%d MJ",
-  "metaitem.nuclear.tooltip.temperature": "熔点：%d K",
+  "metaitem.nuclear.tooltip.temperature": "熔点：%.0f K",
   "metaitem.nuclear.tooltip.cross_section_fast": "快中子概率：%d barn",
   "metaitem.nuclear.tooltip.cross_section_slow": "慢中子概率：%d barn",
   "metaitem.nuclear.tooltip.neutron_time.0": "平均中子辐照：%ds（§1安全§r）",

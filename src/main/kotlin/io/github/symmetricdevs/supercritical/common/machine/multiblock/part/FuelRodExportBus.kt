@@ -15,10 +15,10 @@ import com.lowdragmc.lowdraglib.gui.widget.LabelWidget
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.entity.player.Player
-import io.github.symmetricdevs.supercritical.api.machine.multiblock.IFissionReactorHatch
+import io.github.symmetricdevs.supercritical.api.machine.multiblock.FissionReactorHatch
 
 class FuelRodExportBus(holder: IMachineBlockEntity, tier: Int) :
-    TieredIOPartMachine(holder, tier, IO.OUT), IControllable, IFissionReactorHatch, IUIMachine, IMachineLife {
+    TieredIOPartMachine(holder, tier, IO.OUT), IControllable, FissionReactorHatch, IUIMachine, IMachineLife {
 
     // capabilityIO = IO.BOTH so the controller can push depleted fuel rods into this output bus
     // via the public insertItem (NotifiableItemStackHandler.insertItem is guarded by canCapInput(),

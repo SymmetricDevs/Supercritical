@@ -138,7 +138,7 @@ class MoltenCorium(
                 .hasBucket(true)
                 .also { (it  as GTFluidBuilder<*>)
                     .tag(FluidTags.LAVA)
-                    .block { fluid, props -> MoltenCorium(fluid, props.randomTicks()) }
+                    .block(::MoltenCorium)
                     .initialProperties { Blocks.LAVA }
                     .register()
                 }

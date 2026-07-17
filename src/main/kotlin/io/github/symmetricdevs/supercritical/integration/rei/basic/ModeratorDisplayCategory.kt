@@ -1,12 +1,15 @@
 package io.github.symmetricdevs.supercritical.integration.rei.basic
 
+import com.gregtechceu.gtceu.api.GTCEuAPI
+import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper
+import com.gregtechceu.gtceu.api.data.tag.TagPrefix
 import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup
 import com.lowdragmc.lowdraglib.rei.IGui2Renderer
 import com.lowdragmc.lowdraglib.rei.ModularDisplay
 import com.lowdragmc.lowdraglib.rei.ModularUIDisplayCategory
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.ModeratorRegistry
 import io.github.symmetricdevs.supercritical.common.data.ScritMachines
+import io.github.symmetricdevs.supercritical.common.data.ScritPropertyKeys
 import io.github.symmetricdevs.supercritical.integration.xei.ModeratorInfo
 import io.github.symmetricdevs.supercritical.integration.xei.widgets.ModeratorInfoWidget
 import io.github.symmetricdevs.supercritical.util.scId
@@ -27,8 +30,10 @@ object ModeratorDisplayCategory : ModularUIDisplayCategory<ModeratorDisplay>() {
     override fun getDisplayHeight(): Int = ModeratorInfoWidget.HEIGHT + 8
 
     fun registerDisplays(registry: DisplayRegistry) {
-        for (block in ModeratorRegistry.allModerators) {
-            if (block != null) registry.add(ModeratorDisplay(ModeratorInfo(block)))
+        for (material in GTCEuAPI.materialManager.registeredMaterials) {
+            if (!material.hasProperty(ScritPropertyKeys.MODERATOR)) continue
+            val block = ChemicalHelper.getBlock(TagPrefix.block, material) ?: continue
+            registry.add(ModeratorDisplay(ModeratorInfo(block)))
         }
     }
 }

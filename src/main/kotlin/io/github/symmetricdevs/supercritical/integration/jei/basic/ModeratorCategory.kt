@@ -1,7 +1,10 @@
 package io.github.symmetricdevs.supercritical.integration.jei.basic
 
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.ModeratorRegistry
+import com.gregtechceu.gtceu.api.GTCEuAPI
+import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper
+import com.gregtechceu.gtceu.api.data.tag.TagPrefix
 import io.github.symmetricdevs.supercritical.common.data.ScritMachines
+import io.github.symmetricdevs.supercritical.common.data.ScritPropertyKeys
 import io.github.symmetricdevs.supercritical.integration.xei.ModeratorInfo
 import io.github.symmetricdevs.supercritical.integration.xei.widgets.ModeratorInfoWidget
 import io.github.symmetricdevs.supercritical.util.scId
@@ -51,8 +54,10 @@ class ModeratorCategory(helpers: IJeiHelpers) : IRecipeCategory<ModeratorInfo> {
 
         fun registerRecipes(registry: IRecipeRegistration) {
             val infos = buildList<ModeratorInfo> {
-                for (block in ModeratorRegistry.allModerators) {
-                    if (block != null) add(ModeratorInfo(block))
+                for (material in GTCEuAPI.materialManager.registeredMaterials) {
+                    if (!material.hasProperty(ScritPropertyKeys.MODERATOR)) continue
+                    val block = ChemicalHelper.getBlock(TagPrefix.block, material) ?: continue
+                    add(ModeratorInfo(block))
                 }
             }
             registry.addRecipes(RECIPE_TYPE, infos)

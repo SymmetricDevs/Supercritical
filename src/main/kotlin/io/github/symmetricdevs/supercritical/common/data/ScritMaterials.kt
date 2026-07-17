@@ -1,7 +1,6 @@
 package io.github.symmetricdevs.supercritical.common.data
 
 import com.gregtechceu.gtceu.api.GTCEuAPI
-import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper
 import com.gregtechceu.gtceu.api.data.chemical.material.Material
 import com.gregtechceu.gtceu.api.data.chemical.material.event.MaterialEvent
 import com.gregtechceu.gtceu.api.data.chemical.material.event.MaterialRegistryEvent
@@ -13,24 +12,18 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.DustProperty
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidProperty
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey
 import com.gregtechceu.gtceu.api.data.chemical.material.registry.MaterialRegistry
-import com.gregtechceu.gtceu.api.data.tag.TagPrefix
 import com.gregtechceu.gtceu.api.fluids.FluidBuilder
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys
 import com.gregtechceu.gtceu.common.data.GTMaterials
 import io.github.symmetricdevs.supercritical.api.data.chemical.material.property.CoolantProperty
 import io.github.symmetricdevs.supercritical.api.data.chemical.material.property.FissionFuelProperty
 import io.github.symmetricdevs.supercritical.api.data.chemical.material.property.ModeratorProperty
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.CoolantRegistry
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.FissionFuelRegistry
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.ModeratorRegistry
 import io.github.symmetricdevs.supercritical.common.block.MoltenCorium
 import io.github.symmetricdevs.supercritical.config.ScritConfig
 import io.github.symmetricdevs.supercritical.util.scId
 import net.minecraftforge.eventbus.api.SubscribeEvent
 
 object ScritMaterials {
-
-    private val FUEL_ITEM_ENTRIES: MutableList<FuelItemEntry> = arrayListOf()
 
     lateinit var Uranium239: Material
     lateinit var Neptunium235: Material
@@ -300,10 +293,20 @@ object ScritMaterials {
             .color(0x3673D6)
             .components(GTMaterials.Deuterium, 2, GTMaterials.Oxygen, 1)
             .buildAndRegister()
+
         val heavyWaterCoolant = CoolantProperty(
-            HeavyWater, HighPressureHeavyWater, FluidStorageKeys.LIQUID,
-            4.0, 1000.0, 374.4, 2064000.0, 4228.0
-        ).setAccumulatesHydrogen(true)
+            coolant = HeavyWater,
+            hotCoolant = HighPressureHeavyWater,
+            coolantKey = FluidStorageKeys.LIQUID,
+            hotCoolantKey = FluidStorageKeys.GAS,
+            coolTemperature = 293.0,
+            moderatorFactor = 4.0,
+            coolingFactor =  1000.0,
+            boilingPoint = 374.4,
+            heatOfVaporization = 2064000.0,
+            specificHeatCapacity = 4228.0,
+            accumulatesHydrogen = true,
+        )
         HeavyWater.setProperty(ScritPropertyKeys.COOLANT, heavyWaterCoolant)
     }
 
@@ -315,7 +318,7 @@ object ScritMaterials {
             .components(HighEnrichedUraniumDioxide, 1, DepletedUraniumDioxide, 19)
             .buildAndRegister()
             .setFormula("UO2", true)
-        registerFuel(LEU235, "leu_235", 1500, 75000, 3.5, 0.4, 1.8, 1.8, 2.5, 0.01, 0.025)
+        registerFuel(LEU235, "leu_235", 1500.0, 75000, 3.5, 0.4, 1.8, 1.8, 2.5, 0.01, 0.025)
 
         HEU235 = builder("heu_235")
             .dust(3)
@@ -324,7 +327,7 @@ object ScritMaterials {
             .components(HighEnrichedUraniumDioxide, 1, DepletedUraniumDioxide, 4)
             .buildAndRegister()
             .setFormula("UO2", true)
-        registerFuel(HEU235, "heu_235", 1800, 60000, 2.5, 0.3, 2.0, 2.0, 2.5, 0.01, 0.05)
+        registerFuel(HEU235, "heu_235", 1800.0, 60000, 2.5, 0.3, 2.0, 2.0, 2.5, 0.01, 0.05)
 
         LowGradeMOX = builder("low_grade_mox")
             .dust(3)
@@ -333,7 +336,7 @@ object ScritMaterials {
             .components(FissilePlutoniumDioxide, 1, GTMaterials.Uraninite, 19)
             .buildAndRegister()
             .setFormula("(U,Pu)O2", true)
-        registerFuel(LowGradeMOX, "low_grade_mox", 1600, 50000, 1.5, 0.5, 2.2, 2.2, 2.60, 0.02, 0.1)
+        registerFuel(LowGradeMOX, "low_grade_mox", 1600.0, 50000, 1.5, 0.5, 2.2, 2.2, 2.60, 0.02, 0.1)
 
         HighGradeMOX = builder("high_grade_mox")
             .dust(3)
@@ -342,7 +345,7 @@ object ScritMaterials {
             .components(FissilePlutoniumDioxide, 1, GTMaterials.Uraninite, 4)
             .buildAndRegister()
             .setFormula("(U,Pu)O2", true)
-        registerFuel(HighGradeMOX, "high_grade_mox", 2000, 80000, 1.0, 0.5, 2.4, 2.4, 2.80, 0.02, 0.2)
+        registerFuel(HighGradeMOX, "high_grade_mox", 2000.0, 80000, 1.0, 0.5, 2.4, 2.4, 2.80, 0.02, 0.2)
     }
 
     private fun registerUnknownCompositionMaterials() {
@@ -385,121 +388,90 @@ object ScritMaterials {
         )
         GTMaterials.StainlessSteel.addFlags(MaterialFlags.GENERATE_ROUND)
 
-        val uraniniteFuel: FissionFuelProperty =
-            FissionFuelProperty.builder(GTMaterials.Uraninite.resourceLocation, 1800, 60000, 2.4)
-                .fastNeutronCaptureCrossSection(0.5)
-                .slowNeutronCaptureCrossSection(1.0)
-                .slowNeutronFissionCrossSection(1.0)
-                .requiredNeutrons(1.0)
-                .releasedNeutrons(2.5)
-                .releasedHeatEnergy(0.01)
-                .decayRate(0.001)
-                .build()
+        val uraniniteFuel = FissionFuelProperty(
+            resourceLocation = GTMaterials.Uraninite.resourceLocation,
+            maxTemperature = 1800.0,
+            duration = 60000,
+            neutronGenerationTime = 2.4,
+            fastNeutronCaptureCrossSection = 0.5,
+            slowNeutronCaptureCrossSection = 1.0,
+            slowNeutronFissionCrossSection = 1.0,
+            releasedNeutrons = 2.5,
+            releasedHeatEnergy = 0.01,
+            decayRate = 0.001
+        )
 
         GTMaterials.Uraninite.setProperty(ScritPropertyKeys.FISSION_FUEL, uraniniteFuel)
-        FUEL_ITEM_ENTRIES.add(FuelItemEntry("uraninite", uraniniteFuel))
+        // Same hot-depleted-rod wiring as registerFuel; see there for the legacy-parity note.
+        ScritItems.NUCLEAR_FUEL_ITEMS["uraninite"]?.let { fuelItems ->
+            uraniniteFuel.setDepletedFuelSupplier { fuelItems.hotDepletedFuelRod.get().defaultInstance }
+                .setAllDepletedFuels { arrayListOf(fuelItems.hotDepletedFuelRod.get().defaultInstance) }
+        }
 
         if (includeDistilledWaterCoolant) {
             val distilledWaterCoolant = CoolantProperty(
-                GTMaterials.DistilledWater, HighPressureSteam, FluidStorageKeys.LIQUID,
-                2.0, 1000.0, 373.0, 2260000.0, 4168.0
+                coolant = GTMaterials.DistilledWater,
+                hotCoolant = HighPressureHeavyWater,
+                coolantKey = FluidStorageKeys.LIQUID,
+                hotCoolantKey = FluidStorageKeys.GAS,
+                coolTemperature = 293.0,
+                moderatorFactor = 2.0,
+                coolingFactor =  1000.0,
+                boilingPoint = 373.0,
+                heatOfVaporization = 2260000.0,
+                specificHeatCapacity = 4168.0,
+                accumulatesHydrogen = true,
+                slowAbsorptionFactor = 0.1875,
+                fastAbsorptionFactor = 0.0625,
             )
-                .setAccumulatesHydrogen(true)
-                .setSlowAbsorptionFactor(0.1875)
-                .setFastAbsorptionFactor(0.0625)
             GTMaterials.DistilledWater.setProperty(ScritPropertyKeys.COOLANT, distilledWaterCoolant)
         }
 
         GTMaterials.Graphite.setProperty(
-            ScritPropertyKeys.MODERATOR, ModeratorProperty.builder()
-                .maxTemperature(3650)
-                .absorptionFactor(0.0625)
-                .moderationFactor(3.0)
-                .build()
+            ScritPropertyKeys.MODERATOR, ModeratorProperty(
+                maxTemperature = 3650.0,
+                absorptionFactor = 0.0625,
+                moderationFactor = 3.0
+            )
         )
         GTMaterials.Graphite.addFlags(MaterialFlags.FORCE_GENERATE_BLOCK)
 
         GTMaterials.Beryllium.setProperty(
-            ScritPropertyKeys.MODERATOR, ModeratorProperty.builder()
-                .maxTemperature(1500)
-                .absorptionFactor(0.015625)
-                .moderationFactor(5.0)
-                .build()
+            ScritPropertyKeys.MODERATOR, ModeratorProperty(
+                maxTemperature = 1500.0,
+                absorptionFactor = 0.015625,
+                moderationFactor = 5.0
+            )
         )
         GTMaterials.Beryllium.addFlags(MaterialFlags.FORCE_GENERATE_BLOCK)
     }
 
     private fun registerFuel(
-        material: Material, fuelItemKey: String?, maxTemperature: Int, duration: Int, neutronGenerationTime: Double,
+        material: Material, fuelItemKey: String?, maxTemperature: Double, duration: Int, neutronGenerationTime: Double,
         fastCapture: Double, slowCapture: Double, slowFission: Double, releasedNeutrons: Double,
         releasedHeatEnergy: Double, decayRate: Double
     ) {
-        val property: FissionFuelProperty = FissionFuelProperty.builder(
-            material.resourceLocation, maxTemperature, duration,
-            neutronGenerationTime
+        val property = FissionFuelProperty(
+            resourceLocation = material.resourceLocation,
+            maxTemperature = maxTemperature,
+            duration = duration,
+            neutronGenerationTime = neutronGenerationTime,
+            fastNeutronCaptureCrossSection = fastCapture,
+            slowNeutronCaptureCrossSection = slowCapture,
+            slowNeutronFissionCrossSection = slowFission,
+            releasedNeutrons = releasedNeutrons,
+            releasedHeatEnergy = releasedHeatEnergy,
+            decayRate = decayRate
         )
-            .fastNeutronCaptureCrossSection(fastCapture)
-            .slowNeutronCaptureCrossSection(slowCapture)
-            .slowNeutronFissionCrossSection(slowFission)
-            .fastNeutronFissionCrossSection(0.0)
-            .requiredNeutrons(1.0)
-            .releasedNeutrons(releasedNeutrons)
-            .releasedHeatEnergy(releasedHeatEnergy)
-            .decayRate(decayRate)
-            .build()
-        FUEL_ITEM_ENTRIES.add(FuelItemEntry(fuelItemKey, property))
+        // Wire the hot-depleted-rod emission here (needs ScritItems.NUCLEAR_FUEL_ITEMS, which exists
+        // by material-registration time), so no later bootstrap pass is required. Legacy parity
+        // (CommonProxy.java:124-133): every fuel emits only the hot depleted fuel rod; the hot ->
+        // cold cooling happens via the spent-fuel-pool recipe, not direct emission.
+        ScritItems.NUCLEAR_FUEL_ITEMS[fuelItemKey]?.let { fuelItems ->
+            property.setDepletedFuelSupplier { fuelItems.hotDepletedFuelRod.get().defaultInstance }
+                .setAllDepletedFuels { arrayListOf(fuelItems.hotDepletedFuelRod.get().defaultInstance) }
+        }
         material.setProperty(ScritPropertyKeys.FISSION_FUEL, property)
-    }
-
-    fun registerFuelItems() {
-        for (entry in FUEL_ITEM_ENTRIES) {
-            val fuelItems = ScritItems.NUCLEAR_FUEL_ITEMS[entry.fuelItemKey]
-            if (fuelItems != null) {
-                // Legacy parity (CommonProxy.java:124-133): every fuel emits only the hot depleted fuel rod.
-                // The hot -> cold cooling happens via the spent-fuel-pool recipe, not direct emission.
-                entry.property.setDepletedFuelSupplier { _: Double ->
-                    fuelItems.hotDepletedFuelRod.get().defaultInstance
-                }
-                    .setAllDepletedFuels {
-                        arrayListOf(fuelItems.hotDepletedFuelRod.get().defaultInstance)
-                    }
-                FissionFuelRegistry.registerFuel(fuelItems.fuelRod.get().defaultInstance, entry.property)
-            } else {
-                FissionFuelRegistry.registerFuel(entry.property)
-            }
-        }
-        FUEL_ITEM_ENTRIES.clear()
-    }
-
-    fun registerCoolants() {
-        for (material in GTCEuAPI.materialManager.registeredMaterials) {
-            if (material.hasProperty(ScritPropertyKeys.COOLANT)) {
-                val property = material.getProperty(ScritPropertyKeys.COOLANT)
-                val fluid =
-                    material.getFluid(requireNotNull(property.coolantKey) { "Coolant fluid key for ${material.name} is not initialized" })
-                if (fluid != null) {
-                    CoolantRegistry.registerCoolant(fluid, property)
-                }
-            }
-        }
-    }
-
-    fun registerModerators() {
-        for (material in GTCEuAPI.materialManager.registeredMaterials) {
-            if (material.hasProperty(ScritPropertyKeys.MODERATOR)) {
-                registerModerator(material)
-            }
-        }
-    }
-
-    private fun registerModerator(material: Material) {
-        val property = requireNotNull(material.getProperty(ScritPropertyKeys.MODERATOR)) {
-            "${material.name} is missing its moderator property"
-        }
-        val block = requireNotNull(ChemicalHelper.getBlock(TagPrefix.block, material)) {
-            "${material.name} has no storage block"
-        }
-        ModeratorRegistry.registerModerator(block, property)
     }
 
     private fun builder(name: String): Material.Builder {
@@ -509,10 +481,4 @@ object ScritMaterials {
     fun registry(): MaterialRegistry? {
         return registry
     }
-
-    @JvmRecord
-    private data class FuelItemEntry(
-        val fuelItemKey: String?,
-        val property: FissionFuelProperty
-    )
 }

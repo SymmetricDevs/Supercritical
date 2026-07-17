@@ -3,11 +3,11 @@ package io.github.symmetricdevs.supercritical.common.machine.multiblock.part
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine
 import net.minecraft.core.BlockPos
-import io.github.symmetricdevs.supercritical.api.machine.multiblock.IFissionReactorHatch
+import io.github.symmetricdevs.supercritical.api.machine.multiblock.FissionReactorHatch
 import io.github.symmetricdevs.supercritical.common.data.ScritBlocks
 
 class ControlRodPort(holder: IMachineBlockEntity, tier: Int, private val hasModeratorTip: Boolean) :
-    TieredPartMachine(holder, tier), IFissionReactorHatch {
+    TieredPartMachine(holder, tier), FissionReactorHatch {
     override val hatchPos: BlockPos?
         get() = pos
 

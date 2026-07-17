@@ -6,7 +6,7 @@ import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder
-import io.github.symmetricdevs.supercritical.api.capability.ILockableHandler
+import io.github.symmetricdevs.supercritical.api.capability.LockableHandler
 import net.minecraft.world.item.ItemStack
 
 open class LockableItemStackHandler(machine: MetaMachine, io: IO) : NotifiableItemStackHandler(
@@ -14,7 +14,7 @@ open class LockableItemStackHandler(machine: MetaMachine, io: IO) : NotifiableIt
             IO.IN
         )
     ) IO.BOTH else io
-), ILockableHandler<ItemStack> {
+), LockableHandler<ItemStack> {
 
     @Persisted
     @DescSynced

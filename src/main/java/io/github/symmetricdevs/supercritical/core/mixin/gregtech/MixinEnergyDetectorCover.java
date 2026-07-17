@@ -10,12 +10,12 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import io.github.symmetricdevs.supercritical.api.cover.ICustomEnergyCover;
+import io.github.symmetricdevs.supercritical.api.cover.CustomEnergyCover;
 
 import java.math.BigInteger;
 
 /**
- * Allows energy detector covers to attach to blocks implementing {@link ICustomEnergyCover}.
+ * Allows energy detector covers to attach to blocks implementing {@link CustomEnergyCover}.
  */
 @Mixin(value = EnergyDetectorCover.class, remap = false)
 public abstract class MixinEnergyDetectorCover extends DetectorCover {
@@ -26,14 +26,14 @@ public abstract class MixinEnergyDetectorCover extends DetectorCover {
 
     @Inject(method = "canAttach", at = @At("HEAD"), cancellable = true)
     public void sc$canAttachToCustomCover(CallbackInfoReturnable<Boolean> cir) {
-        if (coverHolder instanceof ICustomEnergyCover) {
+        if (coverHolder instanceof CustomEnergyCover) {
             cir.setReturnValue(true);
         }
     }
 
     @Inject(method = "getEnergyInfoProvider", at = @At("HEAD"), cancellable = true)
     protected void sc$getCustomEnergyInfoProvider(CallbackInfoReturnable<IEnergyInfoProvider> cir) {
-        if (coverHolder instanceof ICustomEnergyCover custom) {
+        if (coverHolder instanceof CustomEnergyCover custom) {
             cir.setReturnValue(new IEnergyInfoProvider() {
                 @Override
                 public EnergyInfo getEnergyInfo() {

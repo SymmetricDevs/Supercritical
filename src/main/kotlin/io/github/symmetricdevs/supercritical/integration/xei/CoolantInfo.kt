@@ -1,6 +1,6 @@
 package io.github.symmetricdevs.supercritical.integration.xei
 
-import io.github.symmetricdevs.supercritical.api.nuclear.fission.CoolantRegistry
+import io.github.symmetricdevs.supercritical.api.fission.stats.CoolantStats
 import net.minecraft.network.chat.Component
 import net.minecraft.world.level.material.Fluid
 import net.minecraftforge.fluids.FluidStack
@@ -15,12 +15,12 @@ class CoolantInfo(coolant: Fluid, hotCoolant: Fluid) {
     val textLines: List<Component>
 
     init {
-        val stats = CoolantRegistry.getCoolant(this.coolant.fluid)
+        val stats = CoolantStats.of(this.coolant.fluid)
         textLines = if (stats != null) buildList(5) {
             add(
                 Component.translatable(
                     "supercritical.coolant.exit_temp",
-                    stats.hotCoolant?.fluidType?.temperature ?: 0
+                    stats.hotCoolantFluid?.fluidType?.temperature ?: 0
                 )
             )
             add(
