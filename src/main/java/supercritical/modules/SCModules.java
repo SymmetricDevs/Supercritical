@@ -2,7 +2,7 @@ package supercritical.modules;
 
 import gregtech.api.modules.IModuleContainer;
 import gregtech.api.modules.ModuleContainer;
-import supercritical.SCValues;
+import supercritical.Tags;
 
 @ModuleContainer
 public class SCModules implements IModuleContainer {
@@ -13,6 +13,6 @@ public class SCModules implements IModuleContainer {
 
     @Override
     public String getID() {
-        return SCValues.MODID;
+        return Tags.MOD_ID;
     }
 }

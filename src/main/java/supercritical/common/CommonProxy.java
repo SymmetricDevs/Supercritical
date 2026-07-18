@@ -32,7 +32,7 @@ import gregtech.api.unification.material.event.PostMaterialEvent;
 import gregtech.common.blocks.MetaBlocks;
 import gregtech.common.items.MetaItems;
 import gregtech.modules.ModuleManager;
-import supercritical.SCValues;
+import supercritical.Tags;
 import supercritical.api.nuclear.fission.CoolantRegistry;
 import supercritical.api.nuclear.fission.FissionFuelRegistry;
 import supercritical.api.nuclear.fission.ModeratorRegistry;
@@ -47,13 +47,13 @@ import supercritical.common.item.SCMetaItems;
 import supercritical.loaders.recipe.SCRecipeManager;
 import supercritical.modules.SCModules;
 
-@Mod.EventBusSubscriber(modid = SCValues.MODID)
+@Mod.EventBusSubscriber(modid = Tags.MOD_ID)
 public class CommonProxy {
 
     @SubscribeEvent
     public static void syncConfigValues(ConfigChangedEvent.OnConfigChangedEvent event) {
-        if (event.getModID().equals(SCValues.MODID)) {
-            ConfigManager.sync(SCValues.MODID, Config.Type.INSTANCE);
+        if (event.getModID().equals(Tags.MOD_ID)) {
+            ConfigManager.sync(Tags.MOD_ID, Config.Type.INSTANCE);
         }
     }
 
@@ -146,7 +146,7 @@ public class CommonProxy {
 
     @SubscribeEvent
     public static void createMaterialRegistry(MaterialRegistryEvent event) {
-        GregTechAPI.materialManager.createRegistry(SCValues.MODID);
+        GregTechAPI.materialManager.createRegistry(Tags.MOD_ID);
     }
 
     @SubscribeEvent

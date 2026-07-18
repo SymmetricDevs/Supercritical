@@ -13,7 +13,7 @@ import mezz.jei.api.gui.IGuiFluidStackGroup;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.IRecipeWrapper;
-import supercritical.SCValues;
+import supercritical.Tags;
 import supercritical.common.metatileentities.SCMetaTileEntities;
 
 public class CoolantCategory extends BasicRecipeCategory<CoolantInfo, CoolantInfo> {
@@ -64,6 +64,6 @@ public class CoolantCategory extends BasicRecipeCategory<CoolantInfo, CoolantInf
     @NotNull
     @Override
     public String getModName() {
-        return SCValues.MODID;
+        return Tags.MOD_ID;
     }
 }

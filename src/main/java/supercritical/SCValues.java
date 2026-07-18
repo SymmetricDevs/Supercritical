@@ -1,9 +1,6 @@
 package supercritical;
 
 public class SCValues {
-
-    public static final String MODID = SCInternalTags.MODID;
-
     // Fission Hatches
     public static final int FISSION_LOCK_UPDATE = 212228;
 

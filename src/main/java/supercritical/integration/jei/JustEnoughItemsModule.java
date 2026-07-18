@@ -16,7 +16,7 @@ import mezz.jei.api.IModPlugin;
 import mezz.jei.api.IModRegistry;
 import mezz.jei.api.JEIPlugin;
 import mezz.jei.api.recipe.IRecipeCategoryRegistration;
-import supercritical.SCValues;
+import supercritical.Tags;
 import supercritical.api.nuclear.fission.CoolantRegistry;
 import supercritical.api.nuclear.fission.FissionFuelRegistry;
 import supercritical.api.nuclear.fission.ModeratorRegistry;
@@ -26,7 +26,7 @@ import supercritical.modules.SCModules;
 
 @JEIPlugin
 @GregTechModule(moduleID = SCModules.MODULE_JEI,
-                containerID = SCValues.MODID,
+                containerID = Tags.MOD_ID,
                 modDependencies = Mods.Names.JUST_ENOUGH_ITEMS,
                 name = "Supercritical JEI Integration",
                 description = "Supercritical JustEnoughItems Integration Module")
@@ -48,7 +48,7 @@ public class JustEnoughItemsModule extends IntegrationSubmodule implements IModP
             fissionFuelInfos.add(new FissionFuelInfo(fuel));
         }
 
-        String fissionFuelID = SCValues.MODID + ":" + "fission_fuel";
+        String fissionFuelID = Tags.MOD_ID + ":" + "fission_fuel";
 
         registry.addRecipes(fissionFuelInfos, fissionFuelID);
         registry.addRecipeCatalyst(SCMetaTileEntities.FISSION_REACTOR.getStackForm(), fissionFuelID);
@@ -59,7 +59,7 @@ public class JustEnoughItemsModule extends IntegrationSubmodule implements IModP
             coolantInfos.add(new CoolantInfo(coolant, CoolantRegistry.getCoolant(coolant).getHotCoolant()));
         }
 
-        String coolantID = SCValues.MODID + ":" + "coolant";
+        String coolantID = Tags.MOD_ID + ":" + "coolant";
         registry.addRecipes(coolantInfos, coolantID);
         registry.addRecipeCatalyst(SCMetaTileEntities.FISSION_REACTOR.getStackForm(), coolantID);
 
@@ -69,7 +69,7 @@ public class JustEnoughItemsModule extends IntegrationSubmodule implements IModP
             moderatorInfos.add(new ModeratorInfo(moderator.getRegistryName(), moderator.getMeta()));
         }
 
-        String moderatorID = SCValues.MODID + ":" + "moderator";
+        String moderatorID = Tags.MOD_ID + ":" + "moderator";
         registry.addRecipes(moderatorInfos, moderatorID);
         registry.addRecipeCatalyst(SCMetaTileEntities.FISSION_REACTOR.getStackForm(), moderatorID);
         registry.addRecipeCatalyst(SCMetaTileEntities.MODERATOR_PORT.getStackForm(), moderatorID);

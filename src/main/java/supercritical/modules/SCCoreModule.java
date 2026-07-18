@@ -5,11 +5,11 @@ import org.jetbrains.annotations.NotNull;
 
 import gregtech.api.modules.GregTechModule;
 import gregtech.api.modules.IGregTechModule;
-import supercritical.SCValues;
+import supercritical.Tags;
 import supercritical.api.util.SCLog;
 
 @GregTechModule(moduleID = SCModules.MODULE_CORE,
-                containerID = SCValues.MODID,
+                containerID = Tags.MOD_ID,
                 name = "Supercritical Core Module",
                 description = "Core module of Supercritical",
                 coreModule = true)

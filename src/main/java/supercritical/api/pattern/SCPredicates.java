@@ -3,8 +3,6 @@ package supercritical.api.pattern;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
@@ -19,11 +17,12 @@ import gregtech.api.capability.impl.AbstractRecipeLogic;
 import gregtech.api.metatileentity.multiblock.MultiblockControllerBase;
 import gregtech.api.pattern.TraceabilityPredicate;
 import gregtech.api.util.BlockInfo;
+import org.jspecify.annotations.NullMarked;
 import supercritical.common.SCConfigHolder;
 import supercritical.mixins.gregtech.AbstractRecipeLogicAccessor;
 
 @SuppressWarnings("unused")
-@ParametersAreNonnullByDefault
+@NullMarked
 public class SCPredicates {
 
     public static final String FLUID_BLOCKS_KEY = "FluidBlocks";
@@ -46,10 +45,10 @@ public class SCPredicates {
                     if (blockState == stillState) return true;
                     if (bws.getWorld().isAirBlock(bws.getPos()) || blockState.getBlock() == fluidBlock) {
                         bws.getMatchContext()
-                                /// This can be a [Map] for multiple types of fluids,
-                                /// but this should be enough for now.
-                                /// Using an [ArrayList] here since we need to sort this later.
-                                /// [LinkedList] would be horrible for that
+                                // This can be a [Map] for multiple types of fluids,
+                                // but this should be enough for now.
+                                // Using an [ArrayList] here since we need to sort this later.
+                                // [LinkedList] would be horrible for that
                                 .getOrPut(FLUID_BLOCKS_KEY, new ArrayList<>())
                                 .add(bws.getPos());
                         return true;
@@ -82,13 +81,13 @@ public class SCPredicates {
 
         if (drained.amount == Fluid.BUCKET_VOLUME) {
             World world = multi.getWorld();
-            BlockPos pos = toFill.get(0);
+            BlockPos pos = toFill.getFirst();
 
             if (world.isBlockLoaded(pos) &&
                     (world.isAirBlock(pos) || world.getBlockState(pos).getBlock() == fluid.getBlock())) {
                 world.setBlockState(pos, fluid.getBlock().getDefaultState(), BlockFlags.SEND_TO_CLIENTS);
                 fluidInputs.drain(drained, true);
-                toFill.remove(0);
+                toFill.removeFirst();
             }
         }
     }

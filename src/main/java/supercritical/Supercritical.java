@@ -12,20 +12,20 @@ import supercritical.common.blocks.SCMetaBlocks;
 import supercritical.common.item.SCMetaItems;
 import supercritical.common.metatileentities.SCMetaTileEntities;
 
-@Mod(modid = SCInternalTags.MODID,
-     version = SCInternalTags.VERSION,
-     name = SCInternalTags.MODNAME,
+@Mod(modid = Tags.MOD_ID,
+     version = Tags.MOD_VERSION,
+     name = Tags.MOD_NAME,
      dependencies = "required-after:gregtech@[2.8.10-beta,);" +
              "required-after:mixinbooter@[9.0,);",
      acceptedMinecraftVersions = "[1.12.2]")
 public class Supercritical {
 
-    @SidedProxy(modId = SCValues.MODID,
+    @SidedProxy(modId = Tags.MOD_ID,
                 clientSide = "supercritical.client.ClientProxy",
                 serverSide = "supercritical.common.CommonProxy")
     public static CommonProxy proxy;
 
-    @Mod.Instance(SCValues.MODID)
+    @Mod.Instance(Tags.MOD_ID)
     public static Supercritical instance;
 
     @Mod.EventHandler

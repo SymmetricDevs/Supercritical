@@ -3,9 +3,9 @@ package supercritical.common;
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.Config.*;
 
-import supercritical.SCValues;
+import supercritical.Tags;
 
-@Config(modid = SCValues.MODID)
+@Config(modid = Tags.MOD_ID)
 public class SCConfigHolder {
 
     @Comment("Config options for Supercritical")

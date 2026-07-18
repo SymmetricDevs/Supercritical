@@ -24,7 +24,7 @@ import gregtech.api.fluids.GTFluidMaterial;
 import gregtech.api.fluids.GTFluidRegistration;
 import gregtech.api.unification.material.Material;
 import gregtech.api.util.GTUtility;
-import supercritical.SCInternalTags;
+import supercritical.Tags;
 
 public class BlockMoltenCorium extends GTFluidBlock {
 
@@ -45,7 +45,7 @@ public class BlockMoltenCorium extends GTFluidBlock {
 
         block.setRenderLayer(BlockRenderLayer.SOLID);
         block.setLightOpacity(255);
-        block.setRegistryName(SCInternalTags.MODID, "fluid." + fluid.getName());
+        block.setRegistryName(Tags.MOD_ID, "fluid." + fluid.getName());
 
         GTFluidRegistration.INSTANCE.registerFluidBlock(block);
         fluid.setBlock(block);
