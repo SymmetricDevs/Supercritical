@@ -111,6 +111,7 @@ val publishToCurseForgeTask = tasks.register<TaskPublishCurseForge>("curseforge"
         changelogType = CurseForge.CHANGELOG_MARKDOWN
         changelog = readChangelog()
         addModLoader("Forge")
+        addJavaVersion("Java 8")
         addEnvironment(*logicalSide)
         addGameVersion(mcVersion)
 //        withAdditionalFile(tasks.jar)

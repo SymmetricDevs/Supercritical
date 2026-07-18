@@ -1,6 +1,5 @@
 import com.gtnewhorizons.retrofuturagradle.minecraft.RunMinecraftTask
 import com.gtnewhorizons.retrofuturagradle.util.Distribution
-import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
     alias(libs.plugins.accesstransformers)
@@ -79,8 +78,8 @@ if (accessTransformers.isNotEmpty()) {
     tasks.applyJST {
         accessTransformerFiles.from(
             accessTransformers.split(";")
-                .map { file("src/main/resources/$it") }
-                .onEach { if (!it.exists()) throw GradleException("Could not find accessTransformer file \"$it\"!") })
+            .map { file("src/main/resources/$it") }
+            .onEach { if (!it.exists()) throw GradleException("Could not find accessTransformer file \"$it\"!") })
     }
 }
 
@@ -99,9 +98,13 @@ tasks.processResources {
         "mixinextras_min_version" to libs.versions.mixinExtras.get(),
     )
 
+    val refmap = mixinRefmap
+
     // Template files
     filesMatching(listOf("mcmod.info", "pack.mcmeta", "*mixin*.json")) {
-        filter<ReplaceTokens>("tokens" to templateTokens)
+        if (name != refmap) {
+            expand(templateTokens)
+        }
     }
 
     // Copy AT files to where it should be
