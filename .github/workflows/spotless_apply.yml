@@ -13,6 +13,8 @@ jobs:
   spotless-apply:
     if: "!contains(github.event.head_commit.message, '[bot]')"
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
 
       - name: Checkout code
