@@ -34,4 +34,4 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          git diff --cached --exit-code || (git commit -m "format: spotless auto-apply [bot]" && git push git@github.com:SymmetricDevs/Susy-Core.git main)
+          git diff --cached --exit-code || (git commit -m "format: spotless auto-apply [bot]" && git push git@github.com:SymmetricDevs/Supercritical.git main)
