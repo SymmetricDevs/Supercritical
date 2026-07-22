@@ -19,13 +19,14 @@ immersiveRailroading = "4970105"
 pyrotech = "5351359"
 athenaeum = "4633750"
 dropt = "5405050"
-lombokPlugin = "9.5.0"
+lombok = "1.18.46"
 ctm = "MC1.12.2-1.0.2.31"
 
 [libraries]
 annotations = { module = "org.jetbrains:annotations", version.ref = "annotations" }
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
 assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 
 hei = { module = "mezz:jei", version.ref = "hei" }
 theOneProbe = { module = "maven.modrinth:the-one-probe", version.ref = "theOneProbe" }
@@ -44,6 +45,3 @@ pyrotech = { module = "curse.maven:pyrotech-306676", version.ref = "pyrotech" }
 athenaeum = { module = "curse.maven:athenaeum-284350", version.ref = "athenaeum" }
 dropt = { module = "curse.maven:dropt-284973", version.ref = "dropt" }
 ctm = { module = "team.chisel.ctm:CTM", version.ref = "ctm" }
-
-[plugins]
-lombok = { id = "io.freefair.lombok", version.ref = "lombokPlugin" }

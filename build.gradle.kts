@@ -13,7 +13,6 @@ plugins {
     alias(conventions.plugins.idea)
     alias(conventions.plugins.test)
     alias(conventions.plugins.jvm)
-    alias(deps.plugins.lombok)
 }
 
 repositories {
@@ -27,6 +26,12 @@ dependencies {
     fun Provider<MinimalExternalModuleDependency>.deobf() = get().let {
         rfg.deobf("${it.module.group}:${it.module.name}:${it.versionConstraint.requiredVersion}")
     }
+
+    // Lombok
+    compileOnly(deps.lombok)
+    annotationProcessor(deps.lombok)
+    testCompileOnly(deps.lombok)
+    testAnnotationProcessor(deps.lombok)
 
     api(deps.gregtech)
     api(deps.openComputers.deobf())
