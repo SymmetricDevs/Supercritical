@@ -6,6 +6,7 @@ import org.gradle.api.provider.Provider
 plugins {
     alias(conventions.plugins.repositories)
     alias(conventions.plugins.minecraft)
+    alias(conventions.plugins.spotless)
     alias(conventions.plugins.publish)
     alias(conventions.plugins.shadow)
     alias(conventions.plugins.jvmdg)
