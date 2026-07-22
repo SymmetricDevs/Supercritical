@@ -16,6 +16,13 @@ plugins {
     alias(deps.plugins.lombok)
 }
 
+repositories {
+    maven {
+        name = "tterrag Maven"
+        url = uri("https://maven.tterrag.com/")
+    }
+}
+
 dependencies {
     fun Provider<MinimalExternalModuleDependency>.deobf() = get().let {
         rfg.deobf("${it.module.group}:${it.module.name}:${it.versionConstraint.requiredVersion}")
