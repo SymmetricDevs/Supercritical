@@ -27,7 +27,7 @@ on:
         description: Publish to MR
         required: true
         type: boolean
-        default: true
+        default: false
       publish-gh:
         description: Publish to Github
         required: true
