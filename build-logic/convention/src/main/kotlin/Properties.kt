@@ -20,6 +20,7 @@ val Project.useLwjgl3ify: Boolean by flag(default = true)
 val Project.enableHotswap: Boolean by envOrFlag("HOTSWAP", default = true)
 
 val Project.generateTags: Boolean by flag(default = true)
+val Project.enableSpotless: Boolean by flag(default = false)
 
 val Project.accessTransformers: String by optional()
 val Project.useMixin: Boolean by flag(default = false)
