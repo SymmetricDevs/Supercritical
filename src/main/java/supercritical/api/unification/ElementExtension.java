@@ -6,19 +6,19 @@ import lombok.experimental.UtilityClass;
 /// See [MixinElement]
 public interface ElementExtension {
 
-    double getHalfLiveSeconds();
+	double getHalfLiveSeconds();
 
-    void setHalfLiveSeconds(double halfLifeSeconds);
+	void setHalfLiveSeconds(double halfLifeSeconds);
 
-    @UtilityClass
-    class Handler {
+	@UtilityClass
+	class Handler {
 
-        public double getHalfLiveSeconds(Element element) {
-            return ((ElementExtension) element).getHalfLiveSeconds();
-        }
+		public double getHalfLiveSeconds(Element element) {
+			return ((ElementExtension) element).getHalfLiveSeconds();
+		}
 
-        public void setHalfLiveSeconds(Element element, double halfLifeSeconds) {
-            ((ElementExtension) element).setHalfLiveSeconds(halfLifeSeconds);
-        }
-    }
+		public void setHalfLiveSeconds(Element element, double halfLifeSeconds) {
+			((ElementExtension) element).setHalfLiveSeconds(halfLifeSeconds);
+		}
+	}
 }

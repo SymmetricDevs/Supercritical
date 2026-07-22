@@ -1,10 +1,19 @@
 package supercritical.common;
 
+import gregtech.api.GregTechAPI;
+import gregtech.api.block.VariantItemBlock;
+import gregtech.api.modules.ModuleContainerRegistryEvent;
+import gregtech.api.unification.OreDictUnifier;
+import gregtech.api.unification.material.Material;
+import gregtech.api.unification.material.event.MaterialRegistryEvent;
+import gregtech.api.unification.material.event.PostMaterialEvent;
+import gregtech.common.blocks.MetaBlocks;
+import gregtech.common.items.MetaItems;
+import gregtech.modules.ModuleManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
-
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.Item;
@@ -19,19 +28,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.registries.IForgeRegistry;
-
 import org.jetbrains.annotations.NotNull;
-
-import gregtech.api.GregTechAPI;
-import gregtech.api.block.VariantItemBlock;
-import gregtech.api.modules.ModuleContainerRegistryEvent;
-import gregtech.api.unification.OreDictUnifier;
-import gregtech.api.unification.material.Material;
-import gregtech.api.unification.material.event.MaterialRegistryEvent;
-import gregtech.api.unification.material.event.PostMaterialEvent;
-import gregtech.common.blocks.MetaBlocks;
-import gregtech.common.items.MetaItems;
-import gregtech.modules.ModuleManager;
 import supercritical.Tags;
 import supercritical.api.nuclear.fission.CoolantRegistry;
 import supercritical.api.nuclear.fission.FissionFuelRegistry;
@@ -50,107 +47,101 @@ import supercritical.modules.SCModules;
 @Mod.EventBusSubscriber(modid = Tags.MOD_ID)
 public class CommonProxy {
 
-    @SubscribeEvent
-    public static void syncConfigValues(ConfigChangedEvent.OnConfigChangedEvent event) {
-        if (event.getModID().equals(Tags.MOD_ID)) {
-            ConfigManager.sync(Tags.MOD_ID, Config.Type.INSTANCE);
-        }
-    }
+	@SubscribeEvent
+	public static void syncConfigValues(ConfigChangedEvent.OnConfigChangedEvent event) {
+		if (event.getModID().equals(Tags.MOD_ID)) {
+			ConfigManager.sync(Tags.MOD_ID, Config.Type.INSTANCE);
+		}
+	}
 
-    @SubscribeEvent
-    public static void registerBlocks(RegistryEvent.Register<Block> event) {
-        SCLog.logger.info("Registering blocks...");
-        IForgeRegistry<Block> registry = event.getRegistry();
+	@SubscribeEvent
+	public static void registerBlocks(RegistryEvent.Register<Block> event) {
+		SCLog.logger.info("Registering blocks...");
+		IForgeRegistry<Block> registry = event.getRegistry();
 
-        registry.register(SCMetaBlocks.FISSION_CASING);
-        registry.register(SCMetaBlocks.NUCLEAR_CASING);
-        registry.register(SCMetaBlocks.GAS_CENTRIFUGE_CASING);
-        registry.register(SCMetaBlocks.PANELLING);
-    }
+		registry.register(SCMetaBlocks.FISSION_CASING);
+		registry.register(SCMetaBlocks.NUCLEAR_CASING);
+		registry.register(SCMetaBlocks.GAS_CENTRIFUGE_CASING);
+		registry.register(SCMetaBlocks.PANELLING);
+	}
 
-    @SubscribeEvent
-    public static void registerItems(RegistryEvent.Register<Item> event) {
-        SCLog.logger.info("Registering Items...");
+	@SubscribeEvent
+	public static void registerItems(RegistryEvent.Register<Item> event) {
+		SCLog.logger.info("Registering Items...");
 
-        SCMetaItems.initSubitems();
-        IForgeRegistry<Item> registry = event.getRegistry();
+		SCMetaItems.initSubitems();
+		IForgeRegistry<Item> registry = event.getRegistry();
 
-        registry.register(createItemBlock(SCMetaBlocks.FISSION_CASING, VariantItemBlock::new));
-        registry.register(createItemBlock(SCMetaBlocks.NUCLEAR_CASING, VariantItemBlock::new));
-        registry.register(createItemBlock(SCMetaBlocks.GAS_CENTRIFUGE_CASING, VariantItemBlock::new));
-        registry.register(createItemBlock(SCMetaBlocks.PANELLING, VariantItemBlock::new));
-    }
+		registry.register(createItemBlock(SCMetaBlocks.FISSION_CASING, VariantItemBlock::new));
+		registry.register(createItemBlock(SCMetaBlocks.NUCLEAR_CASING, VariantItemBlock::new));
+		registry.register(createItemBlock(SCMetaBlocks.GAS_CENTRIFUGE_CASING, VariantItemBlock::new));
+		registry.register(createItemBlock(SCMetaBlocks.PANELLING, VariantItemBlock::new));
+	}
 
-    private static <T extends Block> ItemBlock createItemBlock(T block, Function<T, ItemBlock> producer) {
-        ItemBlock itemBlock = producer.apply(block);
-        itemBlock.setRegistryName(Objects.requireNonNull(block.getRegistryName()));
-        return itemBlock;
-    }
+	private static <T extends Block> ItemBlock createItemBlock(T block, Function<T, ItemBlock> producer) {
+		ItemBlock itemBlock = producer.apply(block);
+		itemBlock.setRegistryName(Objects.requireNonNull(block.getRegistryName()));
+		return itemBlock;
+	}
 
-    @SubscribeEvent
-    public static void postRegisterMaterials(@NotNull PostMaterialEvent event) {
-        MetaItems.addOrePrefix(
-                SCOrePrefix.fuelRod,
-                SCOrePrefix.fuelRodDepleted,
-                SCOrePrefix.fuelRodHotDepleted,
-                SCOrePrefix.fuelPelletRaw,
-                SCOrePrefix.fuelPellet,
-                SCOrePrefix.fuelPelletDepleted,
-                SCOrePrefix.dustSpentFuel,
-                SCOrePrefix.dustBredFuel,
-                SCOrePrefix.dustFissionByproduct);
-    }
+	@SubscribeEvent
+	public static void postRegisterMaterials(@NotNull PostMaterialEvent event) {
+		MetaItems.addOrePrefix(SCOrePrefix.fuelRod, SCOrePrefix.fuelRodDepleted, SCOrePrefix.fuelRodHotDepleted,
+				SCOrePrefix.fuelPelletRaw, SCOrePrefix.fuelPellet, SCOrePrefix.fuelPelletDepleted,
+				SCOrePrefix.dustSpentFuel, SCOrePrefix.dustBredFuel, SCOrePrefix.dustFissionByproduct);
+	}
 
-    @SubscribeEvent
-    public static void registerRecipes(RegistryEvent.Register<IRecipe> event) {
-        SCLog.logger.info("Registering recipes...");
+	@SubscribeEvent
+	public static void registerRecipes(RegistryEvent.Register<IRecipe> event) {
+		SCLog.logger.info("Registering recipes...");
 
-        SCRecipeManager.load();
-    }
+		SCRecipeManager.load();
+	}
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void registerRecipesLowest(RegistryEvent.Register<IRecipe> event) {
-        SCLog.logger.info("Running late material handlers...");
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public static void registerRecipesLowest(RegistryEvent.Register<IRecipe> event) {
+		SCLog.logger.info("Running late material handlers...");
 
-        SCRecipeManager.loadLatest();
-    }
+		SCRecipeManager.loadLatest();
+	}
 
-    public void preLoad() {}
+	public void preLoad() {
+	}
 
-    public void postLoad() {
-        for (Material material : GregTechAPI.materialManager.getRegisteredMaterials()) {
-            if (material.hasProperty(SCPropertyKey.FISSION_FUEL)) {
-                FissionFuelProperty prop = material.getProperty(SCPropertyKey.FISSION_FUEL);
-                if (prop.getDepletedFuelSupplier() == null) {
-                    prop.setDepletedFuelSupplier(
-                            (thermalProportion) -> OreDictUnifier.get(SCOrePrefix.fuelRodHotDepleted, material));
-                    prop.setAllDepletedFuels(() -> {
-                        List<ItemStack> depletedFuels = new ArrayList<>();
-                        depletedFuels.add(OreDictUnifier.get(SCOrePrefix.fuelRodHotDepleted, material));
-                        return depletedFuels;
-                    });
-                }
-                FissionFuelRegistry.registerFuel(OreDictUnifier.get(SCOrePrefix.fuelRod, material), prop);
-            }
-            if (material.hasProperty(SCPropertyKey.COOLANT)) {
-                CoolantProperty prop = material.getProperty(SCPropertyKey.COOLANT);
-                CoolantRegistry.registerCoolant(material.getFluid(prop.getCoolantKey()), prop);
-            }
-            if (material.hasProperty(SCPropertyKey.MODERATOR)) {
-                ModeratorProperty prop = material.getProperty(SCPropertyKey.MODERATOR);
-                IBlockState state = MetaBlocks.COMPRESSED.get(material).getBlock(material);
-                ModeratorRegistry.registerModerator(state, prop);
-            }
-        }
-    }
+	public void postLoad() {
+		for (Material material : GregTechAPI.materialManager.getRegisteredMaterials()) {
+			if (material.hasProperty(SCPropertyKey.FISSION_FUEL)) {
+				FissionFuelProperty prop = material.getProperty(SCPropertyKey.FISSION_FUEL);
+				if (prop.getDepletedFuelSupplier() == null) {
+					prop.setDepletedFuelSupplier(
+							(thermalProportion) -> OreDictUnifier.get(SCOrePrefix.fuelRodHotDepleted, material));
+					prop.setAllDepletedFuels(() -> {
+						List<ItemStack> depletedFuels = new ArrayList<>();
+						depletedFuels.add(OreDictUnifier.get(SCOrePrefix.fuelRodHotDepleted, material));
+						return depletedFuels;
+					});
+				}
+				FissionFuelRegistry.registerFuel(OreDictUnifier.get(SCOrePrefix.fuelRod, material), prop);
+			}
+			if (material.hasProperty(SCPropertyKey.COOLANT)) {
+				CoolantProperty prop = material.getProperty(SCPropertyKey.COOLANT);
+				CoolantRegistry.registerCoolant(material.getFluid(prop.getCoolantKey()), prop);
+			}
+			if (material.hasProperty(SCPropertyKey.MODERATOR)) {
+				ModeratorProperty prop = material.getProperty(SCPropertyKey.MODERATOR);
+				IBlockState state = MetaBlocks.COMPRESSED.get(material).getBlock(material);
+				ModeratorRegistry.registerModerator(state, prop);
+			}
+		}
+	}
 
-    @SubscribeEvent
-    public static void createMaterialRegistry(MaterialRegistryEvent event) {
-        GregTechAPI.materialManager.createRegistry(Tags.MOD_ID);
-    }
+	@SubscribeEvent
+	public static void createMaterialRegistry(MaterialRegistryEvent event) {
+		GregTechAPI.materialManager.createRegistry(Tags.MOD_ID);
+	}
 
-    @SubscribeEvent
-    public static void registerModuleContainer(ModuleContainerRegistryEvent event) {
-        ModuleManager.getInstance().registerContainer(new SCModules());
-    }
+	@SubscribeEvent
+	public static void registerModuleContainer(ModuleContainerRegistryEvent event) {
+		ModuleManager.getInstance().registerContainer(new SCModules());
+	}
 }

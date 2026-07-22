@@ -7,12 +7,12 @@ import supercritical.Tags;
 @ModuleContainer
 public class SCModules implements IModuleContainer {
 
-    public static final String MODULE_CORE = "supercritical_core";
-    public static final String MODULE_JEI = "supercritical_jei_integration";
-    public static final String MODULE_OC = "supercritical_oc_integration";
+	public static final String MODULE_CORE = "supercritical_core";
+	public static final String MODULE_JEI = "supercritical_jei_integration";
+	public static final String MODULE_OC = "supercritical_oc_integration";
 
-    @Override
-    public String getID() {
-        return Tags.MOD_ID;
-    }
+	@Override
+	public String getID() {
+		return Tags.MOD_ID;
+	}
 }

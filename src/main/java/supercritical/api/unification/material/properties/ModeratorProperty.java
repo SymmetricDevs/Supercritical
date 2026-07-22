@@ -10,15 +10,15 @@ import supercritical.api.nuclear.fission.IModeratorStats;
 @Builder
 public class ModeratorProperty implements IMaterialProperty, IModeratorStats {
 
-    @Getter
-    private int maxTemperature;
-    @Getter
-    private double moderationFactor;
-    @Getter
-    private double absorptionFactor;
+	@Getter
+	private int maxTemperature;
+	@Getter
+	private double moderationFactor;
+	@Getter
+	private double absorptionFactor;
 
-    @Override
-    public void verifyProperty(MaterialProperties properties) {
-        properties.ensureSet(PropertyKey.DUST, true);
-    }
+	@Override
+	public void verifyProperty(MaterialProperties properties) {
+		properties.ensureSet(PropertyKey.DUST, true);
+	}
 }

@@ -12,16 +12,13 @@ import supercritical.api.nuclear.fission.ICoolantStats;
 
 public interface ICoolantHandler extends ILockableHandler<Fluid>, IFissionReactorHatch {
 
-    @Nullable
-    ICoolantStats getCoolant();
+	@Nullable ICoolantStats getCoolant();
 
-    void setCoolant(@Nullable ICoolantStats prop);
+	void setCoolant(@Nullable ICoolantStats prop);
 
-    @NotNull
-    LockableFluidTank getFluidTank();
+	@NotNull LockableFluidTank getFluidTank();
 
-    @NotNull
-    EnumFacing getFrontFacing();
+	@NotNull EnumFacing getFrontFacing();
 
-    ICoolantHandler getOutputHandler();
+	ICoolantHandler getOutputHandler();
 }
