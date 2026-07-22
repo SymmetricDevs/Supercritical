@@ -6,12 +6,12 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import gregtech.api.unification.material.event.MaterialEvent;
 import gregtech.api.unification.material.event.PostMaterialEvent;
-import supercritical.SCValues;
+import supercritical.Tags;
 import supercritical.api.unification.material.SCMaterials;
 import supercritical.api.unification.ore.SCOrePrefix;
 import supercritical.common.materials.*;
 
-@Mod.EventBusSubscriber(modid = SCValues.MODID)
+@Mod.EventBusSubscriber(modid = Tags.MOD_ID)
 public final class SCEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGH)

@@ -7,12 +7,12 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import gregtech.api.modules.GregTechModule;
 import gregtech.api.util.Mods;
 import gregtech.integration.IntegrationSubmodule;
-import supercritical.SCValues;
+import supercritical.Tags;
 import supercritical.integration.opencomputers.drivers.specific.DriverFissionReactor;
 import supercritical.modules.SCModules;
 
 @GregTechModule(moduleID = SCModules.MODULE_OC,
-                containerID = SCValues.MODID,
+                containerID = Tags.MOD_ID,
                 modDependencies = Mods.Names.OPEN_COMPUTERS,
                 name = "Supercritical OpenComputers Integration",
                 description = "Supercritical OpenComputers Integration Module")

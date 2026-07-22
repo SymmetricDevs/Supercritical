@@ -5,14 +5,14 @@ import net.minecraft.util.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 import lombok.experimental.UtilityClass;
-import supercritical.SCValues;
+import supercritical.Tags;
 
 @UtilityClass
 public class SCUtility {
 
     @NotNull
     public static ResourceLocation scId(@NotNull String path) {
-        return new ResourceLocation(SCValues.MODID, path);
+        return new ResourceLocation(Tags.MOD_ID, path);
     }
 
     public static String replace(String str, int index, char replace) {

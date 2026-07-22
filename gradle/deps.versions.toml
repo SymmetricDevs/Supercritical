@@ -1,0 +1,49 @@
+[versions]
+annotations = "26.1.0"
+jspecify = "1.0.0"
+assertj = "3.27.7"
+
+hei = "4.31.2"
+theOneProbe = "1.12-1.4.28"
+
+gregtech = "2.8.10-beta"
+openComputers = "5274236"
+gregicalityMultiblocks = "5619513"
+gregtechFoodOption = "5994740"
+susyCore = "6101213"
+sussyPatches = "6849902"
+geckolib = "4020277"
+universalModCore = "4975229"
+trackApi = "2825260"
+immersiveRailroading = "4970105"
+pyrotech = "5351359"
+athenaeum = "4633750"
+dropt = "5405050"
+lombokPlugin = "9.5.0"
+ctm = "MC1.12.2-1.0.2.31"
+
+[libraries]
+annotations = { module = "org.jetbrains:annotations", version.ref = "annotations" }
+jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
+assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+
+hei = { module = "mezz:jei", version.ref = "hei" }
+theOneProbe = { module = "maven.modrinth:the-one-probe", version.ref = "theOneProbe" }
+
+gregtech = { module = "gregtech:gregtech", version.ref = "gregtech" }
+openComputers = { module = "curse.maven:opencomputers-223008", version.ref = "openComputers" }
+gregicalityMultiblocks = { module = "curse.maven:gregicality-multiblocks-564858", version.ref = "gregicalityMultiblocks" }
+gregtechFoodOption = { module = "curse.maven:gregtech-food-option-477021", version.ref = "gregtechFoodOption" }
+susyCore = { module = "curse.maven:susycore-846224", version.ref = "susyCore" }
+sussyPatches = { module = "curse.maven:sussypatches-1319894", version.ref = "sussyPatches" }
+geckolib = { module = "curse.maven:geckolib-388172", version.ref = "geckolib" }
+universalModCore = { module = "curse.maven:universal-mod-core-371784", version.ref = "universalModCore" }
+trackApi = { module = "curse.maven:track-api-282613", version.ref = "trackApi" }
+immersiveRailroading = { module = "curse.maven:immersive-railroading-277736", version.ref = "immersiveRailroading" }
+pyrotech = { module = "curse.maven:pyrotech-306676", version.ref = "pyrotech" }
+athenaeum = { module = "curse.maven:athenaeum-284350", version.ref = "athenaeum" }
+dropt = { module = "curse.maven:dropt-284973", version.ref = "dropt" }
+ctm = { module = "team.chisel.ctm:CTM", version.ref = "ctm" }
+
+[plugins]
+lombok = { id = "io.freefair.lombok", version.ref = "lombokPlugin" }
