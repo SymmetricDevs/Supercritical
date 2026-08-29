@@ -319,7 +319,7 @@ public class FissionReactor {
 					// Skip over calculations that could modify the result based on the rotation
 					// or mirror of the design. Change the divisor for later on so the final numbers
 					// are as close as possible to the previous version when these weren't skipped.
-					if ( onCornerOrEdge(xf, yf) ) {
+					if (onCornerOrEdge(xf, yf)) {
 						adjustedResolution--;
 						continue;
 					}
