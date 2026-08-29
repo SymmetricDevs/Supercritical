@@ -311,10 +311,8 @@ public class FissionReactor {
 				final double resolution = SCConfigHolder.nuclear.fissionReactorResolution;
 				double adjustedResolution = resolution;
 				for (int t = 0; t < resolution; t++) {
-					double xf = (rodTwo.getX() - rodOne.getX()) *
-							((float) t / resolution) + fuelRods.get(i).getX();
-					double yf = (rodTwo.getY() - rodOne.getY()) *
-							((float) t / resolution) + fuelRods.get(i).getY();
+					double xf = (rodTwo.getX() - rodOne.getX()) * ((float) t / resolution) + fuelRods.get(i).getX();
+					double yf = (rodTwo.getY() - rodOne.getY()) * ((float) t / resolution) + fuelRods.get(i).getY();
 
 					// Skip over calculations that could modify the result based on the rotation
 					// or mirror of the design. Change the divisor for later on so the final numbers
