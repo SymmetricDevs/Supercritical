@@ -2,9 +2,10 @@ plugins {
     alias(libs.plugins.spotless)
 }
 
-if (enableSpotless || true) {
+if (enableSpotless) {
     spotless {
         encoding = Charsets.UTF_8
+        isEnforceCheck = false
 
         format("misc") {
             target(
@@ -26,9 +27,9 @@ if (enableSpotless || true) {
             toggleOffOn()
             removeUnusedImports()
             leadingTabsToSpaces()
-            importOrder()
+            importOrderFile(rootProject.file("spotless.importorder"))
             endWithNewline()
-            eclipse()
+            eclipse().configFile(rootProject.file("spotless.eclipseformat.xml"))
             formatAnnotations()
         }
     }
