@@ -12,27 +12,32 @@ import supercritical.common.blocks.SCMetaBlocks;
 import supercritical.common.item.SCMetaItems;
 import supercritical.common.metatileentities.SCMetaTileEntities;
 
-@Mod(modid = Tags.MOD_ID, version = Tags.MOD_VERSION, name = Tags.MOD_NAME, dependencies = "required-after:gregtech@[2.8.10-beta,);"
-		+ "required-after:mixinbooter@[9.0,);", acceptedMinecraftVersions = "[1.12.2]")
+@Mod(modid = Tags.MOD_ID,
+     version = Tags.MOD_VERSION,
+     name = Tags.MOD_NAME,
+     dependencies = "required-after:gregtech@[2.8.10-beta,);" + "required-after:mixinbooter@[9.0,);",
+     acceptedMinecraftVersions = "[1.12.2]")
 public class Supercritical {
 
-	@SidedProxy(modId = Tags.MOD_ID, clientSide = "supercritical.client.ClientProxy", serverSide = "supercritical.common.CommonProxy")
-	public static CommonProxy proxy;
+    @SidedProxy(modId = Tags.MOD_ID,
+                clientSide = "supercritical.client.ClientProxy",
+                serverSide = "supercritical.common.CommonProxy")
+    public static CommonProxy proxy;
 
-	@Mod.Instance(Tags.MOD_ID)
-	public static Supercritical instance;
+    @Mod.Instance(Tags.MOD_ID)
+    public static Supercritical instance;
 
-	@Mod.EventHandler
-	public void onPreInit(@NotNull FMLPreInitializationEvent event) {
-		SCMetaItems.initMetaItems();
-		SCMetaBlocks.init();
-		SCMetaTileEntities.init();
+    @Mod.EventHandler
+    public void onPreInit(@NotNull FMLPreInitializationEvent event) {
+        SCMetaItems.initMetaItems();
+        SCMetaBlocks.init();
+        SCMetaTileEntities.init();
 
-		proxy.preLoad();
-	}
+        proxy.preLoad();
+    }
 
-	@Mod.EventHandler
-	public void onPostInit(FMLPostInitializationEvent event) {
-		proxy.postLoad();
-	}
+    @Mod.EventHandler
+    public void onPostInit(FMLPostInitializationEvent event) {
+        proxy.postLoad();
+    }
 }

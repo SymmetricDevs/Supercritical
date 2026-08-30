@@ -1,7 +1,8 @@
 package supercritical.mixins.gregtech;
 
-import gregtech.api.items.armor.IArmorLogic;
 import org.spongepowered.asm.mixin.Mixin;
+
+import gregtech.api.items.armor.IArmorLogic;
 import supercritical.api.items.armor.ArmorLogicExtension;
 
 /**

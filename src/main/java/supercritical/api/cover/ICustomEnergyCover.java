@@ -6,13 +6,13 @@ package supercritical.api.cover;
  */
 public interface ICustomEnergyCover {
 
-	/**
-	 * @return The total EU capacity
-	 */
-	long getCoverCapacity();
+    /**
+     * @return The total EU capacity
+     */
+    long getCoverCapacity();
 
-	/**
-	 * @return The stored EU capacity
-	 */
-	long getCoverStored();
+    /**
+     * @return The stored EU capacity
+     */
+    long getCoverStored();
 }

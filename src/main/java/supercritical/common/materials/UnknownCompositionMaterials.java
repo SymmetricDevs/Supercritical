@@ -11,10 +11,10 @@ import gregtech.api.unification.material.Material;
  */
 public class UnknownCompositionMaterials {
 
-	public static void register() {
-		SpentUraniumFuelSolution = new Material.Builder(1501, scId("spent_uranium_fuel_solution")).liquid()
-				.color(0x384536).build();
+    public static void register() {
+        SpentUraniumFuelSolution = new Material.Builder(1501, scId("spent_uranium_fuel_solution")).liquid()
+                .color(0x384536).build();
 
-		RadonRichGasMixture = new Material.Builder(1502, scId("radon_rich_gas_mixture")).gas().color(0xd78dd9).build();
-	}
+        RadonRichGasMixture = new Material.Builder(1502, scId("radon_rich_gas_mixture")).gas().color(0xd78dd9).build();
+    }
 }

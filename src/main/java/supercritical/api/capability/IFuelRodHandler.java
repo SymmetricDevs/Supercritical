@@ -9,34 +9,34 @@ import supercritical.api.nuclear.fission.components.FuelRod;
 
 public interface IFuelRodHandler extends ILockableHandler<ItemStack> {
 
-	IFissionFuelStats getFuel();
+    IFissionFuelStats getFuel();
 
-	void setFuel(IFissionFuelStats prop);
+    void setFuel(IFissionFuelStats prop);
 
-	IFissionFuelStats getPartialFuel();
+    IFissionFuelStats getPartialFuel();
 
-	/**
-	 * Set the fuel type that's currently being processed by this specific handler.
-	 * 
-	 * @param prop
-	 *            The new fuel type.
-	 * @return true if the partial fuel changed.
-	 */
-	boolean setPartialFuel(IFissionFuelStats prop);
+    /**
+     * Set the fuel type that's currently being processed by this specific handler.
+     * 
+     * @param prop
+     *             The new fuel type.
+     * @return true if the partial fuel changed.
+     */
+    boolean setPartialFuel(IFissionFuelStats prop);
 
-	void setInternalFuelRod(FuelRod rod);
+    void setInternalFuelRod(FuelRod rod);
 
-	double getDepletionPoint();
+    double getDepletionPoint();
 
-	boolean isDepleted(double totalDepletion);
+    boolean isDepleted(double totalDepletion);
 
-	void markUndepleted();
+    void markUndepleted();
 
-	LockableItemStackHandler getInputStackHandler();
+    LockableItemStackHandler getInputStackHandler();
 
-	IItemHandlerModifiable getOutputStackHandler(int depth);
+    IItemHandlerModifiable getOutputStackHandler(int depth);
 
-	void resetDepletion(double fuelDepletion);
+    void resetDepletion(double fuelDepletion);
 
-	ItemStack getDepletedFuel();
+    ItemStack getDepletedFuel();
 }

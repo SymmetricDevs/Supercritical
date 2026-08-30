@@ -8,24 +8,23 @@ import gregtech.api.util.ValidationResult;
 
 public class NoEnergyRecipeBuilder extends RecipeBuilder<NoEnergyRecipeBuilder> {
 
-	public NoEnergyRecipeBuilder() {
-	}
+    public NoEnergyRecipeBuilder() {}
 
-	public NoEnergyRecipeBuilder(Recipe recipe, RecipeMap<NoEnergyRecipeBuilder> recipeMap) {
-		super(recipe, recipeMap);
-	}
+    public NoEnergyRecipeBuilder(Recipe recipe, RecipeMap<NoEnergyRecipeBuilder> recipeMap) {
+        super(recipe, recipeMap);
+    }
 
-	public NoEnergyRecipeBuilder(RecipeBuilder<NoEnergyRecipeBuilder> recipeBuilder) {
-		super(recipeBuilder);
-	}
+    public NoEnergyRecipeBuilder(RecipeBuilder<NoEnergyRecipeBuilder> recipeBuilder) {
+        super(recipeBuilder);
+    }
 
-	public NoEnergyRecipeBuilder copy() {
-		return new NoEnergyRecipeBuilder(this);
-	}
+    public NoEnergyRecipeBuilder copy() {
+        return new NoEnergyRecipeBuilder(this);
+    }
 
-	public ValidationResult<Recipe> build() {
-		this.EUt(1);
-		this.applyProperty(PrimitiveProperty.getInstance(), true);
-		return super.build();
-	}
+    public ValidationResult<Recipe> build() {
+        this.EUt(1);
+        this.applyProperty(PrimitiveProperty.getInstance(), true);
+        return super.build();
+    }
 }

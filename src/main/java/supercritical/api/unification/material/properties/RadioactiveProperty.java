@@ -6,8 +6,8 @@ import gregtech.api.unification.material.properties.PropertyKey;
 
 public class RadioactiveProperty implements IMaterialProperty {
 
-	@Override
-	public void verifyProperty(MaterialProperties properties) {
-		properties.ensureSet(PropertyKey.DUST, true);
-	}
+    @Override
+    public void verifyProperty(MaterialProperties properties) {
+        properties.ensureSet(PropertyKey.DUST, true);
+    }
 }
