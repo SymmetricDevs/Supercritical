@@ -275,6 +275,12 @@ public class FissionReactor {
 		System.arraycopy(result, 0, vector, 0, result.length);
 	}
 
+	private static boolean onCornerOrEdge(double xf, double yf) {
+		double xFrac = xf - Math.floor(xf);
+		double yFrac = yf - Math.floor(yf);
+		return xFrac > 0.499999 && xFrac < 0.500001 || yFrac > 0.499999 && yFrac < 0.500001;
+	}
+
 	public double computeK(boolean addToEffectiveLists, boolean controlRodsInserted) {
 		double[][] geometricMatrixNeutrons = new double[fuelRods.size()][fuelRods.size()];
 		double[][] geometricMatrixFastNeutrons = new double[fuelRods.size()][fuelRods.size()];
@@ -302,12 +308,22 @@ public class FissionReactor {
 				 */
 				int prevX = fuelRods.get(i).getX();
 				int prevY = fuelRods.get(i).getY();
-				double resolution = SCConfigHolder.nuclear.fissionReactorResolution;
+				final double resolution = SCConfigHolder.nuclear.fissionReactorResolution;
+				double adjustedResolution = resolution;
 				for (int t = 0; t < resolution; t++) {
-					int x = (int) Math
-							.round((rodTwo.getX() - rodOne.getX()) * ((float) t / resolution) + fuelRods.get(i).getX());
-					int y = (int) Math
-							.round((rodTwo.getY() - rodOne.getY()) * ((float) t / resolution) + fuelRods.get(i).getY());
+					double xf = (rodTwo.getX() - rodOne.getX()) * ((float) t / resolution) + fuelRods.get(i).getX();
+					double yf = (rodTwo.getY() - rodOne.getY()) * ((float) t / resolution) + fuelRods.get(i).getY();
+
+					// Skip over calculations that could modify the result based on the rotation
+					// or mirror of the design. Change the divisor for later on so the final numbers
+					// are as close as possible to the previous version when these weren't skipped.
+					if (onCornerOrEdge(xf, yf)) {
+						adjustedResolution--;
+						continue;
+					}
+
+					int x = (int) Math.round(xf);
+					int y = (int) Math.round(yf);
 					if (x < 0 || x > reactorLayout.length - 1 || y < 0 || y > reactorLayout.length - 1) {
 						continue;
 					}
@@ -353,9 +369,9 @@ public class FissionReactor {
 				 * neutrons. We do want to account for the macroscopic cross sections of the
 				 * fuel rods and the neutrons released in that fission, though.
 				 */
-				mij /= resolution;
-				faij /= resolution;
-				saij /= resolution;
+				mij /= adjustedResolution;
+				faij /= adjustedResolution;
+				saij /= adjustedResolution;
 				// Basic calculations approximating the numbers of neutrons that go from I to J
 				double dist = rodOne.getDistance(rodTwo);
 				double unabsorbedFast = Math.exp(-faij * dist) / dist;
